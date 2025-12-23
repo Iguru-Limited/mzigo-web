@@ -33,7 +33,7 @@ export function MobileNav() {
               : "text-muted-foreground hover:text-foreground"
           )}
         >
-          <Home className="h-5 w-5" />
+          <Home className="h-8 w-8" />
           <span>home</span>
         </Link>
 
@@ -47,7 +47,7 @@ export function MobileNav() {
               : "text-muted-foreground hover:text-foreground"
           )}
         >
-          <UserCircle className="h-5 w-5" />
+          <UserCircle className="h-8 w-8" />
           <span>profile</span>
         </Link>
 
@@ -57,7 +57,7 @@ export function MobileNav() {
           onClick={handleLogout}
           className="flex flex-col items-center justify-center gap-1 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
         >
-          <LogOut className="h-5 w-5" />
+          <LogOut className="h-8 w-8" />
           <span>logout</span>
         </button>
       </div>
