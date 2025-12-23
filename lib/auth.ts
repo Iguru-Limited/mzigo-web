@@ -1,6 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { getApiUrl, API_ENDPOINTS } from "@/lib/constants";
+import { getApiUrl, API_ENDPOINTS,API_BASE_URL } from "@/lib/constants";
 
 interface LoginResponse {
   status: string;
@@ -103,7 +103,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const loginUrl = "https://iguru.co.ke/PLAYGROUND/mzigo3.0/api/auth/login.php";
+          const loginUrl = getApiUrl(API_ENDPOINTS.AUTH.LOGIN);
           
           const response = await fetch(loginUrl, {
             method: "POST",

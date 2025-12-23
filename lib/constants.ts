@@ -11,15 +11,10 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 // Authentication endpoints
 export const API_ENDPOINTS = {
   AUTH: {
-    LOGIN: "/api/auth/login.php",
-    REFRESH: "/api/auth/refresh.php", // Add when refresh endpoint is available
-    LOGOUT: "/api/auth/logout.php", // Add when logout endpoint is available
+    LOGIN: "/auth/login.php",
+    REFRESH: "/auth/refresh.php", // Add when refresh endpoint is available
+    LOGOUT: "/auth/logout.php", // Add when logout endpoint is available
   },
-  // Add more endpoint categories here as needed
-  // USERS: {
-  //   LIST: "/api/users/list.php",
-  //   CREATE: "/api/users/create.php",
-  // },
 } as const;
 
 /**
