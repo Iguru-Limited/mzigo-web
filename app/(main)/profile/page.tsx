@@ -38,12 +38,12 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
-              <Avatar className="h-20 w-20">
+              {/* <Avatar className="h-20 w-20">
                 <AvatarImage src={session?.user?.image || ""} alt={session?.user?.name || ""} />
                 <AvatarFallback className="bg-primary text-2xl text-primary-foreground">
                   {getInitials(session?.user?.name)}
                 </AvatarFallback>
-              </Avatar>
+              </Avatar> */}
               <div className="flex-1 space-y-3 text-center sm:text-left">
                 <div>
                   <div className="flex items-center gap-2 text-muted-foreground">
@@ -87,7 +87,15 @@ export default function ProfilePage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {session?.user?.rights && session.user.rights.length > 0 ? (
+              {(session as any)?.rolesObject && (session as any).rolesObject.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {(session as any).rolesObject.map((role: any, index: number) => (
+                    <Badge key={index} variant="secondary" className="px-3 py-1">
+                      {role.app_title || role.name}
+                    </Badge>
+                  ))}
+                </div>
+              ) : session?.user?.rights && session.user.rights.length > 0 ? (
                 <div className="flex flex-wrap gap-2">
                   {session.user.rights.map((right, index) => (
                     <Badge key={index} variant="secondary" className="px-3 py-1">

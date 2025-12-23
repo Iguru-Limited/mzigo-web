@@ -11,6 +11,11 @@ declare module "next-auth" {
       image?: string | null;
       rights?: string[];
     };
+    rolesObject?: Array<{
+      name: string;
+      app_title: string;
+      icon_name: string;
+    }>;
     accessToken?: string;
     refreshToken?: string;
     accessTokenExpiresAt?: number;
@@ -33,6 +38,11 @@ declare module "next-auth" {
     phone?: string;
     image?: string | null;
     rights?: string[];
+    rolesObject?: Array<{
+      name: string;
+      app_title: string;
+      icon_name: string;
+    }>;
     accessToken?: string;
     refreshToken?: string;
     role?: {
@@ -55,6 +65,12 @@ declare module "next-auth/jwt" {
     accessTokenExpiresAt?: number;
     refreshTokenExpiresAt?: number;
     phone?: string;
+    rights?: string[];
+    rolesObject?: Array<{
+      name: string;
+      app_title: string;
+      icon_name: string;
+    }>;
     role?: {
       id: string;
       name: string;
