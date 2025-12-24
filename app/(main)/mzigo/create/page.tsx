@@ -1,7 +1,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CreateShipmentForm } from "@/components/mzigo-create/create-shipment-form";
+import { CreateMzigoForm } from "@/components/mzigo-create/create-shipment-form";
 
 export default function CreateShipmentPage() {
   return (
@@ -16,7 +16,7 @@ export default function CreateShipmentPage() {
             <CardTitle>Mzigo Details</CardTitle>
           </CardHeader>
           <CardContent>
-            <CreateShipmentForm />
+            <CreateMzigoForm />
           </CardContent>
         </Card>
       </div>

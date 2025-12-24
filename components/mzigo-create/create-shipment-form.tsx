@@ -9,28 +9,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { VehicleInput } from "@/components/ui/vehicle-input";
+import { DestinationInput } from "@/components/ui/destination-input";
 import { useCreateMzigo } from "@/hooks/use-create-mzigo";
 import { useVehicles } from "@/hooks/use-vehicles";
+import { useDestinations } from "@/hooks/use-destinations";
 
-export function CreateShipmentForm() {
+export function CreateMzigoForm() {
   const router = useRouter();
   const { data: session } = useSession();
   const { createMzigo } = useCreateMzigo();
   const { vehicles, isLoading: vehiclesLoading, error: vehiclesError } = useVehicles();
+  const { destinations, isLoading: destinationsLoading, error: destinationsError } = useDestinations();
 
   const [formData, setFormData] = useState({
     senderName: "",
     senderPhone: "",
     receiverName: "",
     receiverPhone: "",
-    receiverTown: "", // dropdown option ID
+    destination: "",
+    receiverRoute: "",
     parcelDescription: "",
     parcelValue: "",
     packageSize: "", // dropdown option ID
     amountCharged: "",
     paymentMode: "", // dropdown option ID
     vehiclePlate: "",
-    receiverRoute: "", // dropdown option ID
     commission: "",
     specialInstructions: "",
   });
@@ -64,14 +67,14 @@ export function CreateShipmentForm() {
         sender_phone: formData.senderPhone,
         receiver_name: formData.receiverName,
         receiver_phone: formData.receiverPhone,
-        receiver_town: formData.receiverTown,
+        destination: formData.destination,
+        receiver_route: formData.receiverRoute,
         parcel_description: formData.parcelDescription,
         parcel_value: formData.parcelValue,
         package_size: formData.packageSize,
         amount_charged: formData.amountCharged,
         payment_mode: formData.paymentMode,
         p_vehicle: formData.vehiclePlate,
-        receiver_route: formData.receiverRoute,
         commission: formData.commission,
         special_instructions: formData.specialInstructions,
       };
@@ -186,36 +189,29 @@ export function CreateShipmentForm() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="receiverTown">Receiver Town</Label>
-              <select
-                id="receiverTown"
-                name="receiverTown"
-                value={formData.receiverTown}
-                onChange={handleChange}
+              <DestinationInput
+                id="destination"
+                value={formData.destination}
+                onChange={(value) =>
+                  setFormData((prev) => ({ ...prev, destination: value }))
+                }
+                destinations={destinations}
+                isLoading={destinationsLoading}
+                error={destinationsError}
+                placeholder="Search destination by name"
                 required
-                className="w-full px-3 py-2 bg-white text-black rounded border border-input"
-              >
-                <option value="">Select Town</option>
-                <option value="1">Nairobi</option>
-                <option value="2">Mombasa</option>
-                <option value="3">Kisumu</option>
-              </select>
+              />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="receiverRoute">Receiver Route</Label>
-              <select
+              <Label htmlFor="receiverRoute">Route</Label>
+              <Input
                 id="receiverRoute"
                 name="receiverRoute"
+                placeholder="e.g., Nairobi - Mombasa or route code"
                 value={formData.receiverRoute}
                 onChange={handleChange}
                 required
-                className="w-full px-3 py-2 bg-white text-black rounded border border-input"
-              >
-                <option value="">Select Route</option>
-                <option value="1">Nairobi - Mombasa</option>
-                <option value="2">Nairobi - Kisumu</option>
-                <option value="3">Mombasa - Nairobi</option>
-              </select>
+              />
             </div>
           </div>
         </CardContent>

@@ -6,7 +6,7 @@ interface CreateMzigoPayload {
   sender_phone: string;
   receiver_name: string;
   receiver_phone: string;
-  receiver_town: string;
+  destination: string;
   parcel_description: string;
   parcel_value: string | number;
   package_size: string;
