@@ -28,17 +28,25 @@ export function RouteInput({
   required = false,
 }: RouteInputProps) {
   const [show, setShow] = useState(false);
+  const [displayValue, setDisplayValue] = useState("");
+
+  // Compute display value from route id
+  const currentDisplayValue = useMemo(() => {
+    if (!value) return displayValue;
+    const selectedRoute = routes.find((r) => r.id === value);
+    return selectedRoute ? selectedRoute.route_name : displayValue;
+  }, [value, routes, displayValue]);
 
   const filtered = useMemo(() => {
     if (!routes || routes.length === 0) return [];
-    const q = value.trim().toLowerCase();
+    const q = currentDisplayValue.trim().toLowerCase();
     if (!q) return routes.slice(0, 8);
     return routes.filter((r) => r.route_name.toLowerCase().includes(q));
-  }, [routes, value]);
+  }, [routes, currentDisplayValue]);
 
   const handleSelect = (r: RouteItem) => {
-    // store the route id to payload
     onChange(r.id);
+    setDisplayValue(r.route_name);
     setShow(false);
   };
 
@@ -52,9 +60,9 @@ export function RouteInput({
       <div className="relative">
         <Input
           id={id}
-          value={value}
+          value={currentDisplayValue}
           onChange={(e) => {
-            onChange(e.target.value);
+            setDisplayValue(e.target.value);
             setShow(true);
           }}
           onFocus={() => setShow(true)}

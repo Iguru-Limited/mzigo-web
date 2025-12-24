@@ -73,7 +73,7 @@ export function CreateMzigoForm() {
         sender_phone: formData.senderPhone,
         receiver_name: formData.receiverName,
         receiver_phone: formData.receiverPhone,
-        destination: formData.destination,
+        receiver_town: formData.destination,
         receiver_route: formData.receiverRoute,
         parcel_description: formData.parcelDescription,
         parcel_value: formData.parcelValue,
