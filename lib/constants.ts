@@ -18,6 +18,8 @@ export const API_ENDPOINTS = {
   CREATE_MZIGO:'/mzigo/manage.php',
   LIST_VEHICLES:'vehicle/list.php',
   LIST_DESTINATION:'/destination/list.php',
+  LIST_SIZES:'/size/list.php',
+  LIST_ROUTES:'/route/list.php',
 } as const;
 
 /**

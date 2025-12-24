@@ -10,9 +10,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { VehicleInput } from "@/components/ui/vehicle-input";
 import { DestinationInput } from "@/components/ui/destination-input";
+import { SizeSelect } from "@/components/ui/size-select";
+import { RouteInput } from "@/components/ui/route-input";
 import { useCreateMzigo } from "@/hooks/use-create-mzigo";
 import { useVehicles } from "@/hooks/use-vehicles";
 import { useDestinations } from "@/hooks/use-destinations";
+import { useSizes } from "@/hooks/use-sizes";
+import { useRoutes } from "@/hooks/use-routes";
 
 export function CreateMzigoForm() {
   const router = useRouter();
@@ -20,6 +24,8 @@ export function CreateMzigoForm() {
   const { createMzigo } = useCreateMzigo();
   const { vehicles, isLoading: vehiclesLoading, error: vehiclesError } = useVehicles();
   const { destinations, isLoading: destinationsLoading, error: destinationsError } = useDestinations();
+  const { sizes, isLoading: sizesLoading, error: sizesError } = useSizes();
+  const { routes, isLoading: routesLoading, error: routesError } = useRoutes();
 
   const [formData, setFormData] = useState({
     senderName: "",
@@ -203,13 +209,16 @@ export function CreateMzigoForm() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="receiverRoute">Route</Label>
-              <Input
+              <RouteInput
                 id="receiverRoute"
-                name="receiverRoute"
-                placeholder="e.g., Nairobi - Mombasa or route code"
                 value={formData.receiverRoute}
-                onChange={handleChange}
+                onChange={(value) =>
+                  setFormData((prev) => ({ ...prev, receiverRoute: value }))
+                }
+                routes={routes}
+                isLoading={routesLoading}
+                error={routesError}
+                placeholder="Search route by name"
                 required
               />
             </div>
@@ -250,21 +259,17 @@ export function CreateMzigoForm() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="packageSize">Package Size</Label>
-              <select
+              <SizeSelect
                 id="packageSize"
-                name="packageSize"
                 value={formData.packageSize}
-                onChange={handleChange}
+                onChange={(value) =>
+                  setFormData((prev) => ({ ...prev, packageSize: value }))
+                }
+                sizes={sizes}
+                isLoading={sizesLoading}
+                error={sizesError}
                 required
-                className="w-full px-3 py-2 bg-white text-black rounded border border-input"
-              >
-                <option value="">Select Size</option>
-                <option value="1">Small</option>
-                <option value="2">Medium</option>
-                <option value="3">Large</option>
-                <option value="4">Extra Large</option>
-              </select>
+              />
             </div>
           </div>
           <div className="space-y-2">
