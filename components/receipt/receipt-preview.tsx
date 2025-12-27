@@ -7,11 +7,12 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDownIcon, PrinterIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
 import { ReceiptData } from "@/types/receipt";
-import { openPrintWindow } from "@/lib/receipt";
+import { openPrintWindow, PaperWidth } from "@/lib/receipt";
 import { toast } from "sonner";
 
 interface ReceiptPreviewProps {
@@ -23,9 +24,9 @@ interface ReceiptPreviewProps {
 export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
   const [isSending, setIsSending] = useState(false);
 
-  const handlePrint = () => {
+  const handlePrint = (paperWidth: PaperWidth = "58mm") => {
     if (data) {
-      openPrintWindow(data);
+      openPrintWindow(data, paperWidth);
     }
   };
 
@@ -81,10 +82,15 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handlePrint}>
+              <DropdownMenuItem onClick={() => handlePrint("58mm")}>
                 <PrinterIcon className="mr-2 h-4 w-4" />
-                Print
+                Print (58mm - P-50)
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handlePrint("80mm")}>
+                <PrinterIcon className="mr-2 h-4 w-4" />
+                Print (80mm)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSend}>
                 <PaperAirplaneIcon className="mr-2 h-4 w-4" />
                 Send

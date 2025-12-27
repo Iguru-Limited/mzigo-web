@@ -1,10 +1,13 @@
 import { ReceiptData, ReceiptItem } from "@/types/receipt";
 
+// Paper width options for thermal printers
+export type PaperWidth = "58mm" | "80mm";
+
 function lineToHtml(item: ReceiptItem): string {
   const sizeMap: Record<string, string> = {
-    small: "font-size:12px",
-    normal: "font-size:14px",
-    big: "font-size:18px",
+    small: "font-size:10px",
+    normal: "font-size:12px",
+    big: "font-size:14px",
   };
   const fontWeight = item.is_bold ? "font-weight:700" : "font-weight:400";
   const label = item["pre-text"] ?? "";
@@ -15,18 +18,44 @@ function lineToHtml(item: ReceiptItem): string {
   return `<div style="${style}; white-space: pre-wrap;">${label}${content}${end}</div>`;
 }
 
-export function generateReceiptHtml(data: ReceiptData): string {
-  const header = `
-    <div style="text-align:left; font-weight:700; font-size:18px;">${data.receipt_number}</div>
-  `;
+export function generateReceiptHtml(data: ReceiptData, paperWidth: PaperWidth = "58mm"): string {
+  const width = paperWidth === "58mm" ? "48mm" : "72mm";
+  const pageSize = paperWidth === "58mm" ? "58mm auto" : "80mm auto";
+  const margin = paperWidth === "58mm" ? "2mm" : "4mm";
+  
   const lines = data.receipt.map(lineToHtml).join("");
 
   const css = `
     <style>
-      @page { size: 80mm auto; margin: 6mm; }
-      body { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-      .receipt { width: 72mm; }
-      .divider { border-top: 1px dashed #999; margin: 8px 0; }
+      @page { 
+        size: ${pageSize}; 
+        margin: ${margin}; 
+      }
+      @media print {
+        html, body {
+          width: ${paperWidth};
+          margin: 0;
+          padding: 0;
+        }
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body { 
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 12px;
+        line-height: 1.3;
+        margin: 0;
+        padding: 2mm;
+      }
+      .receipt { 
+        width: ${width}; 
+        max-width: 100%;
+      }
+      .divider { 
+        border-top: 1px dashed #000; 
+        margin: 4px 0; 
+      }
     </style>
   `;
 
@@ -35,6 +64,7 @@ export function generateReceiptHtml(data: ReceiptData): string {
     <html>
       <head>
         <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         ${css}
         <title>Receipt ${data.receipt_number}</title>
       </head>
@@ -47,13 +77,15 @@ export function generateReceiptHtml(data: ReceiptData): string {
   `;
 }
 
-export function openPrintWindow(data: ReceiptData) {
-  const html = generateReceiptHtml(data);
-  const w = window.open("", "PRINT", "height=700,width=480");
+export function openPrintWindow(data: ReceiptData, paperWidth: PaperWidth = "58mm") {
+  const html = generateReceiptHtml(data, paperWidth);
+  const w = window.open("", "PRINT", "height=600,width=300");
   if (!w) return;
   w.document.write(html);
   w.document.close();
   w.focus();
-  w.print();
-  // do not auto-close; let user decide
+  // Small delay to ensure content is rendered before print dialog
+  setTimeout(() => {
+    w.print();
+  }, 100);
 }
