@@ -10,7 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDownIcon, PrinterIcon, PaperAirplaneIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, PrinterIcon, PaperAirplaneIcon, DevicePhoneMobileIcon } from "@heroicons/react/24/outline";
 import { ReceiptData } from "@/types/receipt";
 import { openPrintWindow, PaperWidth } from "@/lib/receipt";
 import { toast } from "sonner";
@@ -28,6 +28,23 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
     if (data) {
       openPrintWindow(data, paperWidth);
     }
+  };
+
+  const handlePrintViaBridge = () => {
+    if (!data) return;
+    
+    const encodedData = encodeURIComponent(JSON.stringify(data));
+    const bridgeUrl = `mzigo://print?data=${encodedData}`;
+    
+    // Try to open native app
+    window.location.href = bridgeUrl;
+    
+    // Fallback after timeout
+    setTimeout(() => {
+      toast.info("Print Bridge app not found", {
+        description: "Install the Web Print Bridge app to print via Bluetooth",
+      });
+    }, 2000);
   };
 
   const handleSend = async () => {
@@ -82,6 +99,11 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={handlePrintViaBridge}>
+                <DevicePhoneMobileIcon className="mr-2 h-4 w-4" />
+                Print via Bridge App
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handlePrint("58mm")}>
                 <PrinterIcon className="mr-2 h-4 w-4" />
                 Print (58mm - P-50)
