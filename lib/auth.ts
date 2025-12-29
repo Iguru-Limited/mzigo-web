@@ -219,7 +219,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-    maxAge: REFRESH_TOKEN_EXPIRY / 1000, // Convert to seconds
+    maxAge: 60 * 60, // 1 hour in seconds
   },
   secret: process.env.NEXTAUTH_SECRET || "your-secret-key-change-in-production",
 };
