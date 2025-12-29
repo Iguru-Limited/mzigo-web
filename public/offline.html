@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Offline • Mzigo Web</title>
+  <style>
+    body { 
+      font-family: system-ui, Arial, sans-serif; 
+      margin: 0; 
+      padding: 2rem; 
+      background: #f8fafc; 
+      color: #0f172a; 
+    }
+    .box { 
+      max-width: 480px; 
+      margin: 0 auto; 
+      background: #ffffff; 
+      border: 1px solid #e2e8f0; 
+      border-radius: 16px; 
+      padding: 2rem; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05); 
+    }
+    h1 { font-size: 1.25rem; margin: 0 0 1rem; }
+    p { font-size: 0.875rem; line-height: 1.4; }
+    button { 
+      background: #3B7FEF; 
+      color: #fff; 
+      border: none; 
+      padding: 0.75rem 1.25rem; 
+      border-radius: 999px; 
+      cursor: pointer; 
+    }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h1>You're Offline</h1>
+    <p>Please check your connection and try again.</p>
+    <button onclick="location.reload()">Retry</button>
+  </div>
+</body>
+</html>
+

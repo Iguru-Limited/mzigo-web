@@ -1,7 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
+import SwRegister from "@/components/pwa/sw-register";
+import InstallPrompt from "@/components/pwa/install-prompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,6 +18,19 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "mzigo-web 3.0",
   description: "mzigo-web 3.0",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Mzigo",
+  },
+  icons: {
+    apple: "/assets/icons/icon-192x192.png",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#3B7FEF",
 };
 
 export default function RootLayout({
@@ -25,9 +40,17 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/assets/icons/icon-192x192.png" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        <SwRegister />
+        <InstallPrompt />
         <Providers>
           {children}
         </Providers>
