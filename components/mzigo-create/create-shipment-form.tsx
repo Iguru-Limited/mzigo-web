@@ -100,9 +100,9 @@ export function CreateMzigoForm() {
         
         // Show appropriate toast
         if (isOffline) {
-          toast.info("Shipment saved offline", {
-            description: `Receipt #${receiptNumber} - Will sync when online. You can print now.`,
-          });
+          // toast.info("Shipment saved offline", {
+          //   description: `Receipt #${receiptNumber} - Will sync when online. You can print now.`,
+          // });
         } else {
           toast.success("Mzigo created successfully!", {
             description: `Receipt #${receiptNumber}`,

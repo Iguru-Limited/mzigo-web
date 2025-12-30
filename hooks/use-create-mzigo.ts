@@ -80,13 +80,13 @@ export function useCreateMzigo() {
       await refreshPendingCount();
 
       toast.info("Saved offline", {
-        description: "Your shipment will be created when you're back online. You can print the receipt now.",
+        description: "will  upload when you're back online. You can print the receipt now.",
       });
 
       // Return response with full receipt data for immediate printing
       return {
         status: "pending",
-        message: "Shipment saved offline and will sync when online",
+        message: "mzigo saved offline and will sync when online",
         data: receiptData,
       };
     }
@@ -140,12 +140,12 @@ export function useCreateMzigo() {
         await refreshPendingCount();
 
         toast.warning("Connection lost", {
-          description: "Your shipment was saved and will sync when online. You can print the receipt now.",
+          description: "Your mzigo was saved and will sync when online. You can print the receipt now.",
         });
 
         return {
           status: "pending",
-          message: "Shipment saved offline and will sync when online",
+          message: "mzigo saved offline and will sync when online",
           data: receiptData,
         };
       }
