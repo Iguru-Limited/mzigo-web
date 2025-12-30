@@ -22,7 +22,9 @@ interface OfflineReceiptOptions {
   payload: OfflineShipmentPayload;
   userName?: string;
   companyName?: string;
+  companyLocation?: string;
   companyPhone?: string;
+  companyWebsite?: string;
 }
 
 /**
@@ -30,13 +32,21 @@ interface OfflineReceiptOptions {
  * This mimics the format returned by the server API
  */
 export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptData {
-  const { offlineId, payload, userName = "Agent", companyName = "MZIGO", companyPhone = "" } = options;
+  const { 
+    offlineId, 
+    payload, 
+    userName = "Agent", 
+    companyName = "MZIGO", 
+    companyLocation = "Nairobi",
+    companyPhone = "",
+    companyWebsite = "www.mzigo.co.ke"
+  } = options;
   
   const now = new Date();
   const receiptNumber = `OFFLINE-${offlineId.slice(-8).toUpperCase()}`;
   const packageToken = offlineId.slice(-6).toUpperCase();
-  const date = now.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" });
-  const time = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
+  const date = now.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, "-");
+  const time = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
   const createLine = (
     content: string,
@@ -53,64 +63,38 @@ export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptD
   const divider = "--------------------------------";
 
   const receipt: ReceiptItem[] = [
-    // Header
+    // Header - Company info
     createLine(companyName, { text_size: "big", is_bold: true }),
-    createLine("SHIPMENT RECEIPT", { text_size: "normal", is_bold: true }),
+    createLine(companyLocation),
+    createLine(companyPhone),
     createLine(divider),
     
-    // Receipt info
-    createLine(receiptNumber, { "pre-text": "Receipt #: ", is_bold: true }),
-    createLine(packageToken, { "pre-text": "Token: ", is_bold: true }),
-    createLine(`${date} ${time}`, { "pre-text": "Date: " }),
-    createLine(divider),
-    
-    // Offline indicator
-    createLine("** OFFLINE RECEIPT **", { text_size: "small", is_bold: true }),
-    createLine("Will sync when online", { text_size: "small" }),
+    // Parcel Details section
+    createLine("Parcel Details", { text_size: "big", is_bold: false }),
+    createLine(payload.parcel_description, { "pre-text": "Description:" }),
+    createLine(receiptNumber, { "pre-text": "Waybill      :" }),
+    createLine(String(payload.amount_charged), { "pre-text": "Amount       :" }),
+    createLine(payload.payment_mode, { "pre-text": "Payment      :" }),
+    createLine(payload.p_vehicle, { "pre-text": "Vehicle      :" }),
     createLine(divider),
     
     // Sender details
-    createLine("SENDER", { is_bold: true }),
-    createLine(payload.sender_name, { "pre-text": "Name: " }),
-    createLine(payload.sender_phone, { "pre-text": "Phone: " }),
-    createLine(divider),
+    createLine(payload.sender_name, { "pre-text": "Sender    Name : " }),
+    createLine(payload.sender_phone, { "pre-text": "          Phone:" }),
+    createLine(payload.receiver_route, { "pre-text": "          Town :" }),
     
     // Receiver details  
-    createLine("RECEIVER", { is_bold: true }),
-    createLine(payload.receiver_name, { "pre-text": "Name: " }),
-    createLine(payload.receiver_phone, { "pre-text": "Phone: " }),
-    createLine(payload.receiver_town, { "pre-text": "Town: " }),
-    createLine(payload.receiver_route, { "pre-text": "Route: " }),
+    createLine(payload.receiver_name, { "pre-text": "Receiver Name: " }),
+    createLine(payload.receiver_phone, { "pre-text": "         Phone:" }),
+    createLine(payload.receiver_town, { "pre-text": "         Town:" }),
     createLine(divider),
     
-    // Parcel details
-    createLine("PARCEL DETAILS", { is_bold: true }),
-    createLine(payload.parcel_description, { "pre-text": "Desc: " }),
-    createLine(`KES ${payload.parcel_value}`, { "pre-text": "Value: " }),
-    createLine(payload.package_size, { "pre-text": "Size: " }),
-    createLine(payload.p_vehicle, { "pre-text": "Vehicle: " }),
+    // Terms and conditions
+    createLine("**Terms and Conditions Apply**", { is_bold: true }),
+    createLine(userName, { "pre-text": "Served By:" }),
+    createLine(`${date} ${time}`),
+    createLine(`${companyName}|${companyWebsite}`),
     createLine(divider),
-    
-    // Payment details
-    createLine("PAYMENT", { is_bold: true }),
-    createLine(`KES ${payload.amount_charged}`, { "pre-text": "Amount: ", is_bold: true }),
-    createLine(payload.payment_mode, { "pre-text": "Mode: " }),
-    createLine(divider),
-    
-    // Special instructions (if any)
-    ...(payload.special_instructions ? [
-      createLine("INSTRUCTIONS", { is_bold: true }),
-      createLine(payload.special_instructions, { text_size: "small" }),
-      createLine(divider),
-    ] : []),
-    
-    // Agent info
-    createLine(userName, { "pre-text": "Agent: ", text_size: "small" }),
-    createLine(""),
-    
-    // Footer
-    createLine("Thank you for using MZIGO!", { text_size: "small" }),
-    createLine(companyPhone ? `Contact: ${companyPhone}` : "", { text_size: "small" }),
   ];
 
   return {

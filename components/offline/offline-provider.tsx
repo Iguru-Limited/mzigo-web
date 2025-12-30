@@ -26,7 +26,6 @@ export function OfflineProvider({ children }: OfflineProviderProps) {
   useEffect(() => {
     if (!isOnline) {
       toast.warning("You're offline", {
-        description: "Some features may be limited. Changes will sync when you're back online.",
         duration: 5000,
       });
     } else if (wasOffline) {
