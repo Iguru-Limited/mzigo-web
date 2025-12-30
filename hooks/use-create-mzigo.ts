@@ -47,7 +47,8 @@ export function useCreateMzigo() {
     // Get session data for receipt
     const servedBy = session.user.name || "Agent";
     const companyName = session.company?.name || "MZIGO";
-    const branchName = session.branch?.name || "Nairobi";
+    const officeName = session.office?.name || "Nairobi";
+    const receiptFormatJson = session.company?.receipt_format_json;
 
     // If offline, save locally and queue for sync
     if (!isOnline) {
@@ -59,7 +60,8 @@ export function useCreateMzigo() {
         payload,
         servedBy,
         companyName,
-        branchName,
+        officeName,
+        receiptFormatJson,
       });
       
       // Save to IndexedDB (include receipt data for later retrieval)
@@ -120,7 +122,8 @@ export function useCreateMzigo() {
           payload,
           servedBy,
           companyName,
-          branchName,
+          officeName,
+          receiptFormatJson,
         });
         
         // Save to IndexedDB (include receipt data)

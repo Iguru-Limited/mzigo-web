@@ -1,6 +1,19 @@
 import "next-auth";
 import "next-auth/jwt";
 
+/** Receipt format line item from API */
+export interface ReceiptFormatItem {
+  text_size: "small" | "normal" | "big";
+  content: string;
+  "pre-text": string;
+  end_1: string;
+  is_variable: boolean;
+  is_bold: boolean;
+}
+
+/** Receipt format JSON object from API (keyed by string index) */
+export type ReceiptFormatJson = Record<string, ReceiptFormatItem>;
+
 declare module "next-auth" {
   interface Session {
     user: {
@@ -10,6 +23,8 @@ declare module "next-auth" {
       phone?: string;
       image?: string | null;
       rights?: string[];
+      user_level?: string;
+      printer_name?: string;
     };
     rolesObject?: Array<{
       name: string;
@@ -22,6 +37,8 @@ declare module "next-auth" {
       fields_to_hide?: string;
       receipt_format?: number;
       model_type?: string;
+      offline?: number;
+      receipt_format_json?: ReceiptFormatJson;
     };
     accessToken?: string;
     refreshToken?: string;
@@ -31,10 +48,9 @@ declare module "next-auth" {
       name: string;
       rank: string;
     };
-    branch?: {
+    office?: {
       id: string;
       name: string;
-      county_code: string;
     };
   }
 
@@ -45,6 +61,8 @@ declare module "next-auth" {
     phone?: string;
     image?: string | null;
     rights?: string[];
+    user_level?: string;
+    printer_name?: string;
     rolesObject?: Array<{
       name: string;
       app_title: string;
@@ -56,6 +74,8 @@ declare module "next-auth" {
       fields_to_hide?: string;
       receipt_format?: number;
       model_type?: string;
+      offline?: number;
+      receipt_format_json?: ReceiptFormatJson;
     };
     accessToken?: string;
     refreshToken?: string;
@@ -64,10 +84,9 @@ declare module "next-auth" {
       name: string;
       rank: string;
     };
-    branch?: {
+    office?: {
       id: string;
       name: string;
-      county_code: string;
     };
   }
 }
@@ -80,6 +99,8 @@ declare module "next-auth/jwt" {
     refreshTokenExpiresAt?: number;
     phone?: string;
     rights?: string[];
+    user_level?: string;
+    printer_name?: string;
     rolesObject?: Array<{
       name: string;
       app_title: string;
@@ -91,16 +112,17 @@ declare module "next-auth/jwt" {
       fields_to_hide?: string;
       receipt_format?: number;
       model_type?: string;
+      offline?: number;
+      receipt_format_json?: ReceiptFormatJson;
     };
     role?: {
       id: string;
       name: string;
       rank: string;
     };
-    branch?: {
+    office?: {
       id: string;
       name: string;
-      county_code: string;
     };
   }
 }

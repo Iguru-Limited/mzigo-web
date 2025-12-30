@@ -2,6 +2,19 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { getApiUrl, API_ENDPOINTS,API_BASE_URL } from "@/lib/constants";
 
+/** Receipt format line item from API */
+interface ReceiptFormatItem {
+  text_size: "small" | "normal" | "big";
+  content: string;
+  "pre-text": string;
+  end_1: string;
+  is_variable: boolean;
+  is_bold: boolean;
+}
+
+/** Receipt format JSON object from API (keyed by string index) */
+type ReceiptFormatJson = Record<string, ReceiptFormatItem>;
+
 interface LoginResponse {
   status: string;
   message: string;
@@ -11,12 +24,19 @@ interface LoginResponse {
     id: string;
     name: string;
     user_level: string;
+    printer_name?: string;
     company: {
       id: string;
       name: string;
       fields_to_hide?: string;
       receipt_format?: number;
       model_type?: string;
+      offline?: number;
+      receipt_format_json?: ReceiptFormatJson;
+    };
+    office?: {
+      id: string;
+      name: string;
     };
     roles: Array<{
       name: string;
@@ -135,7 +155,9 @@ export const authOptions: NextAuthOptions = {
               accessTokenExpiresAt: now + ACCESS_TOKEN_EXPIRY,
               refreshTokenExpiresAt: now + REFRESH_TOKEN_EXPIRY,
               userLevel: data.user.user_level,
+              printerName: data.user.printer_name,
               company: data.user.company,
+              office: data.user.office,
               rights: data.user.roles.map((role) => role.name),
               rolesObject: data.user.roles,
             };
@@ -160,7 +182,9 @@ export const authOptions: NextAuthOptions = {
         token.refreshTokenExpiresAt = (user as any).refreshTokenExpiresAt;
         token.phone = (user as any).phone;
         token.userLevel = (user as any).userLevel;
+        token.printer_name = (user as any).printerName;
         token.company = (user as any).company;
+        token.office = (user as any).office;
         token.rights = (user as any).rights;
         token.rolesObject = (user as any).rolesObject;
         return token;
@@ -204,8 +228,11 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.sub || "";
         session.user.phone = token.phone as string;
         session.user.rights = token.rights as string[];
+        session.user.user_level = token.userLevel as string;
+        session.user.printer_name = token.printer_name as string;
         (session as any).rolesObject = token.rolesObject;
         (session as any).company = token.company;
+        (session as any).office = token.office;
         (session as any).accessToken = token.accessToken;
         (session as any).refreshToken = token.refreshToken;
         (session as any).userLevel = token.userLevel;
