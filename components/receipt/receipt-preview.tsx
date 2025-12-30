@@ -66,12 +66,27 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
     }
   };
 
+  const isOfflineReceipt = data?.receipt_number?.startsWith("OFFLINE-");
+
   return (
     <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : undefined)}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Receipt Preview</DialogTitle>
+          <DialogTitle className="flex items-center gap-2">
+            Receipt Preview
+            {isOfflineReceipt && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+                Offline
+              </span>
+            )}
+          </DialogTitle>
         </DialogHeader>
+
+        {isOfflineReceipt && (
+          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-3 py-2 rounded text-sm">
+            This receipt was created offline and will sync when you&apos;re back online.
+          </div>
+        )}
 
         <div className="mt-2">
           {!data && <p className="text-sm text-muted-foreground">No receipt data.</p>}
@@ -113,9 +128,9 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
                 Print (80mm)
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSend}>
+              <DropdownMenuItem onClick={handleSend} disabled={isOfflineReceipt}>
                 <PaperAirplaneIcon className="mr-2 h-4 w-4" />
-                Send
+                Send {isOfflineReceipt && "(unavailable offline)"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

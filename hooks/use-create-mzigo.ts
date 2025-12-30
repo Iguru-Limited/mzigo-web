@@ -1,6 +1,8 @@
 import { useSession } from "next-auth/react";
 import { getApiUrl, API_ENDPOINTS } from "@/lib/constants";
 import { syncManager, saveOfflineShipment, useOfflineStore } from "@/lib/offline";
+import { generateOfflineReceipt } from "@/lib/offline/offline-receipt";
+import { ReceiptData } from "@/types/receipt";
 import { toast } from "sonner";
 
 interface CreateMzigoPayload {
@@ -23,13 +25,7 @@ interface CreateMzigoPayload {
 interface CreateMzigoResponse {
   status: string;
   message: string;
-  data?: {
-    id: string;
-    receipt_number: string;
-    package_token: string;
-    s_date: string;
-    s_time: string;
-  };
+  data?: ReceiptData;
 }
 
 export function useCreateMzigo() {
@@ -41,19 +37,30 @@ export function useCreateMzigo() {
       throw new Error("User not authenticated");
     }
 
-    const accessToken = (session as any).accessToken;
+    const accessToken = (session as { accessToken?: string } | null)?.accessToken;
     if (!accessToken) {
       throw new Error("Access token not available");
     }
 
     const apiUrl = getApiUrl(API_ENDPOINTS.CREATE_MZIGO);
+    const userName = session.user.name || "Agent";
 
     // If offline, save locally and queue for sync
     if (!isOnline) {
       const offlineId = `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
-      // Save to IndexedDB
-      await saveOfflineShipment(offlineId, payload);
+      // Generate offline receipt with full data for printing
+      const receiptData = generateOfflineReceipt({
+        offlineId,
+        payload,
+        userName,
+      });
+      
+      // Save to IndexedDB (include receipt data for later retrieval)
+      await saveOfflineShipment(offlineId, {
+        payload,
+        receiptData,
+      });
       
       // Add to sync queue
       await syncManager.addToQueue({
@@ -67,20 +74,14 @@ export function useCreateMzigo() {
       await refreshPendingCount();
 
       toast.info("Saved offline", {
-        description: "Your shipment will be created when you're back online.",
+        description: "Your shipment will be created when you're back online. You can print the receipt now.",
       });
 
-      // Return a mock response for offline creation
+      // Return response with full receipt data for immediate printing
       return {
         status: "pending",
         message: "Shipment saved offline and will sync when online",
-        data: {
-          id: offlineId,
-          receipt_number: `OFFLINE-${offlineId.slice(-8).toUpperCase()}`,
-          package_token: offlineId,
-          s_date: new Date().toISOString().split("T")[0],
-          s_time: new Date().toLocaleTimeString(),
-        },
+        data: receiptData,
       };
     }
 
@@ -107,7 +108,18 @@ export function useCreateMzigo() {
       if (error instanceof TypeError && error.message === "Failed to fetch") {
         const offlineId = `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         
-        await saveOfflineShipment(offlineId, payload);
+        // Generate offline receipt with full data for printing
+        const receiptData = generateOfflineReceipt({
+          offlineId,
+          payload,
+          userName,
+        });
+        
+        // Save to IndexedDB (include receipt data)
+        await saveOfflineShipment(offlineId, {
+          payload,
+          receiptData,
+        });
         
         await syncManager.addToQueue({
           type: "create",
@@ -120,19 +132,13 @@ export function useCreateMzigo() {
         await refreshPendingCount();
 
         toast.warning("Connection lost", {
-          description: "Your shipment was saved and will sync when online.",
+          description: "Your shipment was saved and will sync when online. You can print the receipt now.",
         });
 
         return {
           status: "pending",
           message: "Shipment saved offline and will sync when online",
-          data: {
-            id: offlineId,
-            receipt_number: `OFFLINE-${offlineId.slice(-8).toUpperCase()}`,
-            package_token: offlineId,
-            s_date: new Date().toISOString().split("T")[0],
-            s_time: new Date().toLocaleTimeString(),
-          },
+          data: receiptData,
         };
       }
 

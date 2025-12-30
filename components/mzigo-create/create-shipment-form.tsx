@@ -93,17 +93,25 @@ export function CreateMzigoForm() {
 
       const response = await createMzigo(payload);
 
-      if (response.status === "success") {
+      // Handle both online success and offline pending status
+      if (response.status === "success" || response.status === "pending") {
         const receiptNumber = response.data?.receipt_number;
+        const isOffline = response.status === "pending";
         
-        // Show success toast
-        toast.success("Mzigo created successfully!", {
-          description: `Receipt #${receiptNumber} `,
-        });
+        // Show appropriate toast
+        if (isOffline) {
+          toast.info("Shipment saved offline", {
+            description: `Receipt #${receiptNumber} - Will sync when online. You can print now.`,
+          });
+        } else {
+          toast.success("Mzigo created successfully!", {
+            description: `Receipt #${receiptNumber}`,
+          });
+        }
 
-        console.log("Mzigo created successfully:", response.data);
+        console.log(isOffline ? "Mzigo saved offline:" : "Mzigo created successfully:", response.data);
         
-        // Open receipt preview
+        // Open receipt preview (works for both online and offline)
         if (response.data) {
           setReceiptData(response.data as ReceiptData);
           setReceiptOpen(true);
