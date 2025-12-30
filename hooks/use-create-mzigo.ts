@@ -43,7 +43,11 @@ export function useCreateMzigo() {
     }
 
     const apiUrl = getApiUrl(API_ENDPOINTS.CREATE_MZIGO);
-    const userName = session.user.name || "Agent";
+    
+    // Get session data for receipt
+    const servedBy = session.user.name || "Agent";
+    const companyName = session.company?.name || "MZIGO";
+    const branchName = session.branch?.name || "Nairobi";
 
     // If offline, save locally and queue for sync
     if (!isOnline) {
@@ -53,7 +57,9 @@ export function useCreateMzigo() {
       const receiptData = generateOfflineReceipt({
         offlineId,
         payload,
-        userName,
+        servedBy,
+        companyName,
+        branchName,
       });
       
       // Save to IndexedDB (include receipt data for later retrieval)
@@ -112,7 +118,9 @@ export function useCreateMzigo() {
         const receiptData = generateOfflineReceipt({
           offlineId,
           payload,
-          userName,
+          servedBy,
+          companyName,
+          branchName,
         });
         
         // Save to IndexedDB (include receipt data)

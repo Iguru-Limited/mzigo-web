@@ -20,10 +20,15 @@ interface OfflineShipmentPayload {
 interface OfflineReceiptOptions {
   offlineId: string;
   payload: OfflineShipmentPayload;
-  userName?: string;
+  /** Name of the user who served (from session.user.name) */
+  servedBy?: string;
+  /** Company name (from session.company.name) */
   companyName?: string;
-  companyLocation?: string;
+  /** Branch/location name (from session.branch.name) */
+  branchName?: string;
+  /** Company phone number */
   companyPhone?: string;
+  /** Company website */
   companyWebsite?: string;
 }
 
@@ -35,15 +40,15 @@ export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptD
   const { 
     offlineId, 
     payload, 
-    userName = "Agent", 
+    servedBy = "Agent", 
     companyName = "MZIGO", 
-    companyLocation = "Nairobi",
+    branchName = "Nairobi",
     companyPhone = "",
-    companyWebsite = "www.mzigo.co.ke"
+    companyWebsite = "www.iguru.co.ke",
   } = options;
   
   const now = new Date();
-  const receiptNumber = `OFFLINE-${offlineId.slice(-8).toUpperCase()}`;
+  const receiptNumber = `${offlineId.slice(-8).toUpperCase()}`;
   const packageToken = offlineId.slice(-6).toUpperCase();
   const date = now.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, "-");
   const time = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
@@ -60,12 +65,12 @@ export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptD
     is_bold: options.is_bold || false,
   });
 
-  const divider = "--------------------------------";
+  const divider = "------------------------------";
 
   const receipt: ReceiptItem[] = [
     // Header - Company info
     createLine(companyName, { text_size: "big", is_bold: true }),
-    createLine(companyLocation),
+    createLine(branchName),
     createLine(companyPhone),
     createLine(divider),
     
@@ -91,9 +96,9 @@ export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptD
     
     // Terms and conditions
     createLine("**Terms and Conditions Apply**", { is_bold: true }),
-    createLine(userName, { "pre-text": "Served By:" }),
+    createLine(servedBy, { "pre-text": "Served By:" }),
     createLine(`${date} ${time}`),
-    createLine(`${companyName}|${companyWebsite}`),
+    createLine(`iGuru Limited|${companyWebsite}`),
     createLine(divider),
   ];
 
