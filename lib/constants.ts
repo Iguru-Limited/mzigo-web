@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
   LIST_DESTINATION:'/destination/list.php',
   LIST_SIZES:'/size/list.php',
   LIST_ROUTES:'/route/list.php',
+  PAYMENT_METHODS:'/payments/list.php',
 } as const;
 
 /**

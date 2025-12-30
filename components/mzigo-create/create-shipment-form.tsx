@@ -17,6 +17,7 @@ import { useVehicles } from "@/hooks/use-vehicles";
 import { useDestinations } from "@/hooks/use-destinations";
 import { useSizes } from "@/hooks/use-sizes";
 import { useRoutes } from "@/hooks/use-routes";
+import { usePaymentMethods } from "@/hooks/use-payment-methods";
 import { ReceiptPreview } from "@/components/receipt/receipt-preview";
 import { ReceiptData } from "@/types/receipt";
 
@@ -28,6 +29,7 @@ export function CreateMzigoForm() {
   const { destinations, isLoading: destinationsLoading, error: destinationsError } = useDestinations();
   const { sizes, isLoading: sizesLoading, error: sizesError } = useSizes();
   const { routes, isLoading: routesLoading, error: routesError } = useRoutes();
+  const { paymentMethods, isLoading: paymentMethodsLoading, error: paymentMethodsError } = usePaymentMethods();
 
   const [formData, setFormData] = useState({
     senderName: "",
@@ -353,12 +355,21 @@ export function CreateMzigoForm() {
               value={formData.paymentMode}
               onChange={handleChange}
               required
-              className="w-full px-3 py-2 bg-white text-black rounded border border-input"
+              disabled={paymentMethodsLoading}
+              className="w-full px-3 py-2 bg-white text-black rounded border border-input disabled:opacity-50"
             >
-              <option value="">Select Payment Method</option>
-              <option value="1">Cash</option>
-              <option value="24">M-Pesa</option>
+              <option value="">
+                {paymentMethodsLoading ? "Loading..." : paymentMethodsError ? "Error loading" : "Select Payment Method"}
+              </option>
+              {paymentMethods.map((method) => (
+                <option key={method.id} value={method.id}>
+                  {method.payment_method}
+                </option>
+              ))}
             </select>
+            {paymentMethodsError && (
+              <p className="text-xs text-red-500">{paymentMethodsError}</p>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -36,11 +36,11 @@ interface MzigoDBSchema extends DBSchema {
       synced: boolean;
     };
   };
-  // Store for reference data (destinations, routes, vehicles, sizes)
+  // Store for reference data (destinations, routes, vehicles, sizes, payment-methods)
   referenceData: {
     key: string;
     value: {
-      type: "destinations" | "routes" | "vehicles" | "sizes";
+      type: "destinations" | "routes" | "vehicles" | "sizes" | "payment-methods";
       data: unknown[];
       timestamp: number;
     };
@@ -122,7 +122,7 @@ export async function clearCache(key?: string) {
 
 // Reference data operations
 export async function setReferenceData(
-  type: "destinations" | "routes" | "vehicles" | "sizes",
+  type: "destinations" | "routes" | "vehicles" | "sizes" | "payment-methods",
   data: unknown[]
 ) {
   const db = await getDB();
@@ -134,7 +134,7 @@ export async function setReferenceData(
 }
 
 export async function getReferenceData<T>(
-  type: "destinations" | "routes" | "vehicles" | "sizes"
+  type: "destinations" | "routes" | "vehicles" | "sizes" | "payment-methods"
 ): Promise<T[] | null> {
   const db = await getDB();
   const record = await db.get("referenceData", type);

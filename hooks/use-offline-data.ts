@@ -10,7 +10,7 @@ interface UseOfflineDataOptions<T> extends SWRConfiguration {
   // Cache key for IndexedDB
   cacheKey: string;
   // Reference data type (if applicable)
-  referenceType?: "destinations" | "routes" | "vehicles" | "sizes";
+  referenceType?: "destinations" | "routes" | "vehicles" | "sizes" | "payment-methods";
   // Transform response data
   transform?: (data: unknown) => T;
   // Cache TTL in ms (default 24 hours)
