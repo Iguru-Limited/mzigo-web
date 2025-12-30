@@ -1,79 +1,44 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Vehicle, VehicleListResponse } from "@/types/vehicles";
 import { API_ENDPOINTS, getApiUrl } from "@/lib/constants";
-import { useSession } from "next-auth/react";
+import { useOfflineData } from "@/hooks/use-offline-data";
 
 interface UseVehiclesReturn {
   vehicles: Vehicle[];
   isLoading: boolean;
   error: string | null;
+  isOffline: boolean;
   refetch: () => Promise<void>;
 }
 
 /**
- * Hook to fetch and manage vehicles list
- * Used for selecting vehicles in the shipment form
+ * Hook to fetch and manage vehicles list with offline support
+ * Uses SWR for caching and IndexedDB for persistent offline storage
  */
 export function useVehicles(): UseVehiclesReturn {
-  const { data: session } = useSession();
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const url = getApiUrl(API_ENDPOINTS.LIST_VEHICLES);
 
-  const fetchVehicles = async () => {
-    if (!session?.user) {
-      setError("User not authenticated");
-      setIsLoading(false);
-      return;
+  const { data, error, isLoading, isOffline, refresh } = useOfflineData<Vehicle[]>(
+    url,
+    {
+      cacheKey: "vehicles",
+      referenceType: "vehicles",
+      transform: (response: unknown) => {
+        const res = response as VehicleListResponse;
+        if (res.status === "success" && res.data) {
+          return res.data;
+        }
+        throw new Error(res.message || "Failed to fetch vehicles");
+      },
     }
-
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const url = getApiUrl(API_ENDPOINTS.LIST_VEHICLES);
-      const accessToken = (session as any)?.accessToken;
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch vehicles: ${response.statusText}`);
-      }
-
-      const data: VehicleListResponse = await response.json();
-
-      if (data.status === "success" && data.data) {
-        setVehicles(data.data);
-      } else {
-        setError(data.message || "Failed to fetch vehicles");
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An error occurred while fetching vehicles";
-      setError(errorMessage);
-      console.error("Error fetching vehicles:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (session?.user) {
-      fetchVehicles();
-    }
-  }, [session]);
+  );
 
   return {
-    vehicles,
+    vehicles: data || [],
     isLoading,
-    error,
-    refetch: fetchVehicles,
+    error: error?.message || null,
+    isOffline,
+    refetch: async () => { await refresh(); },
   };
 }

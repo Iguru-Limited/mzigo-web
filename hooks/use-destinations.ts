@@ -1,79 +1,44 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { Destination, DestinationListResponse } from "@/types/destinations";
 import { API_ENDPOINTS, getApiUrl } from "@/lib/constants";
-import { useSession } from "next-auth/react";
+import { useOfflineData } from "@/hooks/use-offline-data";
 
 interface UseDestinationsReturn {
   destinations: Destination[];
   isLoading: boolean;
   error: string | null;
+  isOffline: boolean;
   refetch: () => Promise<void>;
 }
 
 /**
- * Hook to fetch and manage destinations list
- * Used for selecting destinations in the shipment form
+ * Hook to fetch and manage destinations list with offline support
+ * Uses SWR for caching and IndexedDB for persistent offline storage
  */
 export function useDestinations(): UseDestinationsReturn {
-  const { data: session } = useSession();
-  const [destinations, setDestinations] = useState<Destination[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const url = getApiUrl(API_ENDPOINTS.LIST_DESTINATION);
 
-  const fetchDestinations = async () => {
-    if (!session?.user) {
-      setError("User not authenticated");
-      setIsLoading(false);
-      return;
+  const { data, error, isLoading, isOffline, refresh } = useOfflineData<Destination[]>(
+    url,
+    {
+      cacheKey: "destinations",
+      referenceType: "destinations",
+      transform: (response: unknown) => {
+        const res = response as DestinationListResponse;
+        if (res.status === "success" && res.data) {
+          return res.data;
+        }
+        throw new Error(res.message || "Failed to fetch destinations");
+      },
     }
-
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const url = getApiUrl(API_ENDPOINTS.LIST_DESTINATION);
-      const accessToken = (session as any)?.accessToken;
-
-      const response = await fetch(url, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          ...(accessToken && { Authorization: `Bearer ${accessToken}` }),
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch destinations: ${response.statusText}`);
-      }
-
-      const data: DestinationListResponse = await response.json();
-
-      if (data.status === "success" && data.data) {
-        setDestinations(data.data);
-      } else {
-        setError(data.message || "Failed to fetch destinations");
-      }
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An error occurred while fetching destinations";
-      setError(errorMessage);
-      console.error("Error fetching destinations:", err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (session?.user) {
-      fetchDestinations();
-    }
-  }, [session]);
+  );
 
   return {
-    destinations,
+    destinations: data || [],
     isLoading,
-    error,
-    refetch: fetchDestinations,
+    error: error?.message || null,
+    isOffline,
+    refetch: async () => { await refresh(); },
   };
 }

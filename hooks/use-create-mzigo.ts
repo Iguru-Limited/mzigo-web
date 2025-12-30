@@ -1,5 +1,7 @@
 import { useSession } from "next-auth/react";
 import { getApiUrl, API_ENDPOINTS } from "@/lib/constants";
+import { syncManager, saveOfflineShipment, useOfflineStore } from "@/lib/offline";
+import { toast } from "sonner";
 
 interface CreateMzigoPayload {
   sender_name: string;
@@ -32,6 +34,7 @@ interface CreateMzigoResponse {
 
 export function useCreateMzigo() {
   const { data: session } = useSession();
+  const { isOnline, refreshPendingCount } = useOfflineStore();
 
   const createMzigo = async (payload: CreateMzigoPayload): Promise<CreateMzigoResponse> => {
     if (!session?.user) {
@@ -45,6 +48,43 @@ export function useCreateMzigo() {
 
     const apiUrl = getApiUrl(API_ENDPOINTS.CREATE_MZIGO);
 
+    // If offline, save locally and queue for sync
+    if (!isOnline) {
+      const offlineId = `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      // Save to IndexedDB
+      await saveOfflineShipment(offlineId, payload);
+      
+      // Add to sync queue
+      await syncManager.addToQueue({
+        type: "create",
+        endpoint: apiUrl,
+        method: "POST",
+        payload,
+        maxRetries: 5,
+      });
+
+      await refreshPendingCount();
+
+      toast.info("Saved offline", {
+        description: "Your shipment will be created when you're back online.",
+      });
+
+      // Return a mock response for offline creation
+      return {
+        status: "pending",
+        message: "Shipment saved offline and will sync when online",
+        data: {
+          id: offlineId,
+          receipt_number: `OFFLINE-${offlineId.slice(-8).toUpperCase()}`,
+          package_token: offlineId,
+          s_date: new Date().toISOString().split("T")[0],
+          s_time: new Date().toLocaleTimeString(),
+        },
+      };
+    }
+
+    // Online - make the request directly
     try {
       const response = await fetch(apiUrl, {
         method: "POST",
@@ -63,10 +103,43 @@ export function useCreateMzigo() {
 
       return data;
     } catch (error) {
+      // If network error while supposedly online, save offline
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        const offlineId = `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        
+        await saveOfflineShipment(offlineId, payload);
+        
+        await syncManager.addToQueue({
+          type: "create",
+          endpoint: apiUrl,
+          method: "POST",
+          payload,
+          maxRetries: 5,
+        });
+
+        await refreshPendingCount();
+
+        toast.warning("Connection lost", {
+          description: "Your shipment was saved and will sync when online.",
+        });
+
+        return {
+          status: "pending",
+          message: "Shipment saved offline and will sync when online",
+          data: {
+            id: offlineId,
+            receipt_number: `OFFLINE-${offlineId.slice(-8).toUpperCase()}`,
+            package_token: offlineId,
+            s_date: new Date().toISOString().split("T")[0],
+            s_time: new Date().toLocaleTimeString(),
+          },
+        };
+      }
+
       console.error("Error creating mzigo:", error);
       throw error;
     }
   };
 
-  return { createMzigo, isLoading: false };
+  return { createMzigo, isLoading: false, isOffline: !isOnline };
 }

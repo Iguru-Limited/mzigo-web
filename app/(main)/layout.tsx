@@ -7,6 +7,7 @@ import { useEffect } from "react";
 import { MobileNav } from "@/components/mobile-nav";
 import { DesktopNav } from "@/components/desktop-nav";
 import { Spinner } from "@/components/ui/spinner";
+import { OfflineBanner } from "@/components/offline";
 
 export default function MainLayout({
   children,
@@ -50,6 +51,9 @@ export default function MainLayout({
 
   return (
     <>
+      {/* Offline status banner */}
+      <OfflineBanner />
+
       {/* Mobile Navigation - Only visible on mobile */}
       <div className="lg:hidden">
         <MobileNav />
