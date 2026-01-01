@@ -13,6 +13,7 @@ import {
 import { ChevronDownIcon, PrinterIcon, PaperAirplaneIcon, DevicePhoneMobileIcon } from "@heroicons/react/24/outline";
 import { ReceiptData } from "@/types/receipt";
 import { openPrintWindow, PaperWidth } from "@/lib/receipt";
+import { QRCodeComponent } from "@/components/receipt/qr-code";
 import { toast } from "sonner";
 
 interface ReceiptPreviewProps {
@@ -23,10 +24,19 @@ interface ReceiptPreviewProps {
 
 export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
   const [isSending, setIsSending] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
 
-  const handlePrint = (paperWidth: PaperWidth = "58mm") => {
+  const handlePrint = async (paperWidth: PaperWidth = "58mm") => {
     if (data) {
-      openPrintWindow(data, paperWidth);
+      try {
+        setIsPrinting(true);
+        await openPrintWindow(data, paperWidth);
+      } catch (error) {
+        console.error("Failed to open print window:", error);
+        toast.error("Failed to open print preview");
+      } finally {
+        setIsPrinting(false);
+      }
     }
   };
 
@@ -100,6 +110,13 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
                   </span>
                 </div>
               ))}
+              
+              {/* QR Code for package token (online only) */}
+              {data.package_token && (
+                <div className="mt-4 border-t border-dashed pt-4 flex flex-col items-center">
+                  <QRCodeComponent value={data.package_token} size={150} />
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -108,8 +125,8 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
           <Button variant="outline" onClick={onClose}>Close</Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button disabled={!data || isSending}>
-                {isSending ? "Sending..." : "Actions"}
+              <Button disabled={!data || isSending || isPrinting}>
+                {isSending ? "Sending..." : isPrinting ? "Printing..." : "Actions"}
                 <ChevronDownIcon className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
