@@ -17,7 +17,7 @@ export interface ReceiptItem {
 export interface ReceiptData {
   id: string;
   receipt_number: string;
-  package_token: string;
+  package_token?: string;
   s_date: string;
   s_time: string;
   receipt: ReceiptItem[];

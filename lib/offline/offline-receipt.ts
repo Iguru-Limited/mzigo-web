@@ -114,7 +114,7 @@ export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptD
     // Sender details
     sender_name: payload.sender_name,
     sender_phone: payload.sender_phone,
-    sender_town: payload.receiver_route, // Using route as sender town
+    sender_town: "", // Not provided in payload
     
     // Receiver details
     receiver_name: payload.receiver_name,

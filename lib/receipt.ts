@@ -26,9 +26,10 @@ export async function generateReceiptHtml(data: ReceiptData, paperWidth: PaperWi
   
   const lines = data.receipt.map(lineToHtml).join("");
   
-  // Generate QR code for package token (online only)
+  // Generate QR code for package token (online only - not for offline receipts)
   let qrCodeHtml = "";
-  if (data.package_token) {
+  const isOfflineReceipt = data.receipt_number?.startsWith("OFFLINE-");
+  if (data.package_token && !isOfflineReceipt) {
     try {
       console.log("Generating QR code for token:", data.package_token);
       const qrDataUrl = await generateQRCodeDataUrl(data.package_token, 140);

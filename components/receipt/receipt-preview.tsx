@@ -112,7 +112,7 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
               ))}
               
               {/* QR Code for package token (online only) */}
-              {data.package_token && (
+              {data.package_token && !isOfflineReceipt && (
                 <div className="mt-4 border-t border-dashed pt-4 flex flex-col items-center">
                   <QRCodeComponent value={data.package_token} size={150} />
                 </div>
