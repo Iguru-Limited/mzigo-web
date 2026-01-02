@@ -43,6 +43,7 @@ export function CreateMzigoForm() {
     packageSize: "", // dropdown option ID
     amountCharged: "",
     paymentMode: "", // dropdown option ID
+    paymentModeName: "", // human-readable name for offline receipt
     vehiclePlate: "",
     commission: "",
     specialInstructions: "",
@@ -57,7 +58,13 @@ export function CreateMzigoForm() {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "paymentMode") {
+      // derive the name from paymentMethods list
+      const methodName = paymentMethods.find((m) => String(m.id) === String(value))?.payment_method || "";
+      setFormData((prev) => ({ ...prev, paymentMode: value, paymentModeName: methodName }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
     setError(null); // Clear error when user makes changes
   };
 
@@ -86,6 +93,7 @@ export function CreateMzigoForm() {
         package_size: formData.packageSize,
         amount_charged: formData.amountCharged,
         payment_mode: formData.paymentMode,
+        payment_mode_name: formData.paymentModeName,
         p_vehicle: formData.vehiclePlate,
         commission: formData.commission || "0", // Default to "0" if empty
         special_instructions: formData.specialInstructions,

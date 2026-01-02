@@ -31,6 +31,8 @@ interface OfflineReceiptOptions {
   companyPhone?: string;
   /** Receipt format template from session.company.receipt_format_json */
   receiptFormatJson?: ReceiptFormatJson;
+  /** Optional resolved payment method name to display on offline receipt */
+  resolvedPaymentModeName?: string;
 }
 
 /** Map of variable names to their values */
@@ -96,6 +98,7 @@ export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptD
     officeName = "Nairobi",
     companyPhone = "",
     receiptFormatJson,
+    resolvedPaymentModeName,
   } = options;
   
   const now = new Date();
@@ -105,6 +108,8 @@ export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptD
   const date = now.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, "-");
   const time = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const timestamp = `${date} ${time}`;
+
+  const paymentModeDisplay = resolvedPaymentModeName || String(payload.payment_mode);
 
   // Create variables map for template substitution
   const variables: ReceiptVariables = {
@@ -116,7 +121,7 @@ export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptD
     parcel_description: payload.parcel_description,
     receipt_number: receiptNumber,
     amount_charged: String(payload.amount_charged),
-    payment_mode: payload.payment_mode,
+    payment_mode: paymentModeDisplay,
     p_vehicle: payload.p_vehicle,
     
     // Sender details
@@ -148,6 +153,7 @@ export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptD
       servedBy,
       receiptNumber,
       timestamp,
+      paymentModeDisplay,
     });
   }
 
@@ -173,6 +179,7 @@ function generateDefaultReceipt(
     servedBy: string;
     receiptNumber: string;
     timestamp: string;
+    paymentModeDisplay: string;
   }
 ): ReceiptItem[] {
   const createLine = (
@@ -200,7 +207,7 @@ function generateDefaultReceipt(
     createLine(payload.parcel_description, { "pre-text": "Description:" }),
     createLine(info.receiptNumber, { "pre-text": "Waybill      :" }),
     createLine(String(payload.amount_charged), { "pre-text": "Amount      :" }),
-    createLine(payload.payment_mode, { "pre-text": "Payment      :" }),
+    createLine(info.paymentModeDisplay, { "pre-text": "Payment      :" }),
     createLine(payload.p_vehicle, { "pre-text": "Vehicle      :" }),
     createLine(divider),
     
@@ -228,5 +235,5 @@ function generateDefaultReceipt(
  * Check if a receipt is from an offline shipment
  */
 export function isOfflineReceipt(receiptNumber: string): boolean {
-  return receiptNumber.startsWith("OFL-");
+  return receiptNumber.startsWith("OFFLINE-");
 }

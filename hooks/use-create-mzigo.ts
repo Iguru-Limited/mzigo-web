@@ -1,6 +1,7 @@
 import { useSession } from "next-auth/react";
 import { getApiUrl, API_ENDPOINTS } from "@/lib/constants";
-import { syncManager, saveOfflineShipment, useOfflineStore } from "@/lib/offline";
+import { syncManager, saveOfflineShipment, useOfflineStore, getReferenceData } from "@/lib/offline";
+import type { PaymentMethod } from "@/types/payment-methods";
 import { generateOfflineReceipt } from "@/lib/offline/offline-receipt";
 import { ReceiptData } from "@/types/receipt";
 
@@ -15,6 +16,8 @@ interface CreateMzigoPayload {
   package_size: string;
   amount_charged: string | number;
   payment_mode: string;
+  /** Optional: human-readable payment method name for offline receipts */
+  payment_mode_name?: string;
   p_vehicle: string;
   receiver_route: string;
   commission: string | number;
@@ -70,6 +73,14 @@ export function useCreateMzigo() {
     if (!isOnline) {
       const offlineId = `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
+      // Resolve payment method name from cached reference data (if available)
+      let resolvedPaymentModeName: string | undefined = payload.payment_mode_name;
+      try {
+        const methods = await getReferenceData<PaymentMethod>("payment-methods");
+        const match = methods?.find((m) => String(m.id) === String(payload.payment_mode));
+        resolvedPaymentModeName = match?.payment_method;
+      } catch {}
+
       // Generate offline receipt with full data for printing
       const receiptData = generateOfflineReceipt({
         offlineId,
@@ -78,6 +89,7 @@ export function useCreateMzigo() {
         companyName,
         officeName,
         receiptFormatJson,
+        resolvedPaymentModeName,
       });
       
       // Save to IndexedDB (include receipt data for later retrieval)
@@ -128,6 +140,14 @@ export function useCreateMzigo() {
       if (error instanceof TypeError && error.message === "Failed to fetch") {
         const offlineId = `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         
+        // Resolve payment method name from cached reference data (if available)
+        let resolvedPaymentModeName: string | undefined = payload.payment_mode_name;
+        try {
+          const methods = await getReferenceData<PaymentMethod>("payment-methods");
+          const match = methods?.find((m) => String(m.id) === String(payload.payment_mode));
+          resolvedPaymentModeName = match?.payment_method;
+        } catch {}
+
         // Generate offline receipt with full data for printing
         const receiptData = generateOfflineReceipt({
           offlineId,
@@ -136,6 +156,7 @@ export function useCreateMzigo() {
           companyName,
           officeName,
           receiptFormatJson,
+          resolvedPaymentModeName,
         });
         
         // Save to IndexedDB (include receipt data)
