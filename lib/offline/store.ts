@@ -26,6 +26,11 @@ interface OfflineState {
   // Service worker status
   swRegistered: boolean;
   setSwRegistered: (registered: boolean) => void;
+
+  // Offline receipt counter for sequential numbering
+  offlineReceiptCount: number;
+  incrementOfflineReceiptCount: () => number;
+  resetOfflineReceiptCount: () => void;
 }
 
 export const useOfflineStore = create<OfflineState>()(
@@ -67,6 +72,15 @@ export const useOfflineStore = create<OfflineState>()(
       // Service worker status
       swRegistered: false,
       setSwRegistered: (swRegistered) => set({ swRegistered }),
+
+      // Offline receipt counter
+      offlineReceiptCount: 0,
+      incrementOfflineReceiptCount: () => {
+        const newCount = (useOfflineStore.getState().offlineReceiptCount || 0) + 1;
+        set({ offlineReceiptCount: newCount });
+        return newCount;
+      },
+      resetOfflineReceiptCount: () => set({ offlineReceiptCount: 0 }),
     }),
     {
       name: "mzigo-offline-store",
@@ -74,6 +88,7 @@ export const useOfflineStore = create<OfflineState>()(
       partialize: (state) => ({
         lastSyncTime: state.lastSyncTime,
         syncErrors: state.syncErrors,
+        offlineReceiptCount: state.offlineReceiptCount,
       }),
     }
   )

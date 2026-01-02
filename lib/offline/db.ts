@@ -117,6 +117,9 @@ export async function clearCache(key?: string) {
     await db.delete("cache", key);
   } else {
     await db.clear("cache");
+    // Reset offline receipt counter when cache is cleared
+    const { resetOfflineReceiptCount } = await import("./store").then(m => m.useOfflineStore.getState());
+    resetOfflineReceiptCount();
   }
 }
 

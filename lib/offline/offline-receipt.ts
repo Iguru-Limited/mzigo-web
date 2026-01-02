@@ -33,6 +33,8 @@ interface OfflineReceiptOptions {
   receiptFormatJson?: ReceiptFormatJson;
   /** Optional resolved payment method name to display on offline receipt */
   resolvedPaymentModeName?: string;
+  /** Sequential counter for offline waybill numbering (off-1, off-2, etc.) */
+  offlineReceiptCount?: number;
 }
 
 /** Map of variable names to their values */
@@ -99,10 +101,12 @@ export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptD
     companyPhone = "",
     receiptFormatJson,
     resolvedPaymentModeName,
+    offlineReceiptCount = 0,
   } = options;
   
   const now = new Date();
-  const receiptNumber = `OFFLINE-${offlineId.slice(-8).toUpperCase()}`;
+  // Use sequential offline waybill numbering: OFL-1, OFL-2, OFL-3, etc.
+  const receiptNumber = offlineReceiptCount > 0 ? `OFL-${offlineReceiptCount}` : `OFFLINE-${offlineId.slice(-8).toUpperCase()}`;
   // Do not include a package token for offline receipts so QR is hidden
   const packageToken = undefined;
   const date = now.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, "-");

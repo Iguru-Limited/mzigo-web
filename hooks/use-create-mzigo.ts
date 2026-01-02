@@ -73,6 +73,9 @@ export function useCreateMzigo() {
     if (!isOnline) {
       const offlineId = `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       
+      // Increment offline receipt counter for sequential numbering
+      const offlineCount = useOfflineStore.getState().incrementOfflineReceiptCount();
+      
       // Resolve payment method name from cached reference data (if available)
       let resolvedPaymentModeName: string | undefined = payload.payment_mode_name;
       try {
@@ -90,6 +93,7 @@ export function useCreateMzigo() {
         officeName,
         receiptFormatJson,
         resolvedPaymentModeName,
+        offlineReceiptCount: offlineCount,
       });
       
       // Save to IndexedDB (include receipt data for later retrieval)
