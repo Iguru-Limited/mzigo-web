@@ -40,7 +40,14 @@ type ReceiptVariables = Record<string, string>;
  * Get the value for a receipt variable
  */
 function getVariableValue(variableName: string, variables: ReceiptVariables): string {
-  return variables[variableName] || variableName;
+  const key = (variableName || "").trim();
+  const lowerKey = key.toLowerCase();
+  // Support exact, trimmed, and lower-cased variable names from templates
+  return (
+    variables[key] ??
+    variables[lowerKey] ??
+    variableName
+  );
 }
 
 /**
@@ -92,8 +99,9 @@ export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptD
   } = options;
   
   const now = new Date();
-  const receiptNumber = `${offlineId.slice(-8).toUpperCase()}`;
-  const packageToken = offlineId.slice(-6).toUpperCase();
+  const receiptNumber = `OFFLINE-${offlineId.slice(-8).toUpperCase()}`;
+  // Do not include a package token for offline receipts so QR is hidden
+  const packageToken = undefined;
   const date = now.toLocaleDateString("en-GB", { day: "2-digit", month: "2-digit", year: "numeric" }).replace(/\//g, "-");
   const time = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   const timestamp = `${date} ${time}`;
@@ -114,7 +122,7 @@ export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptD
     // Sender details
     sender_name: payload.sender_name,
     sender_phone: payload.sender_phone,
-    sender_town: "", // Not provided in payload
+    sender_town: officeName,
     
     // Receiver details
     receiver_name: payload.receiver_name,
@@ -199,7 +207,7 @@ function generateDefaultReceipt(
     // Sender details
     createLine(payload.sender_name, { "pre-text": "Sender   Name : " }),
     createLine(payload.sender_phone, { "pre-text": "         Phone:" }),
-    createLine(payload.receiver_route, { "pre-text": "         Town  :" }),
+    createLine(info.officeName, { "pre-text": "         Town  :" }),
     
     // Receiver details  
     createLine(payload.receiver_name, { "pre-text": "Receiver Name: " }),
@@ -220,5 +228,5 @@ function generateDefaultReceipt(
  * Check if a receipt is from an offline shipment
  */
 export function isOfflineReceipt(receiptNumber: string): boolean {
-  return receiptNumber.startsWith("OFFLINE-");
+  return receiptNumber.startsWith("OFL-");
 }

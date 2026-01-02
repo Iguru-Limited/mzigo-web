@@ -3,7 +3,6 @@ import { getApiUrl, API_ENDPOINTS } from "@/lib/constants";
 import { syncManager, saveOfflineShipment, useOfflineStore } from "@/lib/offline";
 import { generateOfflineReceipt } from "@/lib/offline/offline-receipt";
 import { ReceiptData } from "@/types/receipt";
-import { toast } from "sonner";
 
 interface CreateMzigoPayload {
   sender_name: string;
@@ -44,10 +43,27 @@ export function useCreateMzigo() {
 
     const apiUrl = getApiUrl(API_ENDPOINTS.CREATE_MZIGO);
     
-    // Get session data for receipt
+    // Cache session-derived names for robust offline usage
+    if (typeof window !== "undefined") {
+      try {
+        if (session.company?.name) {
+          localStorage.setItem("companyName", session.company.name);
+        }
+        if (session.office?.name) {
+          localStorage.setItem("officeName", session.office.name);
+        }
+      } catch (e) {
+        // Ignore storage errors
+        console.warn("Failed to cache session names", e);
+      }
+    }
+
+    // Get session data for receipt with stronger guards
     const servedBy = session.user.name || "Agent";
-    const companyName = session.company?.name || "MZIGO";
-    const officeName = session.office?.name || "Nairobi";
+    const cachedCompanyName = typeof window !== "undefined" ? localStorage.getItem("companyName") : null;
+    const cachedOfficeName = typeof window !== "undefined" ? localStorage.getItem("officeName") : null;
+    const companyName = session.company?.name || cachedCompanyName || "MZIGO";
+    const officeName = session.office?.name || cachedOfficeName || "Nairobi";
     const receiptFormatJson = session.company?.receipt_format_json;
 
     // If offline, save locally and queue for sync
