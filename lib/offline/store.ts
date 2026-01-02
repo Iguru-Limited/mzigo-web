@@ -35,7 +35,7 @@ interface OfflineState {
 
 export const useOfflineStore = create<OfflineState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       // Network status
       isOnline: typeof navigator !== "undefined" ? navigator.onLine : true,
       setIsOnline: (isOnline) => set({ isOnline }),
@@ -76,7 +76,7 @@ export const useOfflineStore = create<OfflineState>()(
       // Offline receipt counter
       offlineReceiptCount: 0,
       incrementOfflineReceiptCount: () => {
-        const newCount = (useOfflineStore.getState().offlineReceiptCount || 0) + 1;
+        const newCount = (get().offlineReceiptCount || 0) + 1;
         set({ offlineReceiptCount: newCount });
         return newCount;
       },

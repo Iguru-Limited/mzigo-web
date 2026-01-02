@@ -13,6 +13,7 @@ import {
   faBox,
   faChartBar,
   faGear,
+  faQrcode,
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 
@@ -97,6 +98,14 @@ const ACTION_CARDS: ActionCardConfig[] = [
     href: "/load",
     color: "bg-slate-700",
     requiredRights: ["load"],
+  },
+  {
+    id: "lookup",
+    label: "Look Up",
+    icon: faQrcode,
+    href: "/lookup",
+    color: "bg-slate-700",
+    requiredRights: ["search"],
   },
 ];
 
