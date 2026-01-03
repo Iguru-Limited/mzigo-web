@@ -24,7 +24,7 @@ import { ReceiptData } from "@/types/receipt";
 export function CreateMzigoForm() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { createMzigo } = useCreateMzigo();
+  const { createMzigo, isOffline, offlineEnabled } = useCreateMzigo();
   const { vehicles, isLoading: vehiclesLoading, error: vehiclesError } = useVehicles();
   const { destinations, isLoading: destinationsLoading, error: destinationsError } = useDestinations();
   const { sizes, isLoading: sizesLoading, error: sizesError } = useSizes();
@@ -131,15 +131,57 @@ export function CreateMzigoForm() {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An error occurred while creating the mzigo";
-      setError(errorMessage);
-      toast.error("Failed to create mzigo", {
-        description: errorMessage,
-      });
+      
+      // Handle offline not allowed error specially
+      if (errorMessage === "OFFLINE_NOT_ALLOWED") {
+        setError("You are currently offline. Please connect to the internet to continue using the app.");
+        toast.error("Offline mode not available", {
+          description: "Please connect to the internet to create a mzigo.",
+        });
+      } else {
+        setError(errorMessage);
+        toast.error("Failed to create mzigo", {
+          description: errorMessage,
+        });
+      }
       console.error("Error creating mzigo:", err);
     } finally {
       setIsLoading(false);
     }
   };
+
+  // Show blocking message if offline and offline capability is disabled
+  if (isOffline && !offlineEnabled) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[50vh] p-6">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-md text-center">
+          <div className="flex justify-center mb-4">
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              className="h-16 w-16 text-red-500" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414" 
+              />
+            </svg>
+          </div>
+          <h2 className="text-xl font-bold text-red-800 mb-2">You Are Offline</h2>
+          <p className="text-red-600 mb-4">
+            Offline mode is not available for your account. Please connect to the internet to continue using the app.
+          </p>
+          <p className="text-sm text-red-500">
+            Check your internet connection and try again.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">

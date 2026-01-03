@@ -34,6 +34,9 @@ export function useCreateMzigo() {
   const { data: session } = useSession();
   const { isOnline, refreshPendingCount } = useOfflineStore();
 
+  // Check if offline capability is enabled for this company (1 = enabled, 0 = disabled)
+  const offlineEnabled = session?.company?.offline === 1;
+
   const createMzigo = async (payload: CreateMzigoPayload): Promise<CreateMzigoResponse> => {
     if (!session?.user) {
       throw new Error("User not authenticated");
@@ -42,6 +45,11 @@ export function useCreateMzigo() {
     const accessToken = (session as { accessToken?: string } | null)?.accessToken;
     if (!accessToken) {
       throw new Error("Access token not available");
+    }
+
+    // If offline and offline capability is disabled, reject the request
+    if (!isOnline && !offlineEnabled) {
+      throw new Error("OFFLINE_NOT_ALLOWED");
     }
 
     const apiUrl = getApiUrl(API_ENDPOINTS.CREATE_MZIGO);
@@ -191,5 +199,10 @@ export function useCreateMzigo() {
     }
   };
 
-  return { createMzigo, isLoading: false, isOffline: !isOnline };
+  return { 
+    createMzigo, 
+    isLoading: false, 
+    isOffline: !isOnline,
+    offlineEnabled,
+  };
 }
