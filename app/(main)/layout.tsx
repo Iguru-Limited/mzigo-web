@@ -3,7 +3,6 @@
 import { useSession } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect } from "react";
-// import { AppSidebar } from "@/components/app-sidebar";
 import { MobileNav } from "@/components/mobile-nav";
 import { DesktopNav } from "@/components/desktop-nav";
 import { Spinner } from "@/components/ui/spinner";
@@ -62,7 +61,6 @@ export default function MainLayout({
         </main>
       </div>
 
-      {/* Desktop/Tablet Top Navigation - replaces sidebar on lg+ */}
       <div className="hidden lg:block">
         <DesktopNav />
         <main className="mx-auto flex max-w-7xl flex-1 flex-col px-6">
