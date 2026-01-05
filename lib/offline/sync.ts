@@ -3,16 +3,9 @@ import {
   removeFromSyncQueue,
   updateSyncQueueItem,
   addToSyncQueue,
-  type SyncQueueItem,
 } from "./db";
 import { useOfflineStore } from "./store";
-
-interface SyncOptions {
-  getAccessToken: () => Promise<string | null>;
-  onSyncComplete?: () => void;
-  onSyncError?: (error: Error) => void;
-  onItemSynced?: (item: SyncQueueItem) => void;
-}
+import type { SyncOptions, SyncQueueItem } from "@/types/operations/offline";
 
 class SyncManager {
   private isSyncing = false;

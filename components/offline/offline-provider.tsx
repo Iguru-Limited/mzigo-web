@@ -2,8 +2,7 @@
 
 import React, { useEffect } from "react";
 import { SWRConfig } from "swr";
-import { useOnlineStatus } from "@/hooks/use-online-status";
-import { useServiceWorker } from "@/hooks/use-service-worker";
+import { useOnlineStatus, useServiceWorker } from "@/hooks";
 import { useOfflineStore } from "@/lib/offline";
 import { swrOfflineConfig } from "@/lib/swr-config";
 import { toast } from "sonner";

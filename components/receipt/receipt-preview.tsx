@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDownIcon, PrinterIcon, PaperAirplaneIcon, DevicePhoneMobileIcon } from "@heroicons/react/24/outline";
-import { ReceiptData } from "@/types/receipt";
+import { ReceiptData } from "@/types/operations/receipt";
 import { openPrintWindow, PaperWidth } from "@/lib/receipt";
 import { QRCodeComponent } from "@/components/receipt/qr-code";
 import { toast } from "sonner";

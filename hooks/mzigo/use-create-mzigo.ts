@@ -1,34 +1,8 @@
 import { useSession } from "next-auth/react";
-import { getApiUrl, API_ENDPOINTS } from "@/lib/constants";
-import { syncManager, saveOfflineShipment, useOfflineStore, getReferenceData } from "@/lib/offline";
-import type { PaymentMethod } from "@/types/payment-methods";
+import { syncManager, saveOfflineMzigo, useOfflineStore, getReferenceData } from "@/lib/offline";
+import type { PaymentMethod } from "@/types/reference/payment-methods";
 import { generateOfflineReceipt } from "@/lib/offline/offline-receipt";
-import { ReceiptData } from "@/types/receipt";
-
-interface CreateMzigoPayload {
-  sender_name: string;
-  sender_phone: string;
-  receiver_name: string;
-  receiver_phone: string;
-  receiver_town: string;
-  parcel_description: string;
-  parcel_value: string | number;
-  package_size: string;
-  amount_charged: string | number;
-  payment_mode: string;
-  /** Optional: human-readable payment method name for offline receipts */
-  payment_mode_name?: string;
-  p_vehicle: string;
-  receiver_route: string;
-  commission: string | number;
-  special_instructions: string;
-}
-
-interface CreateMzigoResponse {
-  status: string;
-  message: string;
-  data?: ReceiptData;
-}
+import type { CreateMzigoPayload, CreateMzigoResponse } from "@/types/operations/mzigo";
 
 export function useCreateMzigo() {
   const { data: session } = useSession();
@@ -42,17 +16,10 @@ export function useCreateMzigo() {
       throw new Error("User not authenticated");
     }
 
-    const accessToken = (session as { accessToken?: string } | null)?.accessToken;
-    if (!accessToken) {
-      throw new Error("Access token not available");
-    }
-
     // If offline and offline capability is disabled, reject the request
     if (!isOnline && !offlineEnabled) {
       throw new Error("OFFLINE_NOT_ALLOWED");
     }
-
-    const apiUrl = getApiUrl(API_ENDPOINTS.CREATE_MZIGO);
     
     // Cache session-derived names for robust offline usage
     if (typeof window !== "undefined") {
@@ -105,7 +72,7 @@ export function useCreateMzigo() {
       });
       
       // Save to IndexedDB (include receipt data for later retrieval)
-      await saveOfflineShipment(offlineId, {
+      await saveOfflineMzigo(offlineId, {
         payload,
         receiptData,
       });
@@ -113,7 +80,7 @@ export function useCreateMzigo() {
       // Add to sync queue
       await syncManager.addToQueue({
         type: "create",
-        endpoint: apiUrl,
+        endpoint: "/api/mzigo",
         method: "POST",
         payload,
         maxRetries: 5,
@@ -129,13 +96,12 @@ export function useCreateMzigo() {
       };
     }
 
-    // Online - make the request directly
+    // Online - make the request via proxy
     try {
-      const response = await fetch(apiUrl, {
+      const response = await fetch("/api/mzigo", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
         },
         body: JSON.stringify(payload),
       });
@@ -172,14 +138,14 @@ export function useCreateMzigo() {
         });
         
         // Save to IndexedDB (include receipt data)
-        await saveOfflineShipment(offlineId, {
+        await saveOfflineMzigo(offlineId, {
           payload,
           receiptData,
         });
         
         await syncManager.addToQueue({
           type: "create",
-          endpoint: apiUrl,
+          endpoint: "/api/mzigo",
           method: "POST",
           payload,
           maxRetries: 5,

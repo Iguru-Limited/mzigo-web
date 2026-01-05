@@ -1,4 +1,4 @@
-import { ReceiptData, ReceiptItem } from "@/types/receipt";
+import { ReceiptData, ReceiptItem } from "@/types/operations/receipt";
 import { generateQRCodeDataUrl } from "./qr-utils";
 
 // Paper width options for thermal printers

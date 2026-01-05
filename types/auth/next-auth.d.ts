@@ -1,18 +1,6 @@
 import "next-auth";
 import "next-auth/jwt";
-
-/** Receipt format line item from API */
-export interface ReceiptFormatItem {
-  text_size: "small" | "normal" | "big";
-  content: string;
-  "pre-text": string;
-  end_1: string;
-  is_variable: boolean;
-  is_bold: boolean;
-}
-
-/** Receipt format JSON object from API (keyed by string index) */
-export type ReceiptFormatJson = Record<string, ReceiptFormatItem>;
+import type { ReceiptFormatJson } from "./receipt";
 
 declare module "next-auth" {
   interface Session {

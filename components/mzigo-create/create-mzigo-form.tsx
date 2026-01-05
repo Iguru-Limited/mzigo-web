@@ -12,24 +12,26 @@ import { VehicleInput } from "@/components/ui/vehicle-input";
 import { DestinationInput } from "@/components/ui/destination-input";
 import { SizeSelect } from "@/components/ui/size-select";
 import { RouteInput } from "@/components/ui/route-input";
-import { useCreateMzigo } from "@/hooks/use-create-mzigo";
-import { useVehicles } from "@/hooks/use-vehicles";
-import { useDestinations } from "@/hooks/use-destinations";
-import { useSizes } from "@/hooks/use-sizes";
-import { useRoutes } from "@/hooks/use-routes";
-import { usePaymentMethods } from "@/hooks/use-payment-methods";
+import {
+  useCreateMzigo,
+  useVehicles,
+  useDestinations,
+  useSizes,
+  useRoutes,
+  usePaymentMethods,
+} from "@/hooks";
 import { ReceiptPreview } from "@/components/receipt/receipt-preview";
-import { ReceiptData } from "@/types/receipt";
+import { ReceiptData } from "@/types/operations/receipt";
 
 export function CreateMzigoForm() {
   const router = useRouter();
   const { data: session } = useSession();
   const { createMzigo, isOffline, offlineEnabled } = useCreateMzigo();
-  const { vehicles, isLoading: vehiclesLoading, error: vehiclesError } = useVehicles();
-  const { destinations, isLoading: destinationsLoading, error: destinationsError } = useDestinations();
-  const { sizes, isLoading: sizesLoading, error: sizesError } = useSizes();
-  const { routes, isLoading: routesLoading, error: routesError } = useRoutes();
-  const { paymentMethods, isLoading: paymentMethodsLoading, error: paymentMethodsError } = usePaymentMethods();
+  const { data: vehicles, isLoading: vehiclesLoading, error: vehiclesError } = useVehicles();
+  const { data: destinations, isLoading: destinationsLoading, error: destinationsError } = useDestinations();
+  const { data: sizes, isLoading: sizesLoading, error: sizesError } = useSizes();
+  const { data: routes, isLoading: routesLoading, error: routesError } = useRoutes();
+  const { data: paymentMethods, isLoading: paymentMethodsLoading, error: paymentMethodsError } = usePaymentMethods();
 
   const [formData, setFormData] = useState({
     senderName: "",
@@ -110,7 +112,7 @@ export function CreateMzigoForm() {
         
         // Show appropriate toast
         if (isOffline) {
-          // toast.info("Shipment saved offline", {
+          // toast.info("Mzigo saved offline", {
           //   description: `Receipt #${receiptNumber} - Will sync when online. You can print now.`,
           // });
         } else {

@@ -1,9 +1,9 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShipmentSearcher } from "@/components/mzigo-search/shipment-searcher";
+import { MzigoSearcher } from "@/components/mzigo-search/mzigo-searcher";
 
-export default function SearchShipmentsPage() {
+export default function SearchMzigosPage() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
       <div className="flex items-center justify-between">
@@ -13,10 +13,10 @@ export default function SearchShipmentsPage() {
       <div className="grid gap-4 md:gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Find Mzigos</CardTitle>
+            <CardTitle>Search for Mzigos</CardTitle>
           </CardHeader>
           <CardContent>
-            <ShipmentSearcher />
+            <MzigoSearcher />
           </CardContent>
         </Card>
       </div>

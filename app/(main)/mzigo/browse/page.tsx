@@ -1,9 +1,9 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShipmentBrowser } from "@/components/mzigo-browse/shipment-browser";
+import { MzigoBrowser } from "@/components/mzigo-browse/mzigo-browser";
 
-export default function BrowseShipmentsPage() {
+export default function BrowseMzigosPage() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
       <div className="flex items-center justify-between">
@@ -13,10 +13,10 @@ export default function BrowseShipmentsPage() {
       <div className="grid gap-4 md:gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Mzigo List</CardTitle>
+            <CardTitle>Browse All Mzigos</CardTitle>
           </CardHeader>
           <CardContent>
-            <ShipmentBrowser />
+            <MzigoBrowser />
           </CardContent>
         </Card>
       </div>

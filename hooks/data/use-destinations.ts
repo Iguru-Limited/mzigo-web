@@ -1,23 +1,15 @@
 "use client";
 
-import { Destination, DestinationListResponse } from "@/types/destinations";
-import { API_ENDPOINTS, getApiUrl } from "@/lib/constants";
-import { useOfflineData } from "@/hooks/use-offline-data";
-
-interface UseDestinationsReturn {
-  destinations: Destination[];
-  isLoading: boolean;
-  error: string | null;
-  isOffline: boolean;
-  refetch: () => Promise<void>;
-}
+import type { Destination, DestinationListResponse } from "@/types/reference/destinations";
+import { useOfflineData } from "@/hooks/offline/use-offline-data";
+import type { UseDataListReturn } from "@/hooks/types";
 
 /**
  * Hook to fetch and manage destinations list with offline support
  * Uses SWR for caching and IndexedDB for persistent offline storage
  */
-export function useDestinations(): UseDestinationsReturn {
-  const url = getApiUrl(API_ENDPOINTS.LIST_DESTINATION);
+export function useDestinations(): UseDataListReturn<Destination> {
+  const url = "/api/destinations";
 
   const { data, error, isLoading, isOffline, refresh } = useOfflineData<Destination[]>(
     url,
@@ -35,7 +27,7 @@ export function useDestinations(): UseDestinationsReturn {
   );
 
   return {
-    destinations: data || [],
+    data: data || [],
     isLoading,
     error: error?.message || null,
     isOffline,

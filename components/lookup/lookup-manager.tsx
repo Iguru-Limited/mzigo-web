@@ -1,109 +1,58 @@
 "use client";
 
-import { useState } from "react";
-import { useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
 import { QRScanner } from "./qr-scanner";
 import { LookupReceiptPreview } from "./lookup-receipt-preview";
-import { getApiUrl, API_ENDPOINTS } from "@/lib/constants";
-import { ReceiptData, ReceiptItem } from "@/types/receipt";
+import type { ReceiptData } from "@/types/operations/receipt";
 import { Spinner } from "@/components/ui/spinner";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftIcon, QrCodeIcon } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
-
-interface LookupResponse {
-  status: string;
-  count: number;
-  data: Array<{
-    id: string;
-    receipt_number: string;
-    receipt_2?: string;
-    s_date: string;
-    s_time: string;
-    receipt: ReceiptItem[];
-    package_token: string;
-  }>;
-}
+import { useReceiptLookup } from "@/hooks";
 
 export function LookupManager() {
-  const { data: session } = useSession();
-  const [isLoading, setIsLoading] = useState(false);
+  const [activeToken, setActiveToken] = useState<string | null>(null);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
   const [showPreview, setShowPreview] = useState(false);
   const [showScanner, setShowScanner] = useState(true);
 
-  const handleScan = async (decodedToken: string) => {
-    if (!session?.user) {
-      toast.error("Not authenticated");
-      return;
-    }
+  const { data, error, isLoading } = useReceiptLookup(activeToken);
 
-    const accessToken = (session as { accessToken?: string } | null)?.accessToken;
-    if (!accessToken) {
-      toast.error("Access token not available");
-      return;
-    }
-
-    setIsLoading(true);
+  const handleScan = (decodedToken: string) => {
     setShowScanner(false);
+    setActiveToken(decodedToken);
+  };
 
-    try {
-      const apiUrl = getApiUrl(API_ENDPOINTS.QR_LOOKUP);
-      const urlWithParam = `${apiUrl}?package_token=${encodeURIComponent(decodedToken)}`;
-
-      const response = await fetch(urlWithParam, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Request failed with status ${response.status}`);
-      }
-
-      const result: LookupResponse = await response.json();
-
-      if (result.status !== "success" || result.count === 0 || !result.data?.length) {
-        toast.error("Receipt not found", {
-          description: "No receipt found for the scanned QR code.",
-        });
-        setShowScanner(true);
-        return;
-      }
-
-      // Take the first receipt from the response
-      const receiptInfo = result.data[0];
-      
-      // Map to ReceiptData format
-      const mappedData: ReceiptData = {
-        id: receiptInfo.id,
-        receipt_number: receiptInfo.receipt_number,
-        package_token: receiptInfo.package_token,
-        s_date: receiptInfo.s_date,
-        s_time: receiptInfo.s_time,
-        receipt: receiptInfo.receipt,
-      };
-
-      setReceiptData(mappedData);
-      setShowPreview(true);
-      toast.success("Receipt found!");
-    } catch (error) {
-      console.error("Lookup error:", error);
+  useEffect(() => {
+    if (error) {
       toast.error("Failed to look up receipt", {
-        description: error instanceof Error ? error.message : "An error occurred",
+        description: error.message,
       });
       setShowScanner(true);
-    } finally {
-      setIsLoading(false);
+      setActiveToken(null);
     }
-  };
+  }, [error]);
+
+  useEffect(() => {
+    if (data) {
+      setReceiptData(data);
+      setShowPreview(true);
+      toast.success("Receipt found!");
+    } else if (activeToken && !isLoading && data === null) {
+      // Explicit "not found" case
+      toast.error("Receipt not found", {
+        description: "No receipt found for the scanned QR code.",
+      });
+      setShowScanner(true);
+      setActiveToken(null);
+    }
+  }, [data, isLoading, activeToken]);
 
   const handleClosePreview = () => {
     setShowPreview(false);
     setReceiptData(null);
     setShowScanner(true);
+    setActiveToken(null);
   };
 
   const handleScanError = (error: string) => {

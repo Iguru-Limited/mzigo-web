@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 
-export function ShipmentSearcher() {
+export function MzigoSearcher() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searched, setSearched] = useState(false);
 

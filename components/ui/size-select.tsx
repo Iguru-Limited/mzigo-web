@@ -1,7 +1,7 @@
 "use client";
 
 import { Label } from "@/components/ui/label";
-import { Size } from "@/types/sizes";
+import { Size } from "@/types/reference/sizes";
 
 interface SizeSelectProps {
   id?: string;

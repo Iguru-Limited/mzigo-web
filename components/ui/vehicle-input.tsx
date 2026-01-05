@@ -4,7 +4,7 @@ import { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
-import { Vehicle } from "@/types/vehicles";
+import { Vehicle } from "@/types/reference/vehicles";
 
 interface VehicleInputProps {
   id?: string;

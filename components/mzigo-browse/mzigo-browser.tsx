@@ -2,7 +2,7 @@
 
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 
-export function ShipmentBrowser() {
+export function MzigoBrowser() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">

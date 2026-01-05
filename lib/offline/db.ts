@@ -1,49 +1,28 @@
 import { openDB, DBSchema, IDBPDatabase } from "idb";
+import type { SyncQueueItem, OfflineMzigo, CachedData, ReferenceData } from "@/types/operations/offline";
 
 // Define the database schema
 interface MzigoDBSchema extends DBSchema {
   // Store for cached API responses
   cache: {
     key: string;
-    value: {
-      data: unknown;
-      timestamp: number;
-      expiresAt: number;
-    };
+    value: CachedData;
   };
   // Store for pending sync operations
   syncQueue: {
     key: number;
-    value: {
-      id?: number;
-      type: "create" | "update" | "delete";
-      endpoint: string;
-      method: string;
-      payload: unknown;
-      timestamp: number;
-      retries: number;
-      maxRetries: number;
-    };
+    value: SyncQueueItem;
     indexes: { "by-timestamp": number };
   };
-  // Store for offline-created shipments
-  offlineShipments: {
+  // Store for offline-created mzigos
+  offlineMzigos: {
     key: string;
-    value: {
-      id: string;
-      data: unknown;
-      createdAt: number;
-      synced: boolean;
-    };
+    value: OfflineMzigo;
   };
   // Store for reference data (destinations, routes, vehicles, sizes, payment-methods)
   referenceData: {
     key: string;
-    value: {
-      type: "destinations" | "routes" | "vehicles" | "sizes" | "payment-methods";
-      data: unknown[];
-      timestamp: number;
-    };
+    value: ReferenceData;
   };
 }
 
@@ -71,9 +50,9 @@ export async function getDB(): Promise<IDBPDatabase<MzigoDBSchema>> {
         syncStore.createIndex("by-timestamp", "timestamp");
       }
 
-      // Offline shipments
-      if (!db.objectStoreNames.contains("offlineShipments")) {
-        db.createObjectStore("offlineShipments");
+      // Offline mzigos
+      if (!db.objectStoreNames.contains("offlineMzigos")) {
+        db.createObjectStore("offlineMzigos");
       }
 
       // Reference data
@@ -144,10 +123,10 @@ export async function getReferenceData<T>(
   return record ? (record.data as T[]) : null;
 }
 
-// Offline shipments operations
-export async function saveOfflineShipment(id: string, data: unknown) {
+// Offline mzigos operations
+export async function saveOfflineMzigo(id: string, data: unknown) {
   const db = await getDB();
-  await db.put("offlineShipments", {
+  await db.put("offlineMzigos", {
     id,
     data,
     createdAt: Date.now(),
@@ -155,38 +134,29 @@ export async function saveOfflineShipment(id: string, data: unknown) {
   }, id);
 }
 
-export async function getOfflineShipments() {
+export async function getOfflineMzigos() {
   const db = await getDB();
-  return db.getAll("offlineShipments");
+  return db.getAll("offlineMzigos");
 }
 
-export async function markShipmentSynced(id: string) {
+export async function markMzigoSynced(id: string) {
   const db = await getDB();
-  const shipment = await db.get("offlineShipments", id);
-  if (shipment) {
-    shipment.synced = true;
-    await db.put("offlineShipments", shipment, id);
+  const mzigo = await db.get("offlineMzigos", id);
+  if (mzigo) {
+    mzigo.synced = true;
+    await db.put("offlineMzigos", mzigo, id);
   }
 }
 
-export async function deleteOfflineShipment(id: string) {
+export async function deleteOfflineMzigo(id: string) {
   const db = await getDB();
-  await db.delete("offlineShipments", id);
+  await db.delete("offlineMzigos", id);
 }
 
 // Sync queue operations
-export interface SyncQueueItem {
-  id?: number;
-  type: "create" | "update" | "delete";
-  endpoint: string;
-  method: string;
-  payload: unknown;
-  timestamp: number;
-  retries: number;
-  maxRetries: number;
-}
+export type { SyncQueueItem } from "@/types/operations/offline";
 
-export async function addToSyncQueue(item: Omit<SyncQueueItem, "id" | "timestamp" | "retries">) {
+export async function addToSyncQueue(item: Omit<import("@/types/operations/offline").SyncQueueItem, "id" | "timestamp" | "retries">) {
   const db = await getDB();
   await db.add("syncQueue", {
     ...item,

@@ -6,7 +6,7 @@ export function NotificationCenter() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        Stay updated with the latest notifications about your shipments.
+        Stay updated with the latest notifications about your mzigos.
       </p>
       <Empty>
         <EmptyHeader>

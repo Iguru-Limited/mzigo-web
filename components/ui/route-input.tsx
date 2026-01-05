@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
-import { RouteItem } from "@/types/routes";
+import { RouteItem } from "@/types/reference/routes";
 
 interface RouteInputProps {
   id?: string;

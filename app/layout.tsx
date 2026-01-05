@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "Mzigo Web",
-  description: "Mzigo Web - Shipment and logistics management",
+  description: "Mzigo Web - Mzigo and logistics management",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,

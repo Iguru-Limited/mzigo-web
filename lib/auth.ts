@@ -1,55 +1,7 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { getApiUrl, API_ENDPOINTS,API_BASE_URL } from "@/lib/constants";
-
-/** Receipt format line item from API */
-interface ReceiptFormatItem {
-  text_size: "small" | "normal" | "big";
-  content: string;
-  "pre-text": string;
-  end_1: string;
-  is_variable: boolean;
-  is_bold: boolean;
-}
-
-/** Receipt format JSON object from API (keyed by string index) */
-type ReceiptFormatJson = Record<string, ReceiptFormatItem>;
-
-interface LoginResponse {
-  status: string;
-  message: string;
-  access_token: string;
-  refresh_token: string;
-  user: {
-    id: string;
-    name: string;
-    user_level: string;
-    printer_name?: string;
-    company: {
-      id: string;
-      name: string;
-      fields_to_hide?: string;
-      receipt_format?: number;
-      model_type?: string;
-      offline?: number;
-      receipt_format_json?: ReceiptFormatJson;
-    };
-    office?: {
-      id: string;
-      name: string;
-    };
-    roles: Array<{
-      name: string;
-      app_title: string;
-      icon_name: string;
-    }>;
-  };
-}
-
-interface RefreshResponse {
-  message: string;
-  access_token: string;
-}
+import { getApiUrl, API_ENDPOINTS, API_BASE_URL } from "@/lib/constants";
+import type { LoginResponse, RefreshResponse } from "@/types/auth/auth";
 
 // Token expiration times (in milliseconds)
 const ACCESS_TOKEN_EXPIRY = 60 * 60 * 1000; // 1 hour

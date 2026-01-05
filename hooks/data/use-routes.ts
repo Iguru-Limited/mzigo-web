@@ -1,23 +1,15 @@
 "use client";
 
-import { RouteItem, RouteListResponse } from "@/types/routes";
-import { API_ENDPOINTS, getApiUrl } from "@/lib/constants";
-import { useOfflineData } from "@/hooks/use-offline-data";
-
-interface UseRoutesReturn {
-  routes: RouteItem[];
-  isLoading: boolean;
-  error: string | null;
-  isOffline: boolean;
-  refetch: () => Promise<void>;
-}
+import type { RouteItem, RouteListResponse } from "@/types/reference/routes";
+import { useOfflineData } from "@/hooks/offline/use-offline-data";
+import type { UseDataListReturn } from "@/hooks/types";
 
 /**
  * Hook to fetch and manage routes list with offline support
  * Uses SWR for caching and IndexedDB for persistent offline storage
  */
-export function useRoutes(): UseRoutesReturn {
-  const url = getApiUrl(API_ENDPOINTS.LIST_ROUTES);
+export function useRoutes(): UseDataListReturn<RouteItem> {
+  const url = "/api/routes";
 
   const { data, error, isLoading, isOffline, refresh } = useOfflineData<RouteItem[]>(
     url,
@@ -35,7 +27,7 @@ export function useRoutes(): UseRoutesReturn {
   );
 
   return {
-    routes: data || [],
+    data: data || [],
     isLoading,
     error: error?.message || null,
     isOffline,

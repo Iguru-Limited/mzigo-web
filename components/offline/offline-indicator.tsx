@@ -1,6 +1,6 @@
 "use client";
 
-import { useOnlineStatus } from "@/hooks/use-online-status";
+import { useOnlineStatus } from "@/hooks";
 import { useOfflineStore } from "@/lib/offline";
 import { WifiOff, Cloud, CloudOff, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";

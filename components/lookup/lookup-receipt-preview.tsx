@@ -2,7 +2,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ReceiptData } from "@/types/receipt";
+import { ReceiptData } from "@/types/operations/receipt";
 import { QRCodeComponent } from "@/components/receipt/qr-code";
 
 interface LookupReceiptPreviewProps {

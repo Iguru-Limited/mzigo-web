@@ -1,37 +1,7 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { getSyncQueueCount } from "./db";
-
-interface OfflineState {
-  // Network status
-  isOnline: boolean;
-  setIsOnline: (isOnline: boolean) => void;
-
-  // Sync status
-  isSyncing: boolean;
-  setIsSyncing: (isSyncing: boolean) => void;
-  lastSyncTime: number | null;
-  setLastSyncTime: (time: number) => void;
-
-  // Pending operations count
-  pendingCount: number;
-  setPendingCount: (count: number) => void;
-  refreshPendingCount: () => Promise<void>;
-
-  // Sync errors
-  syncErrors: Array<{ message: string; timestamp: number }>;
-  addSyncError: (message: string) => void;
-  clearSyncErrors: () => void;
-
-  // Service worker status
-  swRegistered: boolean;
-  setSwRegistered: (registered: boolean) => void;
-
-  // Offline receipt counter for sequential numbering
-  offlineReceiptCount: number;
-  incrementOfflineReceiptCount: () => number;
-  resetOfflineReceiptCount: () => void;
-}
+import type { OfflineState } from "@/types/operations/offline";
 
 export const useOfflineStore = create<OfflineState>()(
   persist(

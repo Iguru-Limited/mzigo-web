@@ -1,44 +1,11 @@
-import { ReceiptData, ReceiptItem } from "@/types/receipt";
-import { ReceiptFormatJson } from "@/types/next-auth";
-
-interface OfflineShipmentPayload {
-  sender_name: string;
-  sender_phone: string;
-  receiver_name: string;
-  receiver_phone: string;
-  receiver_town: string;
-  parcel_description: string;
-  parcel_value: string | number;
-  package_size: string;
-  amount_charged: string | number;
-  payment_mode: string;
-  p_vehicle: string;
-  receiver_route: string;
-  commission: string | number;
-  special_instructions: string;
-}
-
-interface OfflineReceiptOptions {
-  offlineId: string;
-  payload: OfflineShipmentPayload;
-  /** Name of the user who served (from session.user.name) */
-  servedBy?: string;
-  /** Company name (from session.company.name) */
-  companyName?: string;
-  /** Office/location name (from session.office.name) */
-  officeName?: string;
-  /** Company phone number */
-  companyPhone?: string;
-  /** Receipt format template from session.company.receipt_format_json */
-  receiptFormatJson?: ReceiptFormatJson;
-  /** Optional resolved payment method name to display on offline receipt */
-  resolvedPaymentModeName?: string;
-  /** Sequential counter for offline waybill numbering (off-1, off-2, etc.) */
-  offlineReceiptCount?: number;
-}
-
-/** Map of variable names to their values */
-type ReceiptVariables = Record<string, string>;
+import {
+  ReceiptData,
+  ReceiptItem,
+  ReceiptFormatJson,
+  ReceiptVariables,
+  OfflineMzigoPayload,
+  OfflineReceiptOptions,
+} from "@/types/operations/receipt";
 
 /**
  * Get the value for a receipt variable
@@ -88,7 +55,7 @@ function generateFromTemplate(
 }
 
 /**
- * Generate a printable receipt for offline-created shipments
+ * Generate a printable receipt for offline-created mzigos
  * Uses the receipt_format_json template from session if available
  */
 export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptData {
@@ -175,7 +142,7 @@ export function generateOfflineReceipt(options: OfflineReceiptOptions): ReceiptD
  * Generate default receipt format when no template is provided
  */
 function generateDefaultReceipt(
-  payload: OfflineShipmentPayload,
+  payload: OfflineMzigoPayload,
   info: {
     companyName: string;
     officeName: string;
@@ -236,7 +203,7 @@ function generateDefaultReceipt(
 }
 
 /**
- * Check if a receipt is from an offline shipment
+ * Check if a receipt is from an offline mzigo
  */
 export function isOfflineReceipt(receiptNumber: string): boolean {
   return receiptNumber.startsWith("OFFLINE-");

@@ -6,7 +6,7 @@
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#3B7FEF",
-  "description": "Mzigo Web - Shipment and logistics management",
+  "description": "Mzigo Web - Mzigo and logistics management",
   "orientation": "portrait-primary",
   "categories": ["business", "productivity"],
   "prefer_related_applications": false,
