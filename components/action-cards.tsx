@@ -49,7 +49,7 @@ const ACTION_CARDS: ActionCardConfig[] = [
     icon: faEye,
     href: "/mzigo/browse",
     color: "bg-slate-700",
-    requiredRights: ["browse"],
+    requiredRights: ["browse", "search", "report"],
   },
   {
     id: "search",

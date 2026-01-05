@@ -23,6 +23,7 @@ export const API_ENDPOINTS = {
   PAYMENT_METHODS:'/payments/list.php',
   QR_LOOKUP:'/mzigo/list_receipts.php',
   SEARCH_MZIGO:'/reports/search.php',
+  BROWSE:'/reports/stage_traffic.php',
 } as const;
 
 /**
