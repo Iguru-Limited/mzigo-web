@@ -7,6 +7,7 @@ export { useCreateMzigo } from "./mzigo/use-create-mzigo";
 export { useReceiptLookup } from "./mzigo/use-receipt-lookup";
 export { useSearchMzigo } from "./mzigo/use-search-mzigo";
 export { useBrowseMzigo } from "./mzigo/use-browse-mzigo";
+export { useAttendantStats } from "./mzigo/use-attendant-stats";
 
 // Data hooks (reference data)
 export { useDestinations } from "./data/use-destinations";

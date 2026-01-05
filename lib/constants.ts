@@ -24,6 +24,7 @@ export const API_ENDPOINTS = {
   QR_LOOKUP:'/mzigo/list_receipts.php',
   SEARCH_MZIGO:'/reports/search.php',
   BROWSE:'/reports/stage_traffic.php',
+  ATTENDANT_STATS:'/reports/attendant_stats.php',
 } as const;
 
 /**

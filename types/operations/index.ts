@@ -11,6 +11,13 @@ export type {
   TrafficType 
 } from "./browse-mzigo";
 export type {
+  AttendantStatsData,
+  AttendantStatsResponse,
+  AttendantStatsParams,
+  ReportSummary,
+  PaymentBreakdown,
+} from "./attendant-stats";
+export type {
   TextSize,
   ReceiptItem,
   ReceiptData,
