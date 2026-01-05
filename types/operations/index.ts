@@ -3,6 +3,7 @@
  */
 
 export type { CreateMzigoPayload, CreateMzigoResponse, LookupResponse } from "./mzigo";
+export type { SearchMzigoItem, SearchMzigoResponse } from "./search-mzigo";
 export type {
   TextSize,
   ReceiptItem,

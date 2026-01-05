@@ -1,6 +1,6 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import { getApiUrl, API_ENDPOINTS, API_BASE_URL } from "@/lib/constants";
+import { getApiUrl, API_ENDPOINTS } from "@/lib/constants";
 import type { LoginResponse, RefreshResponse } from "@/types/auth/auth";
 
 // Token expiration times (in milliseconds)

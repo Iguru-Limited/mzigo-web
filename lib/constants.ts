@@ -22,6 +22,7 @@ export const API_ENDPOINTS = {
   LIST_ROUTES:'/route/list.php',
   PAYMENT_METHODS:'/payments/list.php',
   QR_LOOKUP:'/mzigo/list_receipts.php',
+  SEARCH_MZIGO:'/reports/search.php',
 } as const;
 
 /**
