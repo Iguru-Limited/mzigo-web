@@ -112,50 +112,95 @@ export function LoadingManager() {
           </EmptyHeader>
         </Empty>
       ) : (
-        <div className="overflow-x-auto border rounded-md">
-          <table className="min-w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr>
-                <th className="px-3 py-2 text-left w-10">
-                  <input
-                    type="checkbox"
-                    checked={allSelected}
-                    onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="cursor-pointer"
-                  />
-                </th>
-                <th className="px-3 py-2 text-left">Waybill</th>
-                <th className="px-3 py-2 text-left">Description</th>
-                <th className="px-3 py-2 text-left">Sender</th>
-                <th className="px-3 py-2 text-left">Receiver</th>
-                <th className="px-3 py-2 text-left">Date</th>
-                <th className="px-3 py-2 text-left">Vehicle</th>
-                <th className="px-3 py-2 text-left">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((it) => (
-                <tr key={it.id} className="border-t">
-                  <td className="px-3 py-2 w-10">
+        <>
+          {/* Select All Bar - Mobile */}
+          <div className="md:hidden flex items-center gap-3 p-3 bg-muted rounded-md">
+            <input
+              type="checkbox"
+              checked={allSelected}
+              onChange={(e) => handleSelectAll(e.target.checked)}
+              className="cursor-pointer"
+            />
+            <span className="text-sm font-medium">Select All ({selectedIds.size}/{items.length})</span>
+          </div>
+
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto border rounded-md">
+            <table className="min-w-full text-sm">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="px-3 py-2 text-left w-10">
                     <input
                       type="checkbox"
-                      checked={selectedIds.has(it.id)}
-                      onChange={(e) => handleSelectParcel(it.id, e.target.checked)}
+                      checked={allSelected}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
                       className="cursor-pointer"
                     />
-                  </td>
-                  <td className="px-3 py-2 font-medium">{it.receipt_number}</td>
-                  <td className="px-3 py-2">{it.parcel_description}</td>
-                  <td className="px-3 py-2">{it.sender_name} ({it.sender_town})</td>
-                  <td className="px-3 py-2">{it.receiver_name} ({it.receiver_town})</td>
-                  <td className="px-3 py-2">{it.s_date} {it.s_time}</td>
-                  <td className="px-3 py-2">{it.p_vehicle}</td>
-                  <td className="px-3 py-2">{it.amount_charged}</td>
+                  </th>
+                  <th className="px-3 py-2 text-left">Waybill</th>
+                  <th className="px-3 py-2 text-left">Description</th>
+                  <th className="px-3 py-2 text-left">Sender</th>
+                  <th className="px-3 py-2 text-left">Receiver</th>
+                  <th className="px-3 py-2 text-left">Date</th>
+                  <th className="px-3 py-2 text-left">Vehicle</th>
+                  <th className="px-3 py-2 text-left">Amount</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {items.map((it) => (
+                  <tr key={it.id} className="border-t">
+                    <td className="px-3 py-2 w-10">
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(it.id)}
+                        onChange={(e) => handleSelectParcel(it.id, e.target.checked)}
+                        className="cursor-pointer"
+                      />
+                    </td>
+                    <td className="px-3 py-2 font-medium">{it.receipt_number}</td>
+                    <td className="px-3 py-2">{it.parcel_description}</td>
+                    <td className="px-3 py-2">{it.sender_name} ({it.sender_town})</td>
+                    <td className="px-3 py-2">{it.receiver_name} ({it.receiver_town})</td>
+                    <td className="px-3 py-2">{it.s_date} {it.s_time}</td>
+                    <td className="px-3 py-2">{it.p_vehicle}</td>
+                    <td className="px-3 py-2">{it.amount_charged}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden grid gap-3">
+            {items.map((it) => (
+              <Card key={it.id} className="p-4">
+                <div className="flex gap-3">
+                  <input
+                    type="checkbox"
+                    checked={selectedIds.has(it.id)}
+                    onChange={(e) => handleSelectParcel(it.id, e.target.checked)}
+                    className="cursor-pointer mt-1 shrink-0"
+                  />
+                  <div className="flex-1 min-w-0 space-y-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <p className="font-semibold text-sm">{it.receipt_number}</p>
+                        <p className="text-xs text-muted-foreground">{it.parcel_description}</p>
+                      </div>
+                      <span className="text-sm font-medium whitespace-nowrap">{it.amount_charged}</span>
+                    </div>
+                    <div className="text-xs space-y-1">
+                      <p><span className="font-medium">From:</span> {it.sender_name} ({it.sender_town})</p>
+                      <p><span className="font-medium">To:</span> {it.receiver_name} ({it.receiver_town})</p>
+                      <p><span className="font-medium">Date:</span> {it.s_date} {it.s_time}</p>
+                      <p><span className="font-medium">Vehicle:</span> {it.p_vehicle}</p>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );
