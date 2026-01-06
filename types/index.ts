@@ -35,4 +35,10 @@ export type {
 } from "./operations/offline";
 
 // Loading operations
-export type { UnloadedParcel, UnloadedParcelListResponse } from "./operations/loading";
+export type {
+  UnloadedParcel,
+  UnloadedParcelListResponse,
+  CreateLegacyLoadingPayload,
+  CreateLegacyLoadingData,
+  CreateLegacyLoadingResponse,
+} from "./operations/loading";

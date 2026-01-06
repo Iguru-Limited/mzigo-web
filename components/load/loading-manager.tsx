@@ -8,8 +8,19 @@ import { Separator } from "@/components/ui/separator";
 import { Spinner } from "@/components/ui/spinner";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import { DestinationInput } from "@/components/ui/destination-input";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDownIcon, PrinterIcon, DevicePhoneMobileIcon } from "@heroicons/react/24/outline";
 import { useDestinations } from "@/hooks/data/use-destinations";
 import { useUnloadedParcels } from "@/hooks/loading/use-unloaded-parcels";
+import { useCreateLegacyLoading } from "@/hooks/loading/use-create-legacy-loading";
 
 function today(): string {
   const d = new Date();
@@ -49,6 +60,12 @@ export function LoadingManager() {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const allSelected = items.length > 0 && selectedIds.size === items.length;
 
+  // Create loading sheet
+  const { createLoadingSheet } = useCreateLegacyLoading();
+  const [isCreating, setIsCreating] = useState(false);
+  const [sheetPreview, setSheetPreview] = useState<any>(null);
+  const [showPreview, setShowPreview] = useState(false);
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedIds(new Set(items.map(it => it.id)));
@@ -65,6 +82,106 @@ export function LoadingManager() {
       updated.delete(id);
     }
     setSelectedIds(updated);
+  };
+
+  const handleCreateLoadingSheet = async () => {
+    if (selectedIds.size === 0 || !selectedDestinationId) {
+      alert("Please select parcels and a destination");
+      return;
+    }
+    try {
+      setIsCreating(true);
+      const result = await createLoadingSheet({
+        parcel_ids: Array.from(selectedIds).map(id => parseInt(id)),
+        destination_id: parseInt(String(selectedDestinationId)),
+      });
+      setSheetPreview(result);
+      setShowPreview(true);
+      setSelectedIds(new Set()); // Clear selection
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to create loading sheet");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handlePrint = (paperWidth: "58mm" | "80mm") => {
+    if (!sheetPreview) return;
+    try {
+      // Create a printable HTML representation of the loading sheet
+      const printWindow = window.open("", "PRINT", "height=600,width=800");
+      if (!printWindow) return;
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Loading Sheet ${sheetPreview.sheet_number}</title>
+          <style>
+            body { font-family: monospace; margin: 10px; font-size: ${paperWidth === "58mm" ? "10px" : "12px"}; }
+            .header { text-align: center; margin-bottom: 10px; border-bottom: 1px solid #000; padding-bottom: 10px; }
+            .sheet-info { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+            .parcel-row { border-bottom: 1px solid #ddd; padding: 5px 0; }
+            .parcel-row:last-child { border-bottom: none; }
+            table { width: 100%; border-collapse: collapse; }
+            th { text-align: left; font-weight: bold; border-bottom: 1px solid #000; }
+            td { padding: 3px; border-bottom: 1px solid #ddd; }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h2>LOADING SHEET</h2>
+            <p>${sheetPreview.sheet_number}</p>
+          </div>
+          <div class="sheet-info">
+            <div><strong>Sheet ID:</strong> ${sheetPreview.loading_sheet_id}</div>
+            <div><strong>Loaded Count:</strong> ${sheetPreview.loaded_count}</div>
+            <div><strong>Total Parcels:</strong> ${sheetPreview.parcels?.length || 0}</div>
+            <div><strong>Date:</strong> ${new Date().toLocaleDateString()}</div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Waybill</th>
+                <th>Description</th>
+                <th>From</th>
+                <th>To</th>
+                <th>Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sheetPreview.parcels?.map((p: any) => `
+                <tr>
+                  <td>${p.receipt_number}</td>
+                  <td>${p.parcel_description}</td>
+                  <td>${p.sender_name}</td>
+                  <td>${p.receiver_name}</td>
+                  <td>${p.amount_charged}</td>
+                </tr>
+              `).join("") || ""}
+            </tbody>
+          </table>
+        </body>
+        </html>
+      `;
+
+      printWindow.document.write(html);
+      printWindow.document.close();
+      setTimeout(() => printWindow.print(), 250);
+    } catch (error) {
+      console.error("Print failed:", error);
+      alert("Failed to print loading sheet");
+    }
+  };
+
+  const handlePrintViaBridge = () => {
+    if (!sheetPreview) return;
+    const encodedData = encodeURIComponent(JSON.stringify(sheetPreview));
+    const bridgeUrl = `mzigo://print-sheet?data=${encodedData}`;
+    window.location.href = bridgeUrl;
+    setTimeout(() => {
+      alert("Print Bridge app not found. Please install the MZIGO Bridge app to use this feature.");
+    }, 2000);
   };
 
   return (
@@ -96,6 +213,27 @@ export function LoadingManager() {
           </div>
         </div>
       </Card>
+
+      <Separator />
+
+      {items.length > 0 && selectedIds.size > 0 && (
+        <div className="flex gap-2">
+          <Button
+            onClick={handleCreateLoadingSheet}
+            disabled={isCreating}
+            className="w-full md:w-auto"
+          >
+            {isCreating ? (
+              <>
+                <Spinner className="h-4 w-4 mr-2" />
+                Creating...
+              </>
+            ) : (
+              `Create Loading Sheet (${selectedIds.size} parcel${selectedIds.size !== 1 ? 's' : ''})`
+            )}
+          </Button>
+        </div>
+      )}
 
       <Separator />
 
@@ -202,6 +340,96 @@ export function LoadingManager() {
           </div>
         </>
       )}
+
+      {/* Preview Modal */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Loading Sheet Preview</DialogTitle>
+          </DialogHeader>
+          {sheetPreview && (
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="grid grid-cols-2 gap-4 pb-4 border-b">
+                <div>
+                  <p className="text-xs text-muted-foreground">Sheet Number</p>
+                  <p className="font-bold text-lg">{sheetPreview.sheet_number}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Loading Sheet ID</p>
+                  <p className="font-bold text-lg">{sheetPreview.loading_sheet_id}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Loaded Count</p>
+                  <p className="font-bold text-lg">{sheetPreview.loaded_count}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total Parcels</p>
+                  <p className="font-bold text-lg">{sheetPreview.parcels?.length || 0}</p>
+                </div>
+              </div>
+
+              {/* Parcels Table */}
+              <div className="space-y-2">
+                <h3 className="font-semibold">Loaded Parcels</h3>
+                <div className="overflow-x-auto border rounded">
+                  <table className="min-w-full text-xs">
+                    <thead className="bg-muted/50">
+                      <tr>
+                        <th className="px-2 py-2 text-left">Waybill</th>
+                        <th className="px-2 py-2 text-left">Description</th>
+                        <th className="px-2 py-2 text-left">Sender</th>
+                        <th className="px-2 py-2 text-left">Receiver</th>
+                        <th className="px-2 py-2 text-left">Amount</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {sheetPreview.parcels?.map((p: any) => (
+                        <tr key={p.id} className="border-t">
+                          <td className="px-2 py-2 font-medium">{p.receipt_number}</td>
+                          <td className="px-2 py-2">{p.parcel_description}</td>
+                          <td className="px-2 py-2">{p.sender_name}</td>
+                          <td className="px-2 py-2">{p.receiver_name}</td>
+                          <td className="px-2 py-2">{p.amount_charged}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2 flex-col-reverse sm:flex-row">
+            <Button variant="outline" onClick={() => setShowPreview(false)}>
+              Close
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button>
+                  <PrinterIcon className="mr-2 h-4 w-4" />
+                  Actions
+                  <ChevronDownIcon className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handlePrintViaBridge()}>
+                  <DevicePhoneMobileIcon className="mr-2 h-4 w-4" />
+                  Print via Bridge App
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handlePrint("58mm")}>
+                  <PrinterIcon className="mr-2 h-4 w-4" />
+                  Print (58mm - P-50)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handlePrint("80mm")}>
+                  <PrinterIcon className="mr-2 h-4 w-4" />
+                  Print (80mm)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

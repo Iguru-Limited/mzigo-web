@@ -26,6 +26,7 @@ export const API_ENDPOINTS = {
   BROWSE:'/reports/stage_traffic.php',
   ATTENDANT_STATS:'/reports/attendant_stats.php',
   LIST_UNLOADED:'/legacy_loading/list.php',
+  CREATE_LEGACY_LOADING:'/legacy_loading/create.php',
 
 } as const;
 

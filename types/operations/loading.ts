@@ -46,3 +46,21 @@ export interface UnloadedParcelListResponse {
   count?: number;
   data?: UnloadedParcel[];
 }
+
+export interface CreateLegacyLoadingPayload {
+  parcel_ids: number[];
+  destination_id: number;
+}
+
+export interface CreateLegacyLoadingData {
+  sheet_number: string;
+  loading_sheet_id: string;
+  loaded_count: number;
+  parcels: UnloadedParcel[];
+}
+
+export interface CreateLegacyLoadingResponse {
+  status: "success" | "error";
+  message?: string;
+  data?: CreateLegacyLoadingData;
+}
