@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import type { IconProp } from "@fortawesome/fontawesome-svg-core";
 import {
   faPlus,
   faFileLines,
@@ -12,15 +13,17 @@ import {
   faBell,
   faBox,
   faChartBar,
-  faGear,
   faQrcode,
+  faClockRotateLeft,
+  faListCheck,
+  faBolt,
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 
 interface ActionCardConfig {
   id: string;
   label: string;
-  icon: any;
+  icon: IconProp;
   href: string;
   color: string;
   requiredRights: string[];
@@ -90,14 +93,30 @@ const ACTION_CARDS: ActionCardConfig[] = [
     href: "/dispatch",
     color: "bg-slate-700",
     requiredRights: ["dispatch"],
+  }, 
+  {
+    id: "load-legacy",
+    label: "Legacy Loading",
+    icon: faClockRotateLeft,
+    href: "/load?mode=legacy",
+    color: "bg-slate-700",
+    requiredRights: ["legacy_loading"],
   },
   {
-    id: "load",
-    label: "Loading",
-    icon: faGear,
-    href: "/load",
+    id: "load-detailed",
+    label: "Detailed Loading",
+    icon: faListCheck,
+    href: "/load?mode=detailed",
     color: "bg-slate-700",
-    requiredRights: ["load"],
+    requiredRights: ["detailed_loading"],
+  },
+  {
+    id: "load-direct",
+    label: "Direct Loading",
+    icon: faBolt,
+    href: "/load?mode=direct",
+    color: "bg-slate-700",
+    requiredRights: ["direct_load"],
   },
   {
     id: "lookup",
