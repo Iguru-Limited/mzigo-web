@@ -33,3 +33,6 @@ export type {
   SyncOptions,
   OfflineState,
 } from "./operations/offline";
+
+// Loading operations
+export type { UnloadedParcel, UnloadedParcelListResponse } from "./operations/loading";

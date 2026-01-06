@@ -1,20 +1,162 @@
 "use client";
 
+import { useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Spinner } from "@/components/ui/spinner";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
+import { DestinationInput } from "@/components/ui/destination-input";
+import { useDestinations } from "@/hooks/data/use-destinations";
+import { useUnloadedParcels } from "@/hooks/loading/use-unloaded-parcels";
+
+function today(): string {
+  const d = new Date();
+  return d.toISOString().slice(0, 10);
+}
+
+const modeTitles: Record<string, string> = {
+  legacy: "Legacy Loading",
+  detailed: "Detailed Loading",
+  direct: "Direct Loading",
+};
 
 export function LoadingManager() {
+  const params = useSearchParams();
+  const mode = params.get("mode") || "legacy";
+  const title = modeTitles[mode] || "Loading";
+
+  // Destination selection (by name via DestinationInput, then map to id)
+  const { data: destinations, isLoading: isDestLoading, error: destError } = useDestinations();
+  const [destinationName, setDestinationName] = useState<string>("");
+  const selectedDestinationId = useMemo(() => {
+    const match = destinations.find(d => d.name.toLowerCase() === destinationName.trim().toLowerCase());
+    return match?.id ?? null;
+  }, [destinationName, destinations]);
+
+  // Date range (defaults: today)
+  const [startDate, setStartDate] = useState<string>(today());
+  const [endDate, setEndDate] = useState<string>(today());
+
+  const { items, isLoading, error, refresh } = useUnloadedParcels({
+    startDate,
+    endDate,
+    destinationId: selectedDestinationId,
+  });
+
+  // Selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const allSelected = items.length > 0 && selectedIds.size === items.length;
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedIds(new Set(items.map(it => it.id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleSelectParcel = (id: string, checked: boolean) => {
+    const updated = new Set(selectedIds);
+    if (checked) {
+      updated.add(id);
+    } else {
+      updated.delete(id);
+    }
+    setSelectedIds(updated);
+  };
+
   return (
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Manage loading operations for Mzigos.
-      </p>
-      <Empty>
-        <EmptyHeader>
-          <div className="text-4xl">⚙️</div>
-          <EmptyTitle>No Loading Tasks</EmptyTitle>
-          <EmptyDescription>No active loading tasks at the moment.</EmptyDescription>
-        </EmptyHeader>
-      </Empty>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-xl font-semibold">{title}</h2>
+      </div>
+
+      <Card className="p-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Start Date</label>
+            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">End Date</label>
+            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+          </div>
+          <div>
+            <DestinationInput
+              value={destinationName}
+              onChange={setDestinationName}
+              destinations={destinations}
+              isLoading={isDestLoading}
+              error={destError}
+              placeholder="Select destination"
+              required
+            />
+          </div>
+        </div>
+      </Card>
+
+      <Separator />
+
+      {isLoading ? (
+        <div className="flex items-center gap-2 text-sm text-muted-foreground"><Spinner className="h-4 w-4" /> Loading unloaded parcels…</div>
+      ) : error ? (
+        <div className="text-sm text-red-600">{error.message}</div>
+      ) : items.length === 0 ? (
+        <Empty>
+          <EmptyHeader>
+            <div className="text-4xl">📦</div>
+            <EmptyTitle>No Unloaded Parcels</EmptyTitle>
+            <EmptyDescription>Adjust filters to see more results.</EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      ) : (
+        <div className="overflow-x-auto border rounded-md">
+          <table className="min-w-full text-sm">
+            <thead className="bg-muted/50">
+              <tr>
+                <th className="px-3 py-2 text-left w-10">
+                  <input
+                    type="checkbox"
+                    checked={allSelected}
+                    onChange={(e) => handleSelectAll(e.target.checked)}
+                    className="cursor-pointer"
+                  />
+                </th>
+                <th className="px-3 py-2 text-left">Waybill</th>
+                <th className="px-3 py-2 text-left">Description</th>
+                <th className="px-3 py-2 text-left">Sender</th>
+                <th className="px-3 py-2 text-left">Receiver</th>
+                <th className="px-3 py-2 text-left">Date</th>
+                <th className="px-3 py-2 text-left">Vehicle</th>
+                <th className="px-3 py-2 text-left">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.map((it) => (
+                <tr key={it.id} className="border-t">
+                  <td className="px-3 py-2 w-10">
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.has(it.id)}
+                      onChange={(e) => handleSelectParcel(it.id, e.target.checked)}
+                      className="cursor-pointer"
+                    />
+                  </td>
+                  <td className="px-3 py-2 font-medium">{it.receipt_number}</td>
+                  <td className="px-3 py-2">{it.parcel_description}</td>
+                  <td className="px-3 py-2">{it.sender_name} ({it.sender_town})</td>
+                  <td className="px-3 py-2">{it.receiver_name} ({it.receiver_town})</td>
+                  <td className="px-3 py-2">{it.s_date} {it.s_time}</td>
+                  <td className="px-3 py-2">{it.p_vehicle}</td>
+                  <td className="px-3 py-2">{it.amount_charged}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
