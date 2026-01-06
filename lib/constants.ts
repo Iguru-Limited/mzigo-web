@@ -25,7 +25,8 @@ export const API_ENDPOINTS = {
   SEARCH_MZIGO:'/reports/search.php',
   BROWSE:'/reports/stage_traffic.php',
   ATTENDANT_STATS:'/reports/attendant_stats.php',
-  LEGACY_LOADING_LIST:'/legacy_loading/list.php',
+  LIST_UNLOADED:'/legacy_loading/list.php',
+
 } as const;
 
 /**

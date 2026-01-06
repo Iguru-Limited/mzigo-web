@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: "Missing required params: start_date, end_date, destination_id" }, { status: 400 });
     }
 
-    const base = getApiUrl(API_ENDPOINTS.LEGACY_LOADING_LIST);
+    const base = getApiUrl(API_ENDPOINTS.LIST_UNLOADED);
     const upstreamUrl = `${base}?start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}&destination_id=${encodeURIComponent(destinationId)}`;
 
     const upstream = await fetch(upstreamUrl, {
@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 
     const data = await upstream.json().catch(() => ({}));
     return NextResponse.json(data, { status: upstream.status });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ message: "Failed to list unloaded parcels" }, { status: 500 });
   }
 }
