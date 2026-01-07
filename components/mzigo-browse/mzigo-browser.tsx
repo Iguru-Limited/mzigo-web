@@ -199,6 +199,10 @@ function BrowseResultCard({ mzigo, type }: { mzigo: BrowseMzigoItem; type?: stri
               <span className="font-medium">{mzigo.amount_charged}</span>
             </div>
             <div className="flex justify-between">
+              <span className="text-muted-foreground">Payment:</span>
+              <span>{mzigo.payment_mode}</span>
+            </div>
+            <div className="flex justify-between">
               <span className="text-muted-foreground">Vehicle:</span>
               <span>{mzigo.p_vehicle}</span>
             </div>
@@ -210,10 +214,7 @@ function BrowseResultCard({ mzigo, type }: { mzigo: BrowseMzigoItem; type?: stri
               <span className="text-muted-foreground">Date:</span>
               <span>{mzigo.s_date} {mzigo.s_time}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Payment:</span>
-              <span>{mzigo.payment_mode}</span>
-            </div>
+            
           </div>
         </div>
       </div>
