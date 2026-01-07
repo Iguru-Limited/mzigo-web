@@ -7,8 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { VehicleInput } from "@/components/ui/vehicle-input";
+import { DestinationInput } from "@/components/ui/destination-input";
 import { toast } from "sonner";
 import { useLoadingSheets } from "@/hooks/dispatch/use-loading-sheets";
+import { useCreateDispatch } from "@/hooks/dispatch/use-create-dispatch";
+import { useVehicles } from "@/hooks/data/use-vehicles";
+import { useDestinations } from "@/hooks/data/use-destinations";
 
 type TabType = "undispatched" | "dispatched";
 
@@ -22,14 +28,24 @@ export function DispatchManager() {
   const [startDate, setStartDate] = useState<string>(today());
   const [endDate, setEndDate] = useState<string>(today());
   const [displayCount, setDisplayCount] = useState(5);
+  const [showDispatchDialog, setShowDispatchDialog] = useState(false);
+  const [selectedSheet, setSelectedSheet] = useState<string>("");
+  const [courier, setCourier] = useState<string>("");
+  const [endTown, setEndTown] = useState<string>("");
+  const [courierContacts, setCourierContacts] = useState<string>("");
+  const [isDispatching, setIsDispatching] = useState(false);
   
-  const { sheets: undispatchedSheets, isLoading: isLoadingUndispatched, error: errorUndispatched } = useLoadingSheets({
+  const { sheets: undispatchedSheets, isLoading: isLoadingUndispatched, error: errorUndispatched, refresh: refreshUndispatched } = useLoadingSheets({
     type: "undispatched",
   });
   
-  const { sheets: dispatchedSheets, isLoading: isLoadingDispatched, error: errorDispatched } = useLoadingSheets({
+  const { sheets: dispatchedSheets, isLoading: isLoadingDispatched, error: errorDispatched, refresh: refreshDispatched } = useLoadingSheets({
     type: "dispatched",
   });
+
+  const { createDispatch } = useCreateDispatch();
+  const { data: vehicles, isLoading: vehiclesLoading, error: vehiclesError } = useVehicles();
+  const { data: destinations, isLoading: destinationsLoading, error: destinationsError } = useDestinations();
 
   // Filter by date range
   const filteredSheets = useMemo(() => {
@@ -60,7 +76,37 @@ export function DispatchManager() {
   };
 
   const handleDispatch = (sheetNumber: string) => {
-    toast.info(`Dispatch functionality for ${sheetNumber} coming soon`);
+    setSelectedSheet(sheetNumber);
+    setShowDispatchDialog(true);
+  };
+
+  const handleSubmitDispatch = async () => {
+    if (!courier || !endTown || !courierContacts) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    try {
+      setIsDispatching(true);
+      await createDispatch({
+        sheet_number: selectedSheet,
+        courier,
+        end_town: endTown,
+        courier_contacts: courierContacts,
+      });
+      toast.success("Dispatch created successfully");
+      setShowDispatchDialog(false);
+      setCourier("");
+      setEndTown("");
+      setCourierContacts("");
+      setSelectedSheet("");
+      refreshUndispatched();
+      refreshDispatched();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create dispatch");
+    } finally {
+      setIsDispatching(false);
+    }
   };
 
   return (
@@ -198,6 +244,74 @@ export function DispatchManager() {
           )}
         </>
       )}
+
+      {/* Dispatch Dialog */}
+      <Dialog open={showDispatchDialog} onOpenChange={setShowDispatchDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Dispatch Loading Sheet</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <p className="text-sm text-muted-foreground mb-4">
+                Sheet: <span className="font-semibold">{selectedSheet}</span>
+              </p>
+            </div>
+
+            <div>
+              <VehicleInput
+                value={courier}
+                onChange={setCourier}
+                vehicles={vehicles}
+                isLoading={vehiclesLoading}
+                error={vehiclesError}
+                placeholder="Select courier vehicle"
+                required
+              />
+            </div>
+
+            <div>
+              <DestinationInput
+                value={endTown}
+                onChange={setEndTown}
+                destinations={destinations}
+                isLoading={destinationsLoading}
+                error={destinationsError}
+                placeholder="Select end town"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Courier Contacts
+              </label>
+              <Input
+                type="text"
+                placeholder="Enter courier contact number"
+                value={courierContacts}
+                onChange={(e) => setCourierContacts(e.target.value)}
+                required
+              />
+            </div>
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowDispatchDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmitDispatch} disabled={isDispatching || !courier || !endTown || !courierContacts}>
+              {isDispatching ? (
+                <>
+                  <Spinner className="h-4 w-4 mr-2" />
+                  Dispatching...
+                </>
+              ) : (
+                "Confirm Dispatch"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -33,6 +33,7 @@ export const API_ENDPOINTS = {
   LIST_PARCELS:'/mzigo/list.php',
   PRINT_DUPLICATE:'/mzigo/reprint.php',
   LIST_DISPATCH_SHEETS:'/dispatch/list.php',
+  CREATE_DISPATCH:'/dispatch/manage.php',
 
 } as const;
 

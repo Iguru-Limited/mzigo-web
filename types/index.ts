@@ -55,4 +55,4 @@ export type {
 export type { MzigoParcel, ListParcelsResponse, PrintDuplicatePayload, PrintDuplicateResponse } from "./operations/duplicate";
 
 // Dispatch operations
-export type { LoadingSheet, ListLoadingSheetsResponse } from "./operations/dispatch";
+export type { LoadingSheet, ListLoadingSheetsResponse, CreateDispatchPayload, CreateDispatchResponse } from "./operations/dispatch";

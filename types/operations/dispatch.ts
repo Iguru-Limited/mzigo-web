@@ -22,3 +22,16 @@ export interface ListLoadingSheetsResponse {
   count: number;
   data: LoadingSheet[];
 }
+
+export interface CreateDispatchPayload {
+  sheet_number: string;
+  courier: string;
+  end_town: string;
+  courier_contacts: string;
+}
+
+export interface CreateDispatchResponse {
+  status: string;
+  message: string;
+  dispatch_id: string;
+}
