@@ -181,14 +181,14 @@ function BrowseResultCard({ mzigo, type }: { mzigo: BrowseMzigoItem; type?: stri
             </div>
           </div>
           <p className="text-sm text-muted-foreground">
-            {mzigo.sender_name} → {mzigo.receiver_name}
+            {mzigo.sender_name}({mzigo.sender_phone}) → {mzigo.receiver_name}({mzigo.receiver_phone})
           </p>
           <div className="grid gap-1 text-sm">
             <p>
-              <span className="font-medium">From:</span> {mzigo.sender_town} ({mzigo.sender_phone})
+              <span className="font-medium">From:</span> {mzigo.sender_town} 
             </p>
             <p>
-              <span className="font-medium">To:</span> {mzigo.receiver_town} ({mzigo.receiver_phone})
+              <span className="font-medium">To:</span> {mzigo.receiver_town}
             </p>
           </div>
         </div>
