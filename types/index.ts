@@ -51,3 +51,5 @@ export type {
   UpdateDetailedLoadingData,
   UpdateDetailedLoadingResponse,
 } from "./operations/loading";
+// Duplicate/Reprint operations
+export type { MzigoParcel, ListParcelsResponse } from "./operations/duplicate";
