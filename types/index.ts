@@ -52,4 +52,4 @@ export type {
   UpdateDetailedLoadingResponse,
 } from "./operations/loading";
 // Duplicate/Reprint operations
-export type { MzigoParcel, ListParcelsResponse } from "./operations/duplicate";
+export type { MzigoParcel, ListParcelsResponse, PrintDuplicatePayload, PrintDuplicateResponse } from "./operations/duplicate";

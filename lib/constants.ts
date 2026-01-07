@@ -31,6 +31,7 @@ export const API_ENDPOINTS = {
   CREATE_DETAILED_LOADING:'/detailed_loading/create.php',
   UPDATE_DETAILED_LOADING:'/detailed_loading/update.php',
   LIST_PARCELS:'/mzigo/list.php',
+  PRINT_DUPLICATE:'/mzigo/reprint.php',
 
 } as const;
 

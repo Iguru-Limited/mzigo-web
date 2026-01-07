@@ -7,13 +7,27 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { ChevronDownIcon, PrinterIcon, DevicePhoneMobileIcon } from "@heroicons/react/24/outline";
 import { toast } from "sonner";
 import { useParcels } from "@/hooks/duplicate/use-parcels";
+import { usePrintDuplicate } from "@/hooks/duplicate/use-print-duplicate";
 
 export function DuplicateManager() {
   const { items, isLoading, error } = useParcels();
+  const { printDuplicate } = usePrintDuplicate();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [displayCount, setDisplayCount] = useState(5);
+  const [isPrinting, setIsPrinting] = useState(false);
+  const [receiptPreview, setReceiptPreview] = useState<any>(null);
+  const [showPreview, setShowPreview] = useState(false);
 
   // Filter parcels based on search query
   const filteredParcels = useMemo(() => {
@@ -36,8 +50,107 @@ export function DuplicateManager() {
     setDisplayCount((prev) => prev + 5);
   };
 
-  const handleReprintReceipt = (receiptNumber: string) => {
-    toast.info(`Reprint functionality for ${receiptNumber} coming soon`);
+  const handleReprintReceipt = async (parcelId: string) => {
+    try {
+      setIsPrinting(true);
+      const response = await printDuplicate({ parcel_id: parseInt(parcelId) });
+      setReceiptPreview(response.data);
+      setShowPreview(true);
+      toast.success("Receipt loaded for preview");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load receipt");
+    } finally {
+      setIsPrinting(false);
+    }
+  };
+
+  const handlePrint = (paperWidth: "58mm" | "80mm") => {
+    if (!receiptPreview) return;
+    try {
+      const printWindow = window.open("", "PRINT", "height=600,width=800");
+      if (!printWindow) return;
+
+      const containerWidth = paperWidth === "58mm" ? "58mm" : "80mm";
+
+      const receiptLines = (receiptPreview.receipt || [])
+        .map((line: any) => {
+          const fontSize =
+            line.text_size === "big" ? "16px" : line.text_size === "small" ? "9px" : "11px";
+          const fontWeight = line.is_bold ? "bold" : "normal";
+          const preText = line["pre-text"] || "";
+          const content = `${preText}${line.content || ""}`;
+          return `<div style="font-size: ${fontSize}; font-weight: ${fontWeight}; word-break: break-word; white-space: pre-wrap;">${content}</div>`;
+        })
+        .join("");
+
+      const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Duplicate Receipt ${receiptPreview.receipt_number || ""}</title>
+          <style>
+            @page {
+              size: ${containerWidth} auto;
+              margin: 6mm;
+            }
+            body {
+              font-family: monospace;
+              margin: 0;
+              display: flex;
+              justify-content: center;
+              background: #f9fafb;
+            }
+            .sheet {
+              width: ${containerWidth};
+              max-width: ${containerWidth};
+              padding: 8px;
+              box-sizing: border-box;
+              background: white;
+            }
+            .duplicate-badge {
+              color: black;
+              padding: 6px;
+              text-align: center;
+              font-weight: bold;
+              margin-bottom: 8px;
+              font-size: 11px;
+            }
+            .receipt-content {
+              font-family: monospace;
+              font-size: ${paperWidth === "58mm" ? "10px" : "12px"};
+              line-height: 1.35;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="sheet">
+            <div class="duplicate-badge"> DUPLICATE RECEIPT </div>
+            <div class="receipt-content">
+              ${receiptLines}
+            </div>
+          </div>
+        </body>
+        </html>
+      `;
+
+      printWindow.document.write(html);
+      printWindow.document.close();
+      printWindow.document.title = `Duplicate Receipt ${receiptPreview.receipt_number || ""}`;
+      setTimeout(() => printWindow.print(), 250);
+    } catch (error) {
+      console.error("Print failed:", error);
+      toast.error("Failed to print receipt");
+    }
+  };
+
+  const handlePrintViaBridge = () => {
+    if (!receiptPreview) return;
+    const encodedData = encodeURIComponent(JSON.stringify(receiptPreview));
+    const bridgeUrl = `mzigo://print-duplicate?data=${encodedData}`;
+    window.location.href = bridgeUrl;
+    setTimeout(() => {
+      toast.error("Print Bridge app not found. Please install the MZIGO Bridge app.");
+    }, 2000);
   };
 
   return (
@@ -154,10 +267,18 @@ export function DuplicateManager() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => handleReprintReceipt(parcel.receipt_number)}
+                    onClick={() => handleReprintReceipt(parcel.id)}
+                    disabled={isPrinting}
                     className="w-full"
                   >
-                    Reprint Receipt
+                    {isPrinting ? (
+                      <>
+                        <Spinner className="h-4 w-4 mr-2" />
+                        Loading...
+                      </>
+                    ) : (
+                      "Reprint Receipt"
+                    )}
                   </Button>
                 </div>
               </Card>
@@ -174,6 +295,70 @@ export function DuplicateManager() {
           )}
         </>
       )}
+
+      {/* Duplicate Receipt Preview Modal */}
+      <Dialog open={showPreview} onOpenChange={setShowPreview}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="space-y-2">
+              <div className=" rounded px-3 py-2 text-center">
+                <p className="text-sm font-bold"> DUPLICATE RECEIPT </p>
+              </div>
+              <DialogTitle>Receipt Preview</DialogTitle>
+              <p className="text-sm text-muted-foreground">Waybill: {receiptPreview?.receipt_number}</p>
+            </div>
+          </DialogHeader>
+
+          {receiptPreview && (
+            <div className="rounded border p-3 bg-white max-h-[60vh] overflow-auto font-mono text-sm leading-6 space-y-1">
+              <div className="text-center font-bold ">DUPLICATE RECEIPT</div>
+              {receiptPreview.receipt?.map((line: any, idx: number) => {
+                const fontSize =
+                  line.text_size === "big" ? "text-lg" : line.text_size === "small" ? "text-xs" : "text-sm";
+                const fontWeight = line.is_bold ? "font-bold" : "font-normal";
+                const preText = line["pre-text"] || "";
+                const content = line.content || "";
+                return (
+                  <div key={idx} className={`${fontSize} ${fontWeight}`}>
+                    {preText}
+                    {content}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <DialogFooter className="gap-2 flex-col-reverse sm:flex-row">
+            <Button variant="outline" onClick={() => setShowPreview(false)}>
+              Close
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button>
+                  <PrinterIcon className="mr-2 h-4 w-4" />
+                  Actions
+                  <ChevronDownIcon className="ml-2 h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handlePrintViaBridge()}>
+                  <DevicePhoneMobileIcon className="mr-2 h-4 w-4" />
+                  Print via Bridge App
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => handlePrint("58mm")}>
+                  <PrinterIcon className="mr-2 h-4 w-4" />
+                  Print (58mm - P-50)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handlePrint("80mm")}>
+                  <PrinterIcon className="mr-2 h-4 w-4" />
+                  Print (80mm)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

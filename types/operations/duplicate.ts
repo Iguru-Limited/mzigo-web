@@ -49,3 +49,29 @@ export interface ListParcelsResponse {
   count: number;
   data: MzigoParcel[];
 }
+
+export interface ReceiptFormatItem {
+  text_size: "small" | "normal" | "big";
+  content: string;
+  "pre-text": string;
+  end_1: string;
+  is_variable: boolean;
+  is_bold: boolean;
+}
+
+export interface PrintDuplicatePayload {
+  parcel_id: number;
+}
+
+export interface PrintDuplicateResponse {
+  status: string;
+  message: string;
+  data: {
+    id: string;
+    receipt_number: string;
+    print_times: number;
+    is_duplicate: boolean;
+    receipt_status: string;
+    receipt: ReceiptFormatItem[];
+  };
+}
