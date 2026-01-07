@@ -17,6 +17,7 @@ import {
   faClockRotateLeft,
   faListCheck,
   faBolt,
+  faCopy,
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 
@@ -117,6 +118,14 @@ const ACTION_CARDS: ActionCardConfig[] = [
     href: "/load?mode=direct",
     color: "bg-slate-700",
     requiredRights: ["direct_load"],
+  },
+  {
+    id: "reprint",
+    label: "Duplicate",
+    icon: faCopy,
+    href: "/duplicate",
+    color: "bg-slate-700",
+    requiredRights: ["reprint"],
   },
   {
     id: "lookup",
