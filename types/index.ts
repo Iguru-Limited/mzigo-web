@@ -53,3 +53,6 @@ export type {
 } from "./operations/loading";
 // Duplicate/Reprint operations
 export type { MzigoParcel, ListParcelsResponse, PrintDuplicatePayload, PrintDuplicateResponse } from "./operations/duplicate";
+
+// Dispatch operations
+export type { LoadingSheet, ListLoadingSheetsResponse } from "./operations/dispatch";
