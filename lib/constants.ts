@@ -27,6 +27,9 @@ export const API_ENDPOINTS = {
   ATTENDANT_STATS:'/reports/attendant_stats.php',
   LIST_UNLOADED:'/legacy_loading/list.php',
   CREATE_LEGACY_LOADING:'/legacy_loading/create.php',
+  CREATE_DIRECT_LOADING:'/direct_loading/create.php',
+  CREATE_DETAILED_LOADING:'/detailed_loading/create.php',
+  UPDATE_DETAILED_LOADING:'/detailed_loading/update.php',
 
 } as const;
 

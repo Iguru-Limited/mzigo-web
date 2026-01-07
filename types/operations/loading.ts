@@ -64,3 +64,69 @@ export interface CreateLegacyLoadingResponse {
   message?: string;
   data?: CreateLegacyLoadingData;
 }
+
+export interface CreateDirectLoadingPayload {
+  parcel_ids: number[];
+  vehicle: string;
+}
+
+export interface CreateDirectLoadingData {
+  sheet_number: string;
+  loading_sheet_id: string;
+  is_new_sheet: boolean;
+  sheet_total_items: string;
+  parcels: UnloadedParcel[];
+}
+
+export interface CreateDirectLoadingResponse {
+  status: "success" | "error";
+  message?: string;
+  data?: CreateDirectLoadingData;
+}
+
+export interface CreateDetailedLoadingPayload {
+  vehicle: string;
+  destination_id: number;
+}
+
+export interface CreateDetailedLoadingData {
+  sheet_number: string;
+  loading_sheet_id: string;
+  loaded_count: number;
+  parcels: UnloadedParcel[];
+}
+
+export interface CreateDetailedLoadingResponse {
+  status: "success" | "error";
+  message?: string;
+  data?: CreateDetailedLoadingData;
+}
+
+export interface UpdateDetailedLoadingPayload {
+  sheet_number: string;
+  parcel_ids: number[];
+}
+
+export interface UpdateDetailedSheetDetails {
+  id: string;
+  sheet_number: string;
+  company_id: string;
+  office_id: string;
+  user_id: string;
+  vehicle: string;
+  destination_id: string;
+  loading_date: string | null;
+  created_at: string;
+}
+
+export interface UpdateDetailedLoadingData {
+  sheet_details: UpdateDetailedSheetDetails;
+  loaded_count: number;
+  parcels: UnloadedParcel[];
+}
+
+export interface UpdateDetailedLoadingResponse {
+  status: "success" | "error";
+  message?: string;
+  data?: UpdateDetailedLoadingData;
+}

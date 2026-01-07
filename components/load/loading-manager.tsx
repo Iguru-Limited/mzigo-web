@@ -18,9 +18,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ChevronDownIcon, PrinterIcon, DevicePhoneMobileIcon } from "@heroicons/react/24/outline";
+import { toast } from "sonner";
 import { useDestinations } from "@/hooks/data/use-destinations";
+import { useVehicles } from "@/hooks/data/use-vehicles";
 import { useUnloadedParcels } from "@/hooks/loading/use-unloaded-parcels";
 import { useCreateLegacyLoading } from "@/hooks/loading/use-create-legacy-loading";
+import { useCreateDirectLoading } from "@/hooks/loading/use-create-direct-loading";
+import { useCreateDetailedLoading } from "@/hooks/loading/use-create-detailed-loading";
+import { useUpdateDetailedLoading } from "@/hooks/loading/use-update-detailed-loading";
+import { VehicleInput } from "@/components/ui/vehicle-input";
 
 function today(): string {
   const d = new Date();
@@ -40,6 +46,7 @@ export function LoadingManager() {
 
   // Destination selection (by name via DestinationInput, then map to id)
   const { data: destinations, isLoading: isDestLoading, error: destError } = useDestinations();
+  const { data: vehicles, isLoading: vehiclesLoading, error: vehiclesError } = useVehicles();
   const [destinationName, setDestinationName] = useState<string>("");
   const selectedDestinationId = useMemo(() => {
     const match = destinations.find(d => d.name.toLowerCase() === destinationName.trim().toLowerCase());
@@ -62,9 +69,15 @@ export function LoadingManager() {
 
   // Create loading sheet
   const { createLoadingSheet } = useCreateLegacyLoading();
+  const { createLoadingSheet: createDirectLoadingSheet } = useCreateDirectLoading();
+  const { createDetailedSheet } = useCreateDetailedLoading();
+  const { updateDetailedSheet } = useUpdateDetailedLoading();
   const [isCreating, setIsCreating] = useState(false);
   const [sheetPreview, setSheetPreview] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [showVehicleDialog, setShowVehicleDialog] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<string>("");
+  const [detailedSheetNumber, setDetailedSheetNumber] = useState<string | null>(null);
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -82,6 +95,48 @@ export function LoadingManager() {
       updated.delete(id);
     }
     setSelectedIds(updated);
+  };
+
+  const handleCreateDetailedSheet = async () => {
+    if (!selectedDestinationId || !selectedVehicle) {
+      alert("Please select destination and vehicle");
+      return;
+    }
+    try {
+      setIsCreating(true);
+      const res = await createDetailedSheet({
+        destination_id: parseInt(String(selectedDestinationId)),
+        vehicle: selectedVehicle,
+      });
+      setDetailedSheetNumber(res?.sheet_number || null);
+      toast.success("Loading sheet created successfully.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to create detailed sheet");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const handleAddParcelsToDetailedSheet = async () => {
+    if (!detailedSheetNumber || selectedIds.size === 0) {
+      alert("Create a sheet and select parcels first");
+      return;
+    }
+    try {
+      setIsCreating(true);
+      const res = await updateDetailedSheet({
+        sheet_number: detailedSheetNumber,
+        parcel_ids: Array.from(selectedIds).map((id) => parseInt(id)),
+      });
+      setSheetPreview(res);
+      setShowPreview(true);
+      setSelectedIds(new Set());
+      toast.success("Loading sheet updated successfully.");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to update sheet");
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleCreateLoadingSheet = async () => {
@@ -184,6 +239,38 @@ export function LoadingManager() {
     }, 2000);
   };
 
+  const handleCreateDirectLoadingSheet = async () => {
+    if (selectedIds.size === 0) {
+      alert("Please select parcels");
+      return;
+    }
+    setShowVehicleDialog(true);
+  };
+
+  const handleSubmitDirectLoading = async () => {
+    if (!selectedVehicle) {
+      alert("Please select a vehicle");
+      return;
+    }
+    try {
+      setIsCreating(true);
+      await createDirectLoadingSheet({
+        parcel_ids: Array.from(selectedIds).map(id => parseInt(id)),
+        vehicle: selectedVehicle,
+      });
+      toast.success("Parcel loaded successfully.");
+      setShowVehicleDialog(false);
+      setSelectedIds(new Set()); // Clear selection
+      setSelectedVehicle(""); // Clear vehicle selection
+      // Refresh the list to see updated status
+      refresh();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to load parcel");
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -211,16 +298,29 @@ export function LoadingManager() {
               required
             />
           </div>
+          {mode === "detailed" && (
+            <div>
+              <VehicleInput
+                value={selectedVehicle}
+                onChange={setSelectedVehicle}
+                vehicles={vehicles}
+                isLoading={vehiclesLoading}
+                error={vehiclesError}
+                placeholder="Select vehicle"
+                required
+              />
+            </div>
+          )}
         </div>
       </Card>
 
       <Separator />
 
-      {items.length > 0 && selectedIds.size > 0 && (
-        <div className="flex gap-2">
+      {mode === "detailed" && (
+        <div className="flex gap-2 flex-col sm:flex-row">
           <Button
-            onClick={handleCreateLoadingSheet}
-            disabled={isCreating}
+            onClick={handleCreateDetailedSheet}
+            disabled={isCreating || !selectedDestinationId || !selectedVehicle}
             className="w-full md:w-auto"
           >
             {isCreating ? (
@@ -229,9 +329,60 @@ export function LoadingManager() {
                 Creating...
               </>
             ) : (
-              `Create Loading Sheet (${selectedIds.size} parcel${selectedIds.size !== 1 ? 's' : ''})`
+              "Create Detailed Sheet"
             )}
           </Button>
+          <Button
+            variant="secondary"
+            onClick={handleAddParcelsToDetailedSheet}
+            disabled={isCreating || !detailedSheetNumber || selectedIds.size === 0}
+            className="w-full md:w-auto"
+          >
+            {isCreating ? (
+              <>
+                <Spinner className="h-4 w-4 mr-2" />
+                Updating...
+              </>
+            ) : (
+              detailedSheetNumber ? `Add Selected to ${detailedSheetNumber}` : "Add Selected to Sheet"
+            )}
+          </Button>
+        </div>
+      )}
+
+      {items.length > 0 && selectedIds.size > 0 && mode !== "detailed" && (
+        <div className="flex gap-2 flex-col sm:flex-row">
+          {mode === "direct" ? (
+            <Button
+              onClick={handleCreateDirectLoadingSheet}
+              disabled={isCreating}
+              className="w-full md:w-auto"
+            >
+              {isCreating ? (
+                <>
+                  <Spinner className="h-4 w-4 mr-2" />
+                  Loading...
+                </>
+              ) : (
+                `Load to Vehicle (${selectedIds.size} parcel${selectedIds.size !== 1 ? 's' : ''})`
+              )}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleCreateLoadingSheet}
+              disabled={isCreating}
+              className="w-full md:w-auto"
+            >
+              {isCreating ? (
+                <>
+                  <Spinner className="h-4 w-4 mr-2" />
+                  Creating...
+                </>
+              ) : (
+                `Create Loading Sheet (${selectedIds.size} parcel${selectedIds.size !== 1 ? 's' : ''})`
+              )}
+            </Button>
+          )}
         </div>
       )}
 
@@ -427,6 +578,44 @@ export function LoadingManager() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Vehicle Selection Dialog - For Direct Loading */}
+      <Dialog open={showVehicleDialog} onOpenChange={setShowVehicleDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Select Vehicle</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Select a vehicle to load {selectedIds.size} parcel{selectedIds.size !== 1 ? 's' : ''}
+            </p>
+            <VehicleInput
+              value={selectedVehicle}
+              onChange={setSelectedVehicle}
+              vehicles={vehicles}
+              isLoading={vehiclesLoading}
+              error={vehiclesError}
+              placeholder="Select vehicle"
+              required
+            />
+          </div>
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setShowVehicleDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSubmitDirectLoading} disabled={isCreating || !selectedVehicle}>
+              {isCreating ? (
+                <>
+                  <Spinner className="h-4 w-4 mr-2" />
+                  Loading...
+                </>
+              ) : (
+                "Load Parcels"
+              )}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

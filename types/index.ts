@@ -41,4 +41,13 @@ export type {
   CreateLegacyLoadingPayload,
   CreateLegacyLoadingData,
   CreateLegacyLoadingResponse,
+  CreateDirectLoadingPayload,
+  CreateDirectLoadingData,
+  CreateDirectLoadingResponse,
+  CreateDetailedLoadingPayload,
+  CreateDetailedLoadingData,
+  CreateDetailedLoadingResponse,
+  UpdateDetailedLoadingPayload,
+  UpdateDetailedLoadingData,
+  UpdateDetailedLoadingResponse,
 } from "./operations/loading";
