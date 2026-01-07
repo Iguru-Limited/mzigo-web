@@ -109,8 +109,16 @@ function SearchResultCard({ mzigo }: { mzigo: SearchMzigoItem }) {
         <div className="space-y-2">
           <div className="grid gap-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Phone:</span>
+              <span className="text-muted-foreground">Sender Phone:</span>
               <span>{mzigo.sender_phone}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Receiver Phone:</span>
+              <span>{mzigo.receiver_phone}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Value:</span>
+              <span>{mzigo.parcel_value}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Amount:</span>
