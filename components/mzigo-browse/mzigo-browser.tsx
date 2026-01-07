@@ -11,11 +11,16 @@ import { useBrowseMzigo } from "@/hooks/mzigo";
 import { useDestinations } from "@/hooks/data";
 import type { BrowseMzigoItem, BrowseMzigoParams, TrafficType } from "@/types/operations/browse-mzigo";
 
+function today(): string {
+  const d = new Date();
+  return d.toISOString().slice(0, 10);
+}
+
 export function MzigoBrowser() {
   const [filters, setFilters] = useState<BrowseMzigoParams>({
     type: "outgoing",
-    start_date: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    end_date: new Date().toISOString().split("T")[0],
+    start_date: today(),
+    end_date: today(),
   });
   const [activeFilters, setActiveFilters] = useState<BrowseMzigoParams | null>(null);
   const [destinationId, setDestinationId] = useState("");

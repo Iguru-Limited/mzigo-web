@@ -10,10 +10,15 @@ import { Card } from "@/components/ui/card";
 import { useAttendantStats } from "@/hooks/mzigo";
 import type { AttendantStatsParams } from "@/types/operations/attendant-stats";
 
+function today(): string {
+  const d = new Date();
+  return d.toISOString().slice(0, 10);
+}
+
 export function ReportViewer() {
   const [filters, setFilters] = useState<AttendantStatsParams>({
-    start_date: new Date(new Date().setDate(new Date().getDate() - 30)).toISOString().split("T")[0],
-    end_date: new Date().toISOString().split("T")[0],
+    start_date: today(),
+    end_date: today(),
   });
   const [activeFilters, setActiveFilters] = useState<AttendantStatsParams | null>(null);
 
