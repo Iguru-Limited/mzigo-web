@@ -13,6 +13,7 @@ import {
 import { ChevronDownIcon, PrinterIcon, PaperAirplaneIcon, DevicePhoneMobileIcon } from "@heroicons/react/24/outline";
 import { ReceiptData } from "@/types/operations/receipt";
 import { openPrintWindow, PaperWidth } from "@/lib/receipt";
+import { generateQRCodeDataUrl } from "@/lib/qr-utils";
 import { QRCodeComponent } from "@/components/receipt/qr-code";
 import { toast } from "sonner";
 
@@ -40,21 +41,82 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
     }
   };
 
-  const handlePrintViaBridge = () => {
+  const handlePrintViaBridge = async () => {
     if (!data) return;
     
-    const encodedData = encodeURIComponent(JSON.stringify(data));
-    const bridgeUrl = `mzigo://print?data=${encodedData}`;
-    
-    // Try to open native app
-    window.location.href = bridgeUrl;
-    
-    // Fallback after timeout
-    setTimeout(() => {
-      toast.info("Print Bridge app not found", {
-        description: "Install the Web Print Bridge app to print via Bluetooth",
+    try {
+      setIsPrinting(true);
+      
+      // Generate QR code data URL if package token exists
+      let qrCodeDataUrl: string | undefined;
+      const isOfflineReceipt = data.receipt_number?.startsWith("OFFLINE-");
+      if (data.package_token && !isOfflineReceipt) {
+        try {
+          qrCodeDataUrl = await generateQRCodeDataUrl(data.package_token, 140);
+          console.log("QR code generated for bridge:", qrCodeDataUrl.substring(0, 50) + "...");
+        } catch (error) {
+          console.error("Failed to generate QR code for bridge:", error);
+        }
+      }
+      
+      // Create bridge data payload with QR code
+      const bridgeData = {
+        ...data,
+        qrCodeDataUrl,
+      };
+      
+      const encodedData = encodeURIComponent(JSON.stringify(bridgeData));
+      const bridgeUrl = `mzigo://print?data=${encodedData}`;
+      
+      // Setup callback listener for print completion
+      const handleBridgeCallback = (event: MessageEvent) => {
+        if (event.data?.type === "print_complete" && event.data?.receipt_id === data.id) {
+          console.log("Print completed via bridge app");
+          toast.success("Receipt printed successfully", {
+            description: `Receipt #${data.receipt_number} has been printed.`,
+          });
+          window.removeEventListener("message", handleBridgeCallback);
+          setIsPrinting(false);
+        }
+      };
+      
+      window.addEventListener("message", handleBridgeCallback);
+      
+      // Set a timeout to remove listener if no response (print succeeded silently)
+      const timeoutId = setTimeout(() => {
+        window.removeEventListener("message", handleBridgeCallback);
+        toast.success("Print request sent", {
+          description: "Check your Bluetooth printer for the receipt.",
+        });
+        setIsPrinting(false);
+      }, 3000);
+      
+      const printCompleteTimeout = setTimeout(() => {
+        clearTimeout(timeoutId);
+        window.removeEventListener("message", handleBridgeCallback);
+      }, 30000);
+      
+      // Try to open native app
+      window.location.href = bridgeUrl;
+      
+      // Fallback after timeout
+      setTimeout(() => {
+        if (isPrinting) {
+          clearTimeout(printCompleteTimeout);
+          window.removeEventListener("message", handleBridgeCallback);
+          toast.info("Print Bridge app not found", {
+            description: "Install the Web Print Bridge app to print via Bluetooth",
+          });
+          setIsPrinting(false);
+        }
+      }, 2000);
+    } catch (error) {
+      console.error("Failed to prepare bridge print:", error);
+      toast.error("Failed to prepare print", {
+        description: error instanceof Error ? error.message : "An error occurred",
       });
-    }, 2000);
+      setIsPrinting(false);
+    }
   };
 
   const handleSend = async () => {
