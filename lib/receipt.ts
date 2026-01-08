@@ -146,3 +146,81 @@ export async function openPrintWindow(data: ReceiptData, paperWidth: PaperWidth 
     }, { once: true });
   }
 }
+
+/**
+ * Generate receipt HTML for bridge app printing
+ * This includes the QR code as a data URL inline for reliable rendering
+ */
+export async function generateBridgeReceiptHtml(
+  data: ReceiptData & { qrCodeDataUrl?: string }
+): Promise<string> {
+  const width = "48mm";
+  const lines = data.receipt.map(lineToHtml).join("");
+
+  // Use provided QR code or try to generate it
+  let qrCodeHtml = "";
+  const isOfflineReceipt = data.receipt_number?.startsWith("OFFLINE-");
+  
+  if (data.qrCodeDataUrl) {
+    console.log("Using provided QR code data URL, length:", data.qrCodeDataUrl.length);
+    qrCodeHtml = `
+      <div style="text-align: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #000; page-break-inside: avoid;">
+        <img src="${data.qrCodeDataUrl}" alt="Package QR Code" style="width: 140px; height: 140px; display: block; margin: 0 auto; image-rendering: pixelated;" />
+      </div>
+    `;
+  } else if (data.package_token && !isOfflineReceipt) {
+    try {
+      console.log("Generating QR code for bridge HTML");
+      const qrDataUrl = await generateQRCodeDataUrl(data.package_token, 120);
+      qrCodeHtml = `
+        <div style="text-align: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #000; page-break-inside: avoid;">
+          <img src="${qrDataUrl}" alt="Package QR Code" style="width: 120px; height: 120px; display: block; margin: 0 auto; image-rendering: pixelated;" />
+        </div>
+      `;
+    } catch (error) {
+      console.error("Failed to generate QR code for bridge:", error);
+    }
+  }
+
+  const css = `
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body { 
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+        font-size: 12px;
+        line-height: 1.3;
+        margin: 0;
+        padding: 2mm;
+        width: ${width};
+      }
+      .receipt { 
+        width: ${width}; 
+        max-width: 100%;
+      }
+      img {
+        max-width: 100%;
+        height: auto;
+        display: block;
+      }
+    </style>
+  `;
+
+  return `
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>Receipt ${data.receipt_number}</title>
+        ${css}
+      </head>
+      <body>
+        <div class="receipt">
+          ${lines}
+          ${qrCodeHtml}
+        </div>
+      </body>
+    </html>
+  `;
+}

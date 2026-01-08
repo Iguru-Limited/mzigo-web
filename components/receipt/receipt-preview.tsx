@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDownIcon, PrinterIcon, PaperAirplaneIcon, DevicePhoneMobileIcon } from "@heroicons/react/24/outline";
 import { ReceiptData } from "@/types/operations/receipt";
-import { openPrintWindow, PaperWidth } from "@/lib/receipt";
+import { openPrintWindow, PaperWidth, generateBridgeReceiptHtml } from "@/lib/receipt";
 import { generateQRCodeDataUrl } from "@/lib/qr-utils";
 import { QRCodeComponent } from "@/components/receipt/qr-code";
 import { toast } from "sonner";
@@ -52,26 +52,52 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
       const isOfflineReceipt = data.receipt_number?.startsWith("OFFLINE-");
       if (data.package_token && !isOfflineReceipt) {
         try {
-          qrCodeDataUrl = await generateQRCodeDataUrl(data.package_token, 140);
-          console.log("QR code generated for bridge:", qrCodeDataUrl.substring(0, 50) + "...");
+          console.log("Generating QR code for bridge with token:", data.package_token);
+          qrCodeDataUrl = await generateQRCodeDataUrl(data.package_token, 120);
+          console.log("✓ QR code generated successfully, size:", qrCodeDataUrl.length, "bytes");
+          console.log("QR code data URL preview:", qrCodeDataUrl.substring(0, 100) + "...");
         } catch (error) {
-          console.error("Failed to generate QR code for bridge:", error);
+          console.error("✗ Failed to generate QR code for bridge:", error);
+          toast.error("Failed to generate QR code", {
+            description: error instanceof Error ? error.message : "QR generation failed",
+          });
         }
+      } else {
+        console.log("Skipping QR generation - offline:", isOfflineReceipt, "token:", !!data.package_token);
       }
       
-      // Create bridge data payload with QR code
+      // Generate bridge receipt HTML with QR code
+      let receiptHtml: string | undefined;
+      try {
+        console.log("Generating bridge receipt HTML with QR code...");
+        receiptHtml = await generateBridgeReceiptHtml({
+          ...data,
+          qrCodeDataUrl,
+        });
+        console.log("✓ Bridge HTML generated, size:", receiptHtml.length, "bytes");
+      } catch (error) {
+        console.error("✗ Failed to generate bridge HTML:", error);
+        toast.error("Failed to generate receipt HTML", {
+          description: error instanceof Error ? error.message : "HTML generation failed",
+        });
+      }
+      
+      // Create bridge data payload with QR code and HTML
       const bridgeData = {
         ...data,
         qrCodeDataUrl,
+        receiptHtml,
       };
       
       const encodedData = encodeURIComponent(JSON.stringify(bridgeData));
       const bridgeUrl = `mzigo://print?data=${encodedData}`;
       
+      console.log("Bridge URL length:", bridgeUrl.length, "bytes");
+      
       // Setup callback listener for print completion
       const handleBridgeCallback = (event: MessageEvent) => {
         if (event.data?.type === "print_complete" && event.data?.receipt_id === data.id) {
-          console.log("Print completed via bridge app");
+          console.log("✓ Print completed via bridge app");
           toast.success("Receipt printed successfully", {
             description: `Receipt #${data.receipt_number} has been printed.`,
           });
@@ -97,6 +123,7 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
       }, 30000);
       
       // Try to open native app
+      console.log("Opening bridge app with print request...");
       window.location.href = bridgeUrl;
       
       // Fallback after timeout
@@ -111,7 +138,7 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
         }
       }, 2000);
     } catch (error) {
-      console.error("Failed to prepare bridge print:", error);
+      console.error("✗ Failed to prepare bridge print:", error);
       toast.error("Failed to prepare print", {
         description: error instanceof Error ? error.message : "An error occurred",
       });
