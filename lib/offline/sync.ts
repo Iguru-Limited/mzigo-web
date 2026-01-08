@@ -42,7 +42,20 @@ class SyncManager {
     useOfflineStore.getState().setIsSyncing(true);
 
     try {
-      const queue = await getSyncQueue();
+      let queue: SyncQueueItem[] = [];
+      try {
+        queue = await getSyncQueue();
+      } catch (error) {
+        console.error("Failed to get sync queue:", error);
+        if (error instanceof Error && error.message.includes("object store")) {
+          // Database not properly initialized, skip this sync attempt
+          useOfflineStore.getState().addSyncError(
+            "Offline database not ready. Sync will retry on next connection."
+          );
+          return;
+        }
+        throw error;
+      }
 
       for (const item of queue) {
         try {

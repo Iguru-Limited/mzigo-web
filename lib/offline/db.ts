@@ -126,12 +126,29 @@ export async function getReferenceData<T>(
 // Offline mzigos operations
 export async function saveOfflineMzigo(id: string, data: unknown) {
   const db = await getDB();
-  await db.put("offlineMzigos", {
-    id,
-    data,
-    createdAt: Date.now(),
-    synced: false,
-  }, id);
+  try {
+    await db.put("offlineMzigos", {
+      id,
+      data,
+      createdAt: Date.now(),
+      synced: false,
+    }, id);
+  } catch (error) {
+    console.error("Error saving offline mzigo:", error);
+    // If the store doesn't exist, try to reinitialize the database
+    if (error instanceof Error && error.message.includes("object store")) {
+      resetDBInstance(); // Reset database instance to trigger reinitialization
+      const freshDb = await getDB();
+      await freshDb.put("offlineMzigos", {
+        id,
+        data,
+        createdAt: Date.now(),
+        synced: false,
+      }, id);
+    } else {
+      throw error;
+    }
+  }
 }
 
 export async function getOfflineMzigos() {
@@ -158,16 +175,39 @@ export type { SyncQueueItem } from "@/types/operations/offline";
 
 export async function addToSyncQueue(item: Omit<import("@/types/operations/offline").SyncQueueItem, "id" | "timestamp" | "retries">) {
   const db = await getDB();
-  await db.add("syncQueue", {
-    ...item,
-    timestamp: Date.now(),
-    retries: 0,
-  });
+  try {
+    await db.add("syncQueue", {
+      ...item,
+      timestamp: Date.now(),
+      retries: 0,
+    });
+  } catch (error) {
+    console.error("Error adding to sync queue:", error);
+    // If the store doesn't exist, try to reinitialize the database
+    if (error instanceof Error && error.message.includes("object store")) {
+      resetDBInstance(); // Reset database instance to trigger reinitialization
+      const freshDb = await getDB();
+      await freshDb.add("syncQueue", {
+        ...item,
+        timestamp: Date.now(),
+        retries: 0,
+      });
+    } else {
+      throw error;
+    }
+  }
 }
 
 export async function getSyncQueue(): Promise<SyncQueueItem[]> {
   const db = await getDB();
-  return db.getAllFromIndex("syncQueue", "by-timestamp");
+  try {
+    // Try to get items sorted by timestamp using the index
+    return await db.getAllFromIndex("syncQueue", "by-timestamp");
+  } catch (error) {
+    // Fallback to getting all items if index fails
+    console.warn("Failed to query syncQueue index, falling back to getAll:", error);
+    return await db.getAll("syncQueue");
+  }
 }
 
 export async function updateSyncQueueItem(item: SyncQueueItem) {
@@ -188,4 +228,8 @@ export async function clearSyncQueue() {
 export async function getSyncQueueCount(): Promise<number> {
   const db = await getDB();
   return db.count("syncQueue");
+}
+// Helper function to reset database instance (useful when database needs reinitialization)
+export function resetDBInstance() {
+  dbInstance = null;
 }

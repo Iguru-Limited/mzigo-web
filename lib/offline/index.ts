@@ -1,4 +1,4 @@
-export { getDB, setCache, getCache, clearCache, setReferenceData, getReferenceData, saveOfflineMzigo, getOfflineMzigos, markMzigoSynced, deleteOfflineMzigo, addToSyncQueue, getSyncQueue, removeFromSyncQueue, clearSyncQueue, getSyncQueueCount } from "./db";
+export { getDB, setCache, getCache, clearCache, setReferenceData, getReferenceData, saveOfflineMzigo, getOfflineMzigos, markMzigoSynced, deleteOfflineMzigo, addToSyncQueue, getSyncQueue, removeFromSyncQueue, clearSyncQueue, getSyncQueueCount, resetDBInstance } from "./db";
 export { useOfflineStore, shouldUseOfflineData } from "./store";
 export { syncManager, setupAutoSync } from "./sync";
 export { generateOfflineReceipt, isOfflineReceipt } from "./offline-receipt";

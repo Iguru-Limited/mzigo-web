@@ -71,22 +71,28 @@ export function useCreateMzigo() {
         offlineReceiptCount: offlineCount,
       });
       
-      // Save to IndexedDB (include receipt data for later retrieval)
-      await saveOfflineMzigo(offlineId, {
-        payload,
-        receiptData,
-      });
-      
-      // Add to sync queue
-      await syncManager.addToQueue({
-        type: "create",
-        endpoint: "/api/mzigo",
-        method: "POST",
-        payload,
-        maxRetries: 5,
-      });
+      try {
+        // Save to IndexedDB (include receipt data for later retrieval)
+        await saveOfflineMzigo(offlineId, {
+          payload,
+          receiptData,
+        });
+        
+        // Add to sync queue
+        await syncManager.addToQueue({
+          type: "create",
+          endpoint: "/api/mzigo",
+          method: "POST",
+          payload,
+          maxRetries: 5,
+        });
 
-      await refreshPendingCount();
+        await refreshPendingCount();
+      } catch (storageError) {
+        console.error("Failed to save offline mzigo to database:", storageError);
+        // Still return success response to allow user to print receipt, but warn about storage issue
+        console.warn("Offline storage may not be working properly. Please try again if sync fails.");
+      }
 
       // Return response with full receipt data for immediate printing
       return {
@@ -137,21 +143,27 @@ export function useCreateMzigo() {
           resolvedPaymentModeName,
         });
         
-        // Save to IndexedDB (include receipt data)
-        await saveOfflineMzigo(offlineId, {
-          payload,
-          receiptData,
-        });
-        
-        await syncManager.addToQueue({
-          type: "create",
-          endpoint: "/api/mzigo",
-          method: "POST",
-          payload,
-          maxRetries: 5,
-        });
+        try {
+          // Save to IndexedDB (include receipt data)
+          await saveOfflineMzigo(offlineId, {
+            payload,
+            receiptData,
+          });
+          
+          await syncManager.addToQueue({
+            type: "create",
+            endpoint: "/api/mzigo",
+            method: "POST",
+            payload,
+            maxRetries: 5,
+          });
 
-        await refreshPendingCount();
+          await refreshPendingCount();
+        } catch (storageError) {
+          console.error("Failed to save offline fallback to database:", storageError);
+          // Still return success response to allow user to print receipt
+          console.warn("Offline storage may not be working properly.");
+        }
 
         return {
           status: "pending",
