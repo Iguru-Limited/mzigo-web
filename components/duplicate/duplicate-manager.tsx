@@ -145,12 +145,70 @@ export function DuplicateManager() {
 
   const handlePrintViaBridge = () => {
     if (!receiptPreview) return;
-    const encodedData = encodeURIComponent(JSON.stringify(receiptPreview));
+
+    // Build a minimal payload to avoid URL length/decoding issues
+    const minimalPayload = {
+      id: receiptPreview.id,
+      receipt_number: receiptPreview.receipt_number,
+      package_token: receiptPreview.package_token,
+      s_date: receiptPreview.s_date,
+      s_time: receiptPreview.s_time,
+      receipt: receiptPreview.receipt,
+    };
+
+    const encodedData = encodeURIComponent(JSON.stringify(minimalPayload));
     const bridgeUrl = `mzigo://print-duplicate?data=${encodedData}`;
-    window.location.href = bridgeUrl;
-    setTimeout(() => {
-      toast.error("Print Bridge app not found. Please install the MZIGO Bridge app.");
-    }, 2000);
+
+    // Try opening via hidden iframe (more reliable on Android Chrome)
+    let cleanedUp = false;
+    const cleanup = () => {
+      if (cleanedUp) return;
+      cleanedUp = true;
+      if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+
+    let iframe: HTMLIFrameElement | null = document.createElement("iframe");
+    iframe.style.display = "none";
+    iframe.src = bridgeUrl;
+    document.body.appendChild(iframe);
+
+    // If the app opens, the page usually goes to background (hidden)
+    let appOpened = false;
+    const onVisibilityChange = () => {
+      if (document.visibilityState === "hidden") {
+        appOpened = true;
+        cleanup();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange, { once: true });
+
+    // Fallback toast only if the app did not open within the timeout
+    const fallback = setTimeout(() => {
+      cleanup();
+      if (!appOpened) {
+        toast.info("Print Bridge app not found", {
+          description: "Install or open the Bridge app, then try again.",
+        });
+      }
+    }, 3000);
+
+    // Extra guard: if navigation succeeds quickly via direct href, cancel fallback
+    try {
+      // Some browsers still require direct navigation to trigger intents
+      window.location.href = bridgeUrl;
+    } catch (_) {
+      // ignore
+    } finally {
+      // If page becomes hidden, cancel fallback immediately
+      const cancelIfHidden = () => {
+        if (document.visibilityState === "hidden") {
+          clearTimeout(fallback);
+          cleanup();
+        }
+      };
+      setTimeout(cancelIfHidden, 100);
+    }
   };
 
   return (
