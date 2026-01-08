@@ -20,6 +20,7 @@ import { toast } from "sonner";
 import { useParcels } from "@/hooks/duplicate/use-parcels";
 import { usePrintDuplicate } from "@/hooks/duplicate/use-print-duplicate";
 import { generateQRCodeDataUrl } from "@/lib/qr-utils";
+import { QRCodeComponent } from "@/components/receipt/qr-code";
 
 export function DuplicateManager() {
   const { items, isLoading, error } = useParcels();
@@ -453,6 +454,13 @@ export function DuplicateManager() {
                   </div>
                 );
               })}
+              
+              {/* QR Code for duplicate package token (online only) */}
+              {receiptPreview.package_token && !receiptPreview.receipt_number?.startsWith("OFFLINE-") && (
+                <div className="mt-4 border-t border-dashed pt-4 flex flex-col items-center">
+                  <QRCodeComponent value={receiptPreview.package_token} size={150} />
+                </div>
+              )}
             </div>
           )}
 
