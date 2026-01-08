@@ -8,23 +8,45 @@ export type PaperWidth = "58mm" | "80mm";
 // so they reliably show up in the printout.
 async function waitForImages(printWindow: Window): Promise<void> {
   const images = Array.from(printWindow.document.images);
-  if (images.length === 0) return;
+  if (images.length === 0) {
+    console.log("No images found in print window");
+    return;
+  }
+
+  console.log(`Waiting for ${images.length} image(s) to load...`);
 
   await Promise.all(
-    images.map((img) =>
-      img.complete
-        ? Promise.resolve()
-        : new Promise<void>((resolve) => {
-            const done = () => {
-              img.removeEventListener("load", done);
-              img.removeEventListener("error", done);
-              resolve();
-            };
-            img.addEventListener("load", done, { once: true });
-            img.addEventListener("error", done, { once: true });
-          })
+    images.map((img, idx) =>
+      new Promise<void>((resolve) => {
+        // Data URLs are typically already loaded, but check anyway
+        if (img.complete && img.naturalHeight > 0) {
+          console.log(`Image ${idx} already loaded (${img.src.substring(0, 50)}...)`);
+          resolve();
+          return;
+        }
+
+        const timeout = setTimeout(() => {
+          console.warn(`Image ${idx} timeout (resolving anyway)`);
+          img.removeEventListener("load", done);
+          img.removeEventListener("error", done);
+          resolve();
+        }, 2000);
+
+        const done = () => {
+          clearTimeout(timeout);
+          img.removeEventListener("load", done);
+          img.removeEventListener("error", done);
+          console.log(`Image ${idx} loaded successfully`);
+          resolve();
+        };
+
+        img.addEventListener("load", done, { once: true });
+        img.addEventListener("error", done, { once: true });
+      })
     )
   );
+
+  console.log("All images ready for print");
 }
 
 function lineToHtml(item: ReceiptItem): string {
@@ -126,22 +148,36 @@ export async function generateReceiptHtml(data: ReceiptData, paperWidth: PaperWi
 }
 
 export async function openPrintWindow(data: ReceiptData, paperWidth: PaperWidth = "58mm") {
+  console.log("openPrintWindow called:", { receipt_number: data.receipt_number, paperWidth, hasToken: !!data.package_token });
+  
   const html = await generateReceiptHtml(data, paperWidth);
+  console.log("HTML generated, length:", html.length, "contains QR:", html.includes("img src="));
+  
   const w = window.open("", "PRINT", "height=600,width=300");
-  if (!w) return;
+  if (!w) {
+    console.error("Failed to open print window");
+    return;
+  }
+  
   w.document.write(html);
   w.document.close();
+  console.log("HTML written to print window, waiting for DOM ready...");
 
   const triggerPrint = async () => {
+    console.log("Triggering print, waiting for images...");
     await waitForImages(w);
+    console.log("Images ready, focusing window and calling print()");
     w.focus();
     w.print();
   };
 
   if (w.document.readyState === "complete") {
+    console.log("Print window DOM already complete, triggering print immediately");
     void triggerPrint();
   } else {
+    console.log("Waiting for print window 'load' event");
     w.addEventListener("load", () => {
+      console.log("Print window 'load' event fired, triggering print");
       void triggerPrint();
     }, { once: true });
   }

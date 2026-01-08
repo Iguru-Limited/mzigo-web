@@ -19,6 +19,7 @@ import { ChevronDownIcon, PrinterIcon, DevicePhoneMobileIcon } from "@heroicons/
 import { toast } from "sonner";
 import { useParcels } from "@/hooks/duplicate/use-parcels";
 import { usePrintDuplicate } from "@/hooks/duplicate/use-print-duplicate";
+import { generateQRCodeDataUrl } from "@/lib/qr-utils";
 
 export function DuplicateManager() {
   const { items, isLoading, error } = useParcels();
@@ -64,7 +65,7 @@ export function DuplicateManager() {
     }
   };
 
-  const handlePrint = (paperWidth: "58mm" | "80mm") => {
+  const handlePrint = async (paperWidth: "58mm" | "80mm") => {
     if (!receiptPreview) return;
     try {
       const printWindow = window.open("", "PRINT", "height=600,width=800");
@@ -82,6 +83,24 @@ export function DuplicateManager() {
           return `<div style="font-size: ${fontSize}; font-weight: ${fontWeight}; word-break: break-word; white-space: pre-wrap;">${content}</div>`;
         })
         .join("");
+
+      // Generate QR code for online duplicate receipts
+      let qrCodeHtml = "";
+      const isOfflineReceipt = receiptPreview.receipt_number?.startsWith("OFFLINE-");
+      if (receiptPreview.package_token && !isOfflineReceipt) {
+        try {
+          console.log("Generating QR code for duplicate receipt:", receiptPreview.package_token);
+          const qrDataUrl = await generateQRCodeDataUrl(receiptPreview.package_token, 120);
+          console.log("✓ QR code generated for duplicate, size:", qrDataUrl.length);
+          qrCodeHtml = `
+            <div style="text-align: center; margin-top: 12px; padding-top: 8px; border-top: 1px dashed #000;">
+              <img src="${qrDataUrl}" alt="Package QR Code" style="width: 120px; height: 120px; display: block; margin: 0 auto; image-rendering: pixelated;" />
+            </div>
+          `;
+        } catch (error) {
+          console.error("✗ Failed to generate QR code for duplicate:", error);
+        }
+      }
 
       const html = `
         <!DOCTYPE html>
@@ -120,6 +139,11 @@ export function DuplicateManager() {
               font-size: ${paperWidth === "58mm" ? "10px" : "12px"};
               line-height: 1.35;
             }
+            img {
+              max-width: 100%;
+              height: auto;
+              display: block;
+            }
           </style>
         </head>
         <body>
@@ -127,6 +151,7 @@ export function DuplicateManager() {
             <div class="duplicate-badge"> DUPLICATE RECEIPT </div>
             <div class="receipt-content">
               ${receiptLines}
+              ${qrCodeHtml}
             </div>
           </div>
         </body>
@@ -136,7 +161,52 @@ export function DuplicateManager() {
       printWindow.document.write(html);
       printWindow.document.close();
       printWindow.document.title = `Duplicate Receipt ${receiptPreview.receipt_number || ""}`;
-      setTimeout(() => printWindow.print(), 250);
+      
+      // Wait for images (QR code) to load before printing
+      const waitForImages = async () => {
+        const images = Array.from(printWindow.document.images);
+        if (images.length === 0) {
+          console.log("No images in duplicate receipt");
+          return;
+        }
+
+        console.log(`Waiting for ${images.length} image(s) in duplicate receipt...`);
+        await Promise.all(
+          images.map(
+            (img, idx) =>
+              new Promise<void>((resolve) => {
+                if (img.complete && img.naturalHeight > 0) {
+                  console.log(`Duplicate image ${idx} already loaded`);
+                  resolve();
+                  return;
+                }
+
+                const timeout = setTimeout(() => {
+                  console.warn(`Duplicate image ${idx} timeout`);
+                  img.removeEventListener("load", done);
+                  img.removeEventListener("error", done);
+                  resolve();
+                }, 2000);
+
+                const done = () => {
+                  clearTimeout(timeout);
+                  img.removeEventListener("load", done);
+                  img.removeEventListener("error", done);
+                  console.log(`Duplicate image ${idx} loaded`);
+                  resolve();
+                };
+
+                img.addEventListener("load", done, { once: true });
+                img.addEventListener("error", done, { once: true });
+              })
+          )
+        );
+        console.log("All duplicate receipt images ready");
+      };
+
+      await waitForImages();
+      console.log("Printing duplicate receipt...");
+      printWindow.print();
     } catch (error) {
       console.error("Print failed:", error);
       toast.error("Failed to print receipt");
