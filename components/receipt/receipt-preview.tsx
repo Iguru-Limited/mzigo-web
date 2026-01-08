@@ -57,12 +57,7 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
           console.log("✓ QR code generated successfully, size:", qrCodeDataUrl.length, "bytes");
         } catch (error) {
           console.error("✗ Failed to generate QR code for bridge:", error);
-          toast.error("Failed to generate QR code", {
-            description: error instanceof Error ? error.message : "QR generation failed",
-          });
         }
-      } else {
-        console.log("Skipping QR generation - offline:", isOfflineReceipt, "token:", !!data.package_token);
       }
       
       // Generate bridge receipt HTML with QR code
@@ -76,29 +71,51 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
         console.log("✓ Bridge HTML generated, size:", receiptHtml.length, "bytes");
       } catch (error) {
         console.error("✗ Failed to generate bridge HTML:", error);
-        toast.error("Failed to generate receipt HTML", {
-          description: error instanceof Error ? error.message : "HTML generation failed",
-        });
       }
       
-      // Create bridge data payload with QR code and HTML
+      // Store full data in localStorage to avoid URL length limits
+      const storageKey = `receipt_${data.id}_${Date.now()}`;
       const bridgeData = {
         ...data,
         qrCodeDataUrl,
         receiptHtml,
       };
       
-      // Encode as Base64 to avoid URL decoding issues with special characters in QR code
-      const jsonPayload = JSON.stringify(bridgeData);
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(bridgeData));
+        console.log("✓ Receipt data stored in localStorage with key:", storageKey, "size:", JSON.stringify(bridgeData).length, "bytes");
+      } catch (error) {
+        console.error("✗ Failed to store in localStorage:", error);
+        toast.error("Storage error", {
+          description: "Could not store receipt data",
+        });
+        setIsPrinting(false);
+        return;
+      }
+      
+      // Pass only minimal data and storage key via URL
+      const minimalData = {
+        storageKey,
+        receipt_id: data.id,
+        receipt_number: data.receipt_number,
+      };
+      
+      const jsonPayload = JSON.stringify(minimalData);
       const base64Data = btoa(unescape(encodeURIComponent(jsonPayload)));
       const bridgeUrl = `mzigo://print?data=${base64Data}`;
       
-      console.log("Bridge payload size:", jsonPayload.length, "bytes → Base64:", base64Data.length, "bytes");
+      console.log("Bridge URL payload:", minimalData, "Base64 length:", base64Data.length, "bytes");
       
       // Setup callback listener for print completion
       const handleBridgeCallback = (event: MessageEvent) => {
         if (event.data?.type === "print_complete" && event.data?.receipt_id === data.id) {
           console.log("✓ Print completed via bridge app");
+          // Clean up localStorage after successful print
+          try {
+            localStorage.removeItem(storageKey);
+          } catch (e) {
+            console.error("Failed to clean up localStorage:", e);
+          }
           toast.success("Receipt printed successfully", {
             description: `Receipt #${data.receipt_number} has been printed.`,
           });
@@ -121,10 +138,16 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
       const printCompleteTimeout = setTimeout(() => {
         clearTimeout(timeoutId);
         window.removeEventListener("message", handleBridgeCallback);
+        // Clean up on timeout
+        try {
+          localStorage.removeItem(storageKey);
+        } catch (e) {
+          console.error("Failed to clean up localStorage:", e);
+        }
       }, 30000);
       
       // Try to open native app
-      console.log("Opening bridge app with Base64-encoded print request...");
+      console.log("Opening bridge app with localStorage reference...");
       window.location.href = bridgeUrl;
       
       // Fallback after timeout
@@ -132,6 +155,11 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
         if (isPrinting) {
           clearTimeout(printCompleteTimeout);
           window.removeEventListener("message", handleBridgeCallback);
+          try {
+            localStorage.removeItem(storageKey);
+          } catch (e) {
+            console.error("Failed to clean up localStorage:", e);
+          }
           toast.info("Print Bridge app not found", {
             description: "Install the Web Print Bridge app to print via Bluetooth",
           });
