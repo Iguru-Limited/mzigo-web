@@ -4,6 +4,29 @@ import { generateQRCodeDataUrl } from "./qr-utils";
 // Paper width options for thermal printers
 export type PaperWidth = "58mm" | "80mm";
 
+// Waits for all images in the print window (including the QR) to finish loading
+// so they reliably show up in the printout.
+async function waitForImages(printWindow: Window): Promise<void> {
+  const images = Array.from(printWindow.document.images);
+  if (images.length === 0) return;
+
+  await Promise.all(
+    images.map((img) =>
+      img.complete
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            const done = () => {
+              img.removeEventListener("load", done);
+              img.removeEventListener("error", done);
+              resolve();
+            };
+            img.addEventListener("load", done, { once: true });
+            img.addEventListener("error", done, { once: true });
+          })
+    )
+  );
+}
+
 function lineToHtml(item: ReceiptItem): string {
   const sizeMap: Record<string, string> = {
     small: "font-size:10px",
@@ -108,9 +131,18 @@ export async function openPrintWindow(data: ReceiptData, paperWidth: PaperWidth 
   if (!w) return;
   w.document.write(html);
   w.document.close();
-  w.focus();
-  // Wait for images (QR code) to load before printing
-  setTimeout(() => {
+
+  const triggerPrint = async () => {
+    await waitForImages(w);
+    w.focus();
     w.print();
-  }, 500);
+  };
+
+  if (w.document.readyState === "complete") {
+    void triggerPrint();
+  } else {
+    w.addEventListener("load", () => {
+      void triggerPrint();
+    }, { once: true });
+  }
 }
