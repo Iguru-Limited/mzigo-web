@@ -55,7 +55,6 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
           console.log("Generating QR code for bridge with token:", data.package_token);
           qrCodeDataUrl = await generateQRCodeDataUrl(data.package_token, 120);
           console.log("✓ QR code generated successfully, size:", qrCodeDataUrl.length, "bytes");
-          console.log("QR code data URL preview:", qrCodeDataUrl.substring(0, 100) + "...");
         } catch (error) {
           console.error("✗ Failed to generate QR code for bridge:", error);
           toast.error("Failed to generate QR code", {
@@ -89,10 +88,12 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
         receiptHtml,
       };
       
-      const encodedData = encodeURIComponent(JSON.stringify(bridgeData));
-      const bridgeUrl = `mzigo://print?data=${encodedData}`;
+      // Encode as Base64 to avoid URL decoding issues with special characters in QR code
+      const jsonPayload = JSON.stringify(bridgeData);
+      const base64Data = btoa(unescape(encodeURIComponent(jsonPayload)));
+      const bridgeUrl = `mzigo://print?data=${base64Data}`;
       
-      console.log("Bridge URL length:", bridgeUrl.length, "bytes");
+      console.log("Bridge payload size:", jsonPayload.length, "bytes → Base64:", base64Data.length, "bytes");
       
       // Setup callback listener for print completion
       const handleBridgeCallback = (event: MessageEvent) => {
@@ -123,7 +124,7 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
       }, 30000);
       
       // Try to open native app
-      console.log("Opening bridge app with print request...");
+      console.log("Opening bridge app with Base64-encoded print request...");
       window.location.href = bridgeUrl;
       
       // Fallback after timeout
