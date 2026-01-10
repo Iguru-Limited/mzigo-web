@@ -178,7 +178,7 @@ export function CreateMzigoForm() {
           </div>
           <div>
             <label className="block text-white font-semibold mb-2">Location</label>
-            <Input id="senderLocation" name="senderLocation" placeholder="Location" value={""} readOnly className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white" />
+            <Input id="senderLocation" name="senderLocation" placeholder="Location" value={session?.office?.name || ""} readOnly className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white text-gray-700" />
           </div>
         </div>
       </div>
