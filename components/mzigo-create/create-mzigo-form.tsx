@@ -33,16 +33,12 @@ export function CreateMzigoForm() {
   const { data: routes, isLoading: routesLoading, error: routesError } = useRoutes();
   const { data: paymentMethods, isLoading: paymentMethodsLoading, error: paymentMethodsError } = usePaymentMethods();
 
-  // Parse fields to hide from session
+  // Parse fields to hide from session (comma-separated string)
   const fieldsToHide = session?.company?.fields_to_hide
-    ? session.company.fields_to_hide.split(",").map((field) => field.trim().toLowerCase())
+    ? session.company.fields_to_hide.split(",").map((f) => f.trim().toLowerCase())
     : [];
 
-  const shouldHideField = (fieldId: string): boolean => {
-    const shouldHide = fieldsToHide.includes(fieldId.toLowerCase());
-    console.log(`Checking field: ${fieldId}, shouldHide: ${shouldHide}, fieldsToHide:`, fieldsToHide);
-    return shouldHide;
-  };
+  const shouldHideField = (fieldId: string) => fieldsToHide.includes(fieldId.toLowerCase());
 
   const [formData, setFormData] = useState({
     senderName: "",
@@ -53,10 +49,10 @@ export function CreateMzigoForm() {
     receiverRoute: "",
     parcelDescription: "",
     parcelValue: "",
-    packageSize: "", // dropdown option ID
+    packageSize: "",
     amountCharged: "",
-    paymentMode: "", // dropdown option ID
-    paymentModeName: "", // human-readable name for offline receipt
+    paymentMode: "",
+    paymentModeName: "",
     vehiclePlate: "",
     commission: "",
     specialInstructions: "",
@@ -72,13 +68,12 @@ export function CreateMzigoForm() {
   ) => {
     const { name, value } = e.target;
     if (name === "paymentMode") {
-      // derive the name from paymentMethods list
       const methodName = paymentMethods.find((m) => String(m.id) === String(value))?.payment_method || "";
       setFormData((prev) => ({ ...prev, paymentMode: value, paymentModeName: methodName }));
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
-    setError(null); // Clear error when user makes changes
+    setError(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,33 +103,22 @@ export function CreateMzigoForm() {
         payment_mode: formData.paymentMode,
         payment_mode_name: formData.paymentModeName,
         p_vehicle: formData.vehiclePlate,
-        commission: formData.commission || "0", // Default to "0" if empty
+        commission: formData.commission || "0",
         special_instructions: formData.specialInstructions,
       };
 
-      console.log("Submitting mzigo payload:", payload);
-
       const response = await createMzigo(payload);
 
-      // Handle both online success and offline pending status
       if (response.status === "success" || response.status === "pending") {
         const receiptNumber = response.data?.receipt_number;
-        const isOffline = response.status === "pending";
-        
-        // Show appropriate toast
-        if (isOffline) {
-          // toast.info("Mzigo saved offline", {
-          //   description: `Receipt #${receiptNumber} - Will sync when online. You can print now.`,
-          // });
+        const pendingOffline = response.status === "pending";
+
+        if (pendingOffline) {
+          // Offline toast can be enabled if desired
         } else {
-          toast.success("Mzigo created successfully!", {
-            description: `Receipt #${receiptNumber}`,
-          });
+          toast.success("Mzigo created successfully!", { description: `Receipt #${receiptNumber}` });
         }
 
-        console.log(isOffline ? "Mzigo saved offline:" : "Mzigo created successfully:", response.data);
-        
-        // Open receipt preview (works for both online and offline)
         if (response.data) {
           setReceiptData(response.data as ReceiptData);
           setReceiptOpen(true);
@@ -144,53 +128,24 @@ export function CreateMzigoForm() {
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "An error occurred while creating the mzigo";
-      
-      // Handle offline not allowed error specially
       if (errorMessage === "OFFLINE_NOT_ALLOWED") {
         setError("You are currently offline. Please connect to the internet to continue using the app.");
-        toast.error("Offline mode not available", {
-          description: "Please connect to the internet to create a mzigo.",
-        });
+        toast.error("Offline mode not available", { description: "Please connect to the internet to create a mzigo." });
       } else {
         setError(errorMessage);
-        toast.error("Failed to create mzigo", {
-          description: errorMessage,
-        });
+        toast.error("Failed to create mzigo", { description: errorMessage });
       }
-      console.error("Error creating mzigo:", err);
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Show blocking message if offline and offline capability is disabled
   if (isOffline && !offlineEnabled) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-6">
         <div className="bg-red-50 border border-red-200 rounded-lg p-8 max-w-md text-center">
-          <div className="flex justify-center mb-4">
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              className="h-16 w-16 text-red-500" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              stroke="currentColor"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={2} 
-                d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3m8.293 8.293l1.414 1.414" 
-              />
-            </svg>
-          </div>
           <h2 className="text-xl font-bold text-red-800 mb-2">You Are Offline</h2>
-          <p className="text-red-600 mb-4">
-            Offline mode is not available for your account. Please connect to the internet to continue using the app.
-          </p>
-          <p className="text-sm text-red-500">
-            Check your internet connection and try again.
-          </p>
+          <p className="text-red-600">Offline mode is not available for your account. Please connect to the internet.</p>
         </div>
       </div>
     );
@@ -198,7 +153,6 @@ export function CreateMzigoForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
-      {/* Error Message */}
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
           <p className="font-medium">Error</p>
@@ -207,93 +161,63 @@ export function CreateMzigoForm() {
       )}
 
       {/* Sender Details Section */}
-      <Card className="border shadow-sm">
-        <CardHeader className="border-b">
-          <CardTitle className="text-lg">Sender Details</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6 space-y-4">
+      <div className="max-w-full rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+        <div className="bg-white py-4">
+          <h2 className="text-center text-2xl font-bold text-gray-800">Sender Details</h2>
+        </div>
+        <div className="bg-green-800 p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="senderName">Name</Label>
-              <Input
-                id="senderName"
-                name="senderName"
-                placeholder="Full Name"
-                value={formData.senderName}
-                onChange={handleChange}
-                required
-              />
+            <div>
+              <label className="block text-white font-semibold mb-2">Name</label>
+              <Input id="senderName" name="senderName" placeholder="value" value={formData.senderName} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500" required />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="senderPhone">Phone</Label>
-              <Input
-                id="senderPhone"
-                name="senderPhone"
-                type="tel"
-                placeholder="Phone Number"
-                value={formData.senderPhone}
-                onChange={handleChange}
-                required
-              />
+            <div>
+              <label className="block text-white font-semibold mb-2">Phone</label>
+              <Input id="senderPhone" name="senderPhone" type="tel" placeholder="Phone" value={formData.senderPhone} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500" required />
             </div>
           </div>
-        </CardContent>
-      </Card>
+          <div>
+            <label className="block text-white font-semibold mb-2">Location</label>
+            <Input id="senderLocation" name="senderLocation" placeholder="Location" value={""} readOnly className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-100" />
+          </div>
+        </div>
+      </div>
 
       {/* Receiver Details Section */}
-      <Card className="border shadow-sm">
-        <CardHeader className="border-b">
-          <CardTitle className="text-lg">Receiver Details</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6 space-y-4">
+      <div className="max-w-full rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+        <div className="bg-white py-4">
+          <h2 className="text-center text-2xl font-bold text-gray-800">Receiver Details</h2>
+        </div>
+        <div className="bg-blue-600 p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="receiverName">Name</Label>
-              <Input
-                id="receiverName"
-                name="receiverName"
-                placeholder="Receiver Name"
-                value={formData.receiverName}
-                onChange={handleChange}
-                required
-              />
+            <div>
+              <label className="block text-white font-semibold mb-2">Name</label>
+              <Input id="receiverName" name="receiverName" placeholder="value" value={formData.receiverName} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="receiverPhone">Phone</Label>
-              <Input
-                id="receiverPhone"
-                name="receiverPhone"
-                type="tel"
-                placeholder="Receiver Phone"
-                value={formData.receiverPhone}
-                onChange={handleChange}
-                required
-              />
+            <div>
+              <label className="block text-white font-semibold mb-2">Phone</label>
+              <Input id="receiverPhone" name="receiverPhone" type="tel" placeholder="Phone" value={formData.receiverPhone} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+            <div>
               <DestinationInput
                 id="destination"
                 value={formData.destination}
-                onChange={(value) =>
-                  setFormData((prev) => ({ ...prev, destination: value }))
-                }
+                onChange={(value) => setFormData((prev) => ({ ...prev, destination: value }))}
                 destinations={destinations}
                 isLoading={destinationsLoading}
                 error={destinationsError}
-                placeholder="Search destination by name"
+                placeholder="Choose"
                 required
               />
             </div>
             {!shouldHideField("route_field") && (
-              <div className="space-y-2">
+              <div>
                 <RouteInput
                   id="receiverRoute"
                   value={formData.receiverRoute}
-                  onChange={(value) =>
-                    setFormData((prev) => ({ ...prev, receiverRoute: value }))
-                  }
+                  onChange={(value) => setFormData((prev) => ({ ...prev, receiverRoute: value }))}
                   routes={routes}
                   isLoading={routesLoading}
                   error={routesError}
@@ -303,125 +227,89 @@ export function CreateMzigoForm() {
               </div>
             )}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Parcel Details Section */}
-      <Card className="border shadow-sm">
-        <CardHeader className="border-b">
-          <CardTitle className="text-lg">Parcel Details</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6 space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="parcelDescription">Parcel Description</Label>
-            <textarea
-              id="parcelDescription"
-              name="parcelDescription"
-              placeholder="Describe the contents of the parcel"
-              value={formData.parcelDescription}
-              onChange={handleChange}
-              rows={3}
-              className="w-full px-3 py-2 bg-white text-foreground rounded border border-input resize-none"
-              required
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="parcelValue">Parcel Value</Label>
-              <Input
-                id="parcelValue"
-                name="parcelValue"
-                type="number"
-                placeholder="Value in KES"
-                value={formData.parcelValue}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            {!shouldHideField("size_field") && (
-              <div className="space-y-2">
-                <SizeSelect
-                  id="packageSize"
-                  value={formData.packageSize}
-                  onChange={(value) =>
-                    setFormData((prev) => ({ ...prev, packageSize: value }))
-                  }
-                  sizes={sizes}
-                  isLoading={sizesLoading}
-                  error={sizesError}
-                  required
-                />
-              </div>
-            )}
-          </div>
+      {/* Mzigo Details Section */}
+      <div className="max-w-full rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+        <div className="bg-white py-4">
+          <h2 className="text-center text-2xl font-bold text-gray-800">Mzigo Details</h2>
+        </div>
+        <div className="bg-neutral-800 p-6 space-y-4">
           {!shouldHideField("vehicle_field") && (
-            <div className="space-y-2">
+            <div>
+              <label className="block text-white font-semibold mb-2">Vehicle</label>
               <VehicleInput
                 id="vehiclePlate"
                 value={formData.vehiclePlate}
-                onChange={(value) =>
-                  setFormData((prev) => ({ ...prev, vehiclePlate: value }))
-                }
+                onChange={(value) => setFormData((prev) => ({ ...prev, vehiclePlate: value }))}
                 vehicles={vehicles}
                 isLoading={vehiclesLoading}
                 error={vehiclesError}
-                placeholder="Search by plate number or fleet number"
+                placeholder="Choose vehicle"
                 required
               />
             </div>
           )}
+
           {!shouldHideField("extra_field") && (
-            <div className="space-y-2">
-              <Label htmlFor="specialInstructions">Special Instructions</Label>
+            <div>
+              <label className="block text-white font-semibold mb-2">Destination</label>
               <textarea
-                id="specialInstructions"
-                name="specialInstructions"
-                placeholder="e.g., Fragile, handle with care"
-                value={formData.specialInstructions}
+                id="parcelDescription"
+                name="parcelDescription"
+                placeholder="Description"
+                value={formData.parcelDescription}
                 onChange={handleChange}
                 rows={2}
-                className="w-full px-3 py-2 bg-white text-foreground rounded border border-input resize-none"
-              />
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Payment Details Section */}
-      <Card className="border shadow-sm">
-        <CardHeader className="border-b">
-          <CardTitle className="text-lg">Payment Details</CardTitle>
-        </CardHeader>
-        <CardContent className="pt-6 space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="amountCharged">Amount Charged</Label>
-              <Input
-                id="amountCharged"
-                name="amountCharged"
-                type="number"
-                placeholder="Amount in KES"
-                value={formData.amountCharged}
-                onChange={handleChange}
+                className="w-full px-4 py-2 bg-white text-black rounded-lg border border-gray-300 resize-none focus:outline-none focus:ring-2 focus:ring-gray-500"
                 required
               />
             </div>
+          )}
+
+          <div>
+            <label className="block text-white font-semibold mb-2">Value</label>
+            <Input id="parcelValue" name="parcelValue" type="number" placeholder="(KES)" value={formData.parcelValue} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500" required />
+          </div>
+
+          {!shouldHideField("size_field") && (
+            <div>
+              <label className="block text-white font-semibold mb-2">Package Size</label>
+              <SizeSelect
+                id="packageSize"
+                value={formData.packageSize}
+                onChange={(value) => setFormData((prev) => ({ ...prev, packageSize: value }))}
+                sizes={sizes}
+                isLoading={sizesLoading}
+                error={sizesError}
+                required
+              />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Payment Details Section */}
+      <div className="max-w-full rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+        <div className="bg-white py-4">
+          <h2 className="text-center text-2xl font-bold text-gray-800">Payment Details</h2>
+        </div>
+        <div className="bg-amber-700 p-6 space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-white font-semibold mb-2">Delivery Amount</label>
+              <Input id="amountCharged" name="amountCharged" type="number" placeholder="Delivery Amount (KES)" value={formData.amountCharged} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500" required />
+            </div>
             {!shouldHideField("commission_field") && (
-              <div className="space-y-2">
-                <Label htmlFor="commission">Commission</Label>
-                <Input
-                  id="commission"
-                  name="commission"
-                  type="number"
-                  placeholder="Commission amount"
-                  value={formData.commission}
-                  onChange={handleChange}
-                />
+              <div>
+                <label className="block text-white font-semibold mb-2">Commission</label>
+                <Input id="commission" name="commission" type="number" placeholder="Commission amount" value={formData.commission} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500" />
               </div>
             )}
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="paymentMode">Payment Method</Label>
+          <div>
+            <label className="block text-white font-semibold mb-2">Payment Method</label>
             <select
               id="paymentMode"
               name="paymentMode"
@@ -429,34 +317,20 @@ export function CreateMzigoForm() {
               onChange={handleChange}
               required
               disabled={paymentMethodsLoading}
-              className="w-full px-3 py-2 bg-white text-black rounded border border-input disabled:opacity-50"
+              className="w-full px-4 py-2 bg-white text-black rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-50"
             >
-              <option value="">
-                {paymentMethodsLoading ? "Loading..." : paymentMethodsError ? "Error loading" : "Select Payment Method"}
-              </option>
+              <option value="">{paymentMethodsLoading ? "Loading..." : paymentMethodsError ? "Error loading" : "Select payment method"}</option>
               {paymentMethods.map((method) => (
-                <option key={method.id} value={method.id}>
-                  {method.payment_method}
-                </option>
+                <option key={method.id} value={method.id}>{method.payment_method}</option>
               ))}
             </select>
-            {paymentMethodsError && (
-              <p className="text-xs text-red-500">{paymentMethodsError}</p>
-            )}
+            {paymentMethodsError && <p className="text-xs text-red-200">{paymentMethodsError}</p>}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      {/* Submit Button */}
-      <Button
-        type="submit"
-        className="w-full py-2"
-        disabled={isLoading}
-      >
-        {isLoading ? "Creating Mzigo..." : "Create Mzigo"}
-      </Button>
+      <Button type="submit" className="w-full py-2" disabled={isLoading}>{isLoading ? "Creating Mzigo..." : "Create Mzigo"}</Button>
 
-      {/* Receipt Preview */}
       <ReceiptPreview
         open={receiptOpen}
         data={receiptData}
