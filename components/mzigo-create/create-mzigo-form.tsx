@@ -169,38 +169,38 @@ export function CreateMzigoForm() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-white font-semibold mb-2">Name</label>
-              <Input id="senderName" name="senderName" placeholder="value" value={formData.senderName} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500" required />
+              <Input id="senderName" name="senderName" placeholder="value" value={formData.senderName} onChange={handleChange} className="w-full px-4 py-2 bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500" required />
             </div>
             <div>
               <label className="block text-white font-semibold mb-2">Phone</label>
-              <Input id="senderPhone" name="senderPhone" type="tel" placeholder="Phone" value={formData.senderPhone} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500" required />
+              <Input id="senderPhone" name="senderPhone" type="tel" placeholder="Phone" value={formData.senderPhone} onChange={handleChange} className="w-full px-4 py-2 bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-500" required />
             </div>
           </div>
           <div>
             <label className="block text-white font-semibold mb-2">Location</label>
-            <Input id="senderLocation" name="senderLocation" placeholder="Location" value={""} readOnly className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-gray-100" />
+            <Input id="senderLocation" name="senderLocation" placeholder="Location" value={""} readOnly className="w-full px-4 py-2 rounded-lg border border-gray-300 bg-white" />
           </div>
         </div>
       </div>
 
       {/* Receiver Details Section */}
-      <div className="max-w-full rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+      <div className="max-w-full rounded-2xl overflow-visible shadow-lg border border-gray-200">
         <div className="bg-white py-4">
           <h2 className="text-center text-2xl font-bold text-gray-800">Receiver Details</h2>
         </div>
-        <div className="bg-blue-600 p-6 space-y-4">
+        <div className="bg-blue-600 p-6 space-y-4 overflow-visible">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-white font-semibold mb-2">Name</label>
-              <Input id="receiverName" name="receiverName" placeholder="value" value={formData.receiverName} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+              <Input id="receiverName" name="receiverName" placeholder="value" value={formData.receiverName} onChange={handleChange} className="w-full px-4 py-2 bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
             </div>
             <div>
               <label className="block text-white font-semibold mb-2">Phone</label>
-              <Input id="receiverPhone" name="receiverPhone" type="tel" placeholder="Phone" value={formData.receiverPhone} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
+              <Input id="receiverPhone" name="receiverPhone" type="tel" placeholder="Phone" value={formData.receiverPhone} onChange={handleChange} className="w-full px-4 py-2 bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
+          <div className={`grid ${!shouldHideField("route_field") ? "grid-cols-2" : "grid-cols-1"} gap-4 overflow-visible`}>
+            <div className={!shouldHideField("route_field") ? "" : "col-span-1"}>
               <DestinationInput
                 id="destination"
                 value={formData.destination}
@@ -231,11 +231,11 @@ export function CreateMzigoForm() {
       </div>
 
       {/* Mzigo Details Section */}
-      <div className="max-w-full rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+      <div className="max-w-full rounded-2xl overflow-visible shadow-lg border border-gray-200">
         <div className="bg-white py-4">
           <h2 className="text-center text-2xl font-bold text-gray-800">Mzigo Details</h2>
         </div>
-        <div className="bg-neutral-800 p-6 space-y-4">
+        <div className="bg-neutral-800 p-6 space-y-4 overflow-visible">
           {!shouldHideField("vehicle_field") && (
             <div>
               <label className="block text-white font-semibold mb-2">Vehicle</label>
@@ -270,7 +270,7 @@ export function CreateMzigoForm() {
 
           <div>
             <label className="block text-white font-semibold mb-2">Value</label>
-            <Input id="parcelValue" name="parcelValue" type="number" placeholder="(KES)" value={formData.parcelValue} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500" required />
+            <Input id="parcelValue" name="parcelValue" type="number" placeholder="(KES)" value={formData.parcelValue} onChange={handleChange} className="w-full px-4 py-2 bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500" required />
           </div>
 
           {!shouldHideField("size_field") && (
@@ -299,12 +299,12 @@ export function CreateMzigoForm() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-white font-semibold mb-2">Delivery Amount</label>
-              <Input id="amountCharged" name="amountCharged" type="number" placeholder="Delivery Amount (KES)" value={formData.amountCharged} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500" required />
+              <Input id="amountCharged" name="amountCharged" type="number" placeholder="Delivery Amount (KES)" value={formData.amountCharged} onChange={handleChange} className="w-full px-4 py-2 bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500" required />
             </div>
             {!shouldHideField("commission_field") && (
               <div>
                 <label className="block text-white font-semibold mb-2">Commission</label>
-                <Input id="commission" name="commission" type="number" placeholder="Commission amount" value={formData.commission} onChange={handleChange} className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500" />
+                <Input id="commission" name="commission" type="number" placeholder="Commission amount" value={formData.commission} onChange={handleChange} className="w-full px-4 py-2 bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-500" />
               </div>
             )}
           </div>
