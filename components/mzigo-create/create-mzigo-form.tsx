@@ -33,6 +33,17 @@ export function CreateMzigoForm() {
   const { data: routes, isLoading: routesLoading, error: routesError } = useRoutes();
   const { data: paymentMethods, isLoading: paymentMethodsLoading, error: paymentMethodsError } = usePaymentMethods();
 
+  // Parse fields to hide from session
+  const fieldsToHide = session?.company?.fields_to_hide
+    ? session.company.fields_to_hide.split(",").map((field) => field.trim().toLowerCase())
+    : [];
+
+  const shouldHideField = (fieldId: string): boolean => {
+    const shouldHide = fieldsToHide.includes(fieldId.toLowerCase());
+    console.log(`Checking field: ${fieldId}, shouldHide: ${shouldHide}, fieldsToHide:`, fieldsToHide);
+    return shouldHide;
+  };
+
   const [formData, setFormData] = useState({
     senderName: "",
     senderPhone: "",
@@ -275,20 +286,22 @@ export function CreateMzigoForm() {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <RouteInput
-                id="receiverRoute"
-                value={formData.receiverRoute}
-                onChange={(value) =>
-                  setFormData((prev) => ({ ...prev, receiverRoute: value }))
-                }
-                routes={routes}
-                isLoading={routesLoading}
-                error={routesError}
-                placeholder="Search route by name"
-                required
-              />
-            </div>
+            {!shouldHideField("route_field") && (
+              <div className="space-y-2">
+                <RouteInput
+                  id="receiverRoute"
+                  value={formData.receiverRoute}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, receiverRoute: value }))
+                  }
+                  routes={routes}
+                  isLoading={routesLoading}
+                  error={routesError}
+                  placeholder="Search route by name"
+                  required
+                />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -325,46 +338,52 @@ export function CreateMzigoForm() {
                 required
               />
             </div>
+            {!shouldHideField("size_field") && (
+              <div className="space-y-2">
+                <SizeSelect
+                  id="packageSize"
+                  value={formData.packageSize}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, packageSize: value }))
+                  }
+                  sizes={sizes}
+                  isLoading={sizesLoading}
+                  error={sizesError}
+                  required
+                />
+              </div>
+            )}
+          </div>
+          {!shouldHideField("vehicle_field") && (
             <div className="space-y-2">
-              <SizeSelect
-                id="packageSize"
-                value={formData.packageSize}
+              <VehicleInput
+                id="vehiclePlate"
+                value={formData.vehiclePlate}
                 onChange={(value) =>
-                  setFormData((prev) => ({ ...prev, packageSize: value }))
+                  setFormData((prev) => ({ ...prev, vehiclePlate: value }))
                 }
-                sizes={sizes}
-                isLoading={sizesLoading}
-                error={sizesError}
+                vehicles={vehicles}
+                isLoading={vehiclesLoading}
+                error={vehiclesError}
+                placeholder="Search by plate number or fleet number"
                 required
               />
             </div>
-          </div>
-          <div className="space-y-2">
-            <VehicleInput
-              id="vehiclePlate"
-              value={formData.vehiclePlate}
-              onChange={(value) =>
-                setFormData((prev) => ({ ...prev, vehiclePlate: value }))
-              }
-              vehicles={vehicles}
-              isLoading={vehiclesLoading}
-              error={vehiclesError}
-              placeholder="Search by plate number or fleet number"
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="specialInstructions">Special Instructions</Label>
-            <textarea
-              id="specialInstructions"
-              name="specialInstructions"
-              placeholder="e.g., Fragile, handle with care"
-              value={formData.specialInstructions}
-              onChange={handleChange}
-              rows={2}
-              className="w-full px-3 py-2 bg-white text-foreground rounded border border-input resize-none"
-            />
-          </div>
+          )}
+          {!shouldHideField("extra_field") && (
+            <div className="space-y-2">
+              <Label htmlFor="specialInstructions">Special Instructions</Label>
+              <textarea
+                id="specialInstructions"
+                name="specialInstructions"
+                placeholder="e.g., Fragile, handle with care"
+                value={formData.specialInstructions}
+                onChange={handleChange}
+                rows={2}
+                className="w-full px-3 py-2 bg-white text-foreground rounded border border-input resize-none"
+              />
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -387,17 +406,19 @@ export function CreateMzigoForm() {
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="commission">Commission</Label>
-              <Input
-                id="commission"
-                name="commission"
-                type="number"
-                placeholder="Commission amount"
-                value={formData.commission}
-                onChange={handleChange}
-              />
-            </div>
+            {!shouldHideField("commission_field") && (
+              <div className="space-y-2">
+                <Label htmlFor="commission">Commission</Label>
+                <Input
+                  id="commission"
+                  name="commission"
+                  type="number"
+                  placeholder="Commission amount"
+                  value={formData.commission}
+                  onChange={handleChange}
+                />
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="paymentMode">Payment Method</Label>
