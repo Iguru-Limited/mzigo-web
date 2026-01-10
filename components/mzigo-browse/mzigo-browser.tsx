@@ -2,36 +2,39 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Card } from "@/components/ui/card";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card } from "@/components/ui/card";
 import { useBrowseMzigo } from "@/hooks/mzigo";
 import { useDestinations } from "@/hooks/data";
 import type { BrowseMzigoItem, BrowseMzigoParams, TrafficType } from "@/types/operations/browse-mzigo";
+import { Search, Calendar, MapPin, Package } from "lucide-react";
 
 function today(): string {
   const d = new Date();
   return d.toISOString().slice(0, 10);
 }
 
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr + "T00:00:00");
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 export function MzigoBrowser() {
-  const [filters, setFilters] = useState<BrowseMzigoParams>({
-    type: "outgoing",
-    start_date: today(),
-    end_date: today(),
-  });
-  const [activeFilters, setActiveFilters] = useState<BrowseMzigoParams | null>(null);
+  const [trafficType, setTrafficType] = useState<TrafficType>("outgoing");
+  const [selectedDate, setSelectedDate] = useState(today());
   const [destinationId, setDestinationId] = useState("");
+  const [activeFilters, setActiveFilters] = useState<BrowseMzigoParams | null>(null);
 
   const { data, count, dateRange, type, isLoading, error } = useBrowseMzigo(activeFilters);
   const { data: destinations, isLoading: loadingDestinations } = useDestinations();
 
-  const handleApplyFilters = (e: React.FormEvent) => {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const params: BrowseMzigoParams = {
-      ...filters,
+      type: trafficType,
+      start_date: selectedDate,
+      end_date: selectedDate,
     };
     if (destinationId) {
       params.destination_id = destinationId;
@@ -41,61 +44,98 @@ export function MzigoBrowser() {
 
   return (
     <div className="space-y-6">
-      <form onSubmit={handleApplyFilters} className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <div className="space-y-2">
-            <Label htmlFor="type">Traffic Type</Label>
-            <select
-              id="type"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              value={filters.type}
-              onChange={(e) => setFilters({ ...filters, type: e.target.value as TrafficType })}
-            >
-              <option value="outgoing">Outgoing</option>
-              <option value="incoming">Incoming</option>
-            </select>
-          </div>
+      <div className="flex items-center gap-3 mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Browse/Search</h1>
+      </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="start_date">Start Date</Label>
-            <Input
-              id="start_date"
-              type="date"
-              value={filters.start_date}
-              onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
-            />
+      {/* Traffic Type Tabs */}
+      <div className="flex gap-8 border-b border-gray-200">
+        <button
+          onClick={() => setTrafficType("outgoing")}
+          className={`pb-3 font-semibold text-base transition-colors relative ${
+            trafficType === "outgoing"
+              ? "text-cyan-500"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${trafficType === "outgoing" ? "bg-cyan-500" : "bg-gray-400"}`}></div>
+            Outgoing
           </div>
+          {trafficType === "outgoing" && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500"></div>
+          )}
+        </button>
 
-          <div className="space-y-2">
-            <Label htmlFor="end_date">End Date</Label>
-            <Input
-              id="end_date"
-              type="date"
-              value={filters.end_date}
-              onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
-            />
+        <button
+          onClick={() => setTrafficType("incoming")}
+          className={`pb-3 font-semibold text-base transition-colors relative ${
+            trafficType === "incoming"
+              ? "text-cyan-500"
+              : "text-gray-600 hover:text-gray-900"
+          }`}
+        >
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${trafficType === "incoming" ? "bg-cyan-500" : "bg-gray-400"}`}></div>
+            Incoming
           </div>
+          {trafficType === "incoming" && (
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500"></div>
+          )}
+        </button>
+      </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="destination_id">Destination (Optional)</Label>
-            <select
-              id="destination_id"
-              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-              value={destinationId}
-              onChange={(e) => setDestinationId(e.target.value)}
-              disabled={loadingDestinations}
-            >
-              <option value="">All Destinations</option>
-              {destinations.map((dest) => (
-                <option key={dest.id} value={dest.id}>
-                  {dest.name}
-                </option>
-              ))}
-            </select>
+      {/* Filters Section */}
+      <form onSubmit={handleSearch} className="space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold text-gray-900 mb-4">Filters</h3>
+          <div className="space-y-4">
+            {/* Date Filter */}
+            <div>
+              <label className="text-sm text-gray-700 mb-2 block">Date</label>
+              <div className="relative">
+                <Calendar className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-sm font-medium text-gray-900 focus:outline-none focus:bg-white focus:border-cyan-500"
+                />
+              </div>
+              <p className="text-xs text-gray-500 mt-1">{formatDate(selectedDate)}</p>
+            </div>
+
+            {/* Destination Filter */}
+            <div>
+              <label className="text-sm text-gray-700 mb-2 block">Destination</label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-3 w-5 h-5 text-gray-400" />
+                <select
+                  value={destinationId}
+                  onChange={(e) => setDestinationId(e.target.value)}
+                  disabled={loadingDestinations}
+                  className="w-full pl-10 pr-4 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-sm font-medium text-gray-900 focus:outline-none focus:bg-white focus:border-cyan-500 appearance-none"
+                >
+                  <option value="">All</option>
+                  {destinations.map((dest) => (
+                    <option key={dest.id} value={dest.id}>
+                      {dest.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </div>
         </div>
 
-        <Button type="submit">Apply Filters</Button>
+        {/* Search Button */}
+        <Button
+          type="submit"
+          className="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2.5 h-auto flex items-center justify-center gap-2 rounded-lg"
+        >
+          <Search className="w-5 h-5" />
+          Search
+        </Button>
       </form>
 
       {activeFilters && (
@@ -121,11 +161,10 @@ export function MzigoBrowser() {
           {!isLoading && !error && data.length === 0 && (
             <Empty>
               <EmptyHeader>
-                <div className="text-4xl">📦</div>
-                <EmptyTitle>No Mzigos Found</EmptyTitle>
+                <div className="text-5xl text-cyan-500 mb-3"><Package className="w-12 h-12" /></div>
+                <EmptyTitle>Search for Parcels</EmptyTitle>
                 <EmptyDescription>
-                  No {type} mzigos found for the selected date range
-                  {dateRange && ` (${dateRange.start_date} to ${dateRange.end_date})`}
+                  Select a date and destination, then tap Search to view {trafficType} parcels
                 </EmptyDescription>
               </EmptyHeader>
             </Empty>
@@ -134,13 +173,12 @@ export function MzigoBrowser() {
           {!isLoading && !error && data.length > 0 && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <p className="text-sm text-muted-foreground">
-                  Found {count} {type} mzigo{count !== 1 ? "s" : ""}
-                  {dateRange && ` (${dateRange.start_date} to ${dateRange.end_date})`}
+                <p className="text-sm text-gray-600">
+                  Found {count} {trafficType} mzigo{count !== 1 ? "s" : ""}
                 </p>
               </div>
               {data.map((mzigo) => (
-                <BrowseResultCard key={mzigo.id} mzigo={mzigo} type={type} />
+                <BrowseResultCard key={mzigo.id} mzigo={mzigo} type={trafficType} />
               ))}
             </div>
           )}
@@ -150,10 +188,10 @@ export function MzigoBrowser() {
       {!activeFilters && (
         <Empty>
           <EmptyHeader>
-            <div className="text-4xl">🔍</div>
-            <EmptyTitle>Ready to Browse</EmptyTitle>
+            <div className="text-5xl text-cyan-500 mb-3"><Package className="w-12 h-12" /></div>
+            <EmptyTitle>Search for Parcels</EmptyTitle>
             <EmptyDescription>
-              Select your filters and click "Apply Filters" to view mzigos
+              Select a date and destination, then tap Search to view {trafficType} parcels
             </EmptyDescription>
           </EmptyHeader>
         </Empty>

@@ -14,7 +14,6 @@ const STATIC_ASSETS = [
   "/collections",
   "/load",
   "/notifications",
-  "/profile",
   "/report",
   "/manifest.json",
   "/assets/icons/icon-192x192.png",

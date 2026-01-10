@@ -67,13 +67,13 @@ export function DestinationInput({
   };
 
   return (
-    <div className="relative space-y-2">
+    <div className="relative space-y-2 w-full">
       <Label htmlFor={id} className="flex items-center gap-2">
         Destination
         {isLoading && <Spinner className="h-3 w-3" />}
         {error && <span className="text-xs text-red-500">({error})</span>}
       </Label>
-      <div className="relative">
+      <div className="relative w-full">
         <Input
           id={id}
           type="text"
@@ -84,7 +84,7 @@ export function DestinationInput({
           onBlur={handleBlur}
           required={required}
           disabled={disabled || isLoading}
-          className="w-full"
+          className="w-full bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
           autoComplete="off"
         />
 

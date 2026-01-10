@@ -86,7 +86,7 @@ export function VehicleInput({
           onBlur={handleBlur}
           required={required}
           disabled={disabled || isLoading}
-          className="w-full"
+          className="w-full bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
           autoComplete="off"
         />
 
