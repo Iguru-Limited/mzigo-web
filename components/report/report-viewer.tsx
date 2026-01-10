@@ -2,64 +2,111 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Card } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import { useAttendantStats } from "@/hooks/mzigo";
 import type { AttendantStatsParams } from "@/types/operations/attendant-stats";
+import { ChevronLeft, ChevronRight, Calendar, Banknote, CreditCard, DollarSign } from "lucide-react";
 
 function today(): string {
   const d = new Date();
   return d.toISOString().slice(0, 10);
 }
 
+function formatDate(dateStr: string): string {
+  const date = new Date(dateStr + "T00:00:00");
+  return date.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric", year: "numeric" });
+}
+
+function getPaymentIcon(method: string) {
+  switch (method?.toUpperCase()) {
+    case "CASH":
+      return <Banknote className="w-6 h-6" />;
+    case "M-PESA":
+      return <CreditCard className="w-6 h-6" />;
+    case "C.O.D":
+      return <DollarSign className="w-6 h-6" />;
+    default:
+      return <CreditCard className="w-6 h-6" />;
+  }
+}
+
 export function ReportViewer() {
-  const [filters, setFilters] = useState<AttendantStatsParams>({
+  const [selectedDate, setSelectedDate] = useState<string>(today());
+  const [activeFilters, setActiveFilters] = useState<AttendantStatsParams | null>({
     start_date: today(),
     end_date: today(),
   });
-  const [activeFilters, setActiveFilters] = useState<AttendantStatsParams | null>(null);
 
   const { data, isLoading, error } = useAttendantStats(activeFilters);
 
-  const handleApplyFilters = (e: React.FormEvent) => {
-    e.preventDefault();
-    setActiveFilters(filters);
+  const handlePreviousDay = () => {
+    const date = new Date(selectedDate + "T00:00:00");
+    date.setDate(date.getDate() - 1);
+    const newDate = date.toISOString().slice(0, 10);
+    setSelectedDate(newDate);
+    setActiveFilters({ start_date: newDate, end_date: newDate });
+  };
+
+  const handleNextDay = () => {
+    const date = new Date(selectedDate + "T00:00:00");
+    date.setDate(date.getDate() + 1);
+    const newDate = date.toISOString().slice(0, 10);
+    setSelectedDate(newDate);
+    setActiveFilters({ start_date: newDate, end_date: newDate });
+  };
+
+  const handleJumpToToday = () => {
+    const todayDate = today();
+    setSelectedDate(todayDate);
+    setActiveFilters({ start_date: todayDate, end_date: todayDate });
   };
 
   return (
-    <div className="space-y-6">
-      <form onSubmit={handleApplyFilters} className="space-y-4">
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor="start_date">Start Date</Label>
-            <Input
-              id="start_date"
-              type="date"
-              value={filters.start_date}
-              onChange={(e) => setFilters({ ...filters, start_date: e.target.value })}
-            />
-          </div>
+    <div className="space-y-6 max-w-2xl">
+      {/* Date Selector Card */}
+      <Card className="p-6 bg-white rounded-2xl shadow-md">
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-purple-600 uppercase tracking-wide">SELECT DATE</h3>
+          <div className="flex items-center justify-between gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handlePreviousDay}
+              className="h-10 w-10 rounded-full hover:bg-purple-100 text-purple-600"
+            >
+              <ChevronLeft className="w-5 h-5" />
+            </Button>
 
-          <div className="space-y-2">
-            <Label htmlFor="end_date">End Date</Label>
-            <Input
-              id="end_date"
-              type="date"
-              value={filters.end_date}
-              onChange={(e) => setFilters({ ...filters, end_date: e.target.value })}
-            />
-          </div>
+            <div className="flex-1">
+              <div className="bg-gradient-to-r from-purple-400 to-purple-500 rounded-xl p-4 text-white text-center">
+                <p className="text-2xl font-bold">{new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
+                <p className="text-sm opacity-90">{new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</p>
+              </div>
+            </div>
 
-          <div className="flex items-end">
-            <Button type="submit" className="w-full">
-              Generate Report
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={handleNextDay}
+              className="h-10 w-10 rounded-full hover:bg-purple-100 text-purple-600"
+            >
+              <ChevronRight className="w-5 h-5" />
             </Button>
           </div>
+
+          {selectedDate !== today() && (
+            <Button
+              onClick={handleJumpToToday}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 h-auto flex items-center justify-center gap-2"
+            >
+              <Calendar className="w-5 h-5" />
+              Jump to Today
+            </Button>
+          )}
         </div>
-      </form>
+      </Card>
 
       {activeFilters && (
         <>
@@ -82,74 +129,48 @@ export function ReportViewer() {
 
           {!isLoading && !error && data && (
             <div className="space-y-6">
-              {/* Summary Cards */}
-              <div className="grid gap-4 md:grid-cols-2">
-                <Card className="p-6">
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Total Packages</p>
-                    <p className="text-3xl font-bold">{data.summary.total_packages}</p>
-                    <p className="text-xs text-muted-foreground">
-                      {data.date_range.start_date} to {data.date_range.end_date}
-                    </p>
+              {/* Total Amount Card */}
+              <Card className="p-6 bg-white rounded-2xl shadow-md">
+                <h3 className="text-sm font-semibold text-purple-600 uppercase tracking-wide mb-4">Total Amount</h3>
+                <div className="flex items-end justify-between">
+                  <div>
+                    <p className="text-4xl font-bold text-gray-900">KES {Number(data.summary.total_amount).toLocaleString()}</p>
                   </div>
-                </Card>
-
-                <Card className="p-6">
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Total Amount</p>
-                    <p className="text-3xl font-bold">KES {Number(data.summary.total_amount).toLocaleString()}</p>
-                    <p className="text-xs text-muted-foreground">
-                      From {data.summary.total_packages} packages
-                    </p>
+                  <div className="flex gap-2">
+                    <span className="bg-purple-100 text-purple-700 text-sm font-semibold px-3 py-1 rounded-full">
+                      {data.summary.total_packages} Packages
+                    </span>
                   </div>
-                </Card>
-              </div>
-
-              {/* Payment Breakdown */}
-              <Card className="p-6">
-                <h3 className="font-semibold mb-4">Payment Mode Breakdown</h3>
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b">
-                        <th className="text-left py-3 px-2 font-medium">Payment Mode</th>
-                        <th className="text-right py-3 px-2 font-medium">Count</th>
-                        <th className="text-right py-3 px-2 font-medium">Total Amount</th>
-                        <th className="text-right py-3 px-2 font-medium">Percentage</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.payment_breakdown.map((payment, idx) => {
-                        const percentage = (
-                          (Number(payment.total_amount) / Number(data.summary.total_amount)) * 100
-                        ).toFixed(1);
-                        return (
-                          <tr key={idx} className="border-b hover:bg-muted/50">
-                            <td className="py-3 px-2">
-                              {payment.payment_mode || "No Payment Mode"}
-                            </td>
-                            <td className="text-right py-3 px-2">{payment.count}</td>
-                            <td className="text-right py-3 px-2 font-medium">
-                              KES {Number(payment.total_amount).toLocaleString()}
-                            </td>
-                            <td className="text-right py-3 px-2">
-                              <div className="flex items-center justify-end gap-2">
-                                <div className="w-16 bg-muted rounded-full h-2">
-                                  <div
-                                    className="bg-slate-700 h-2 rounded-full"
-                                    style={{ width: `${percentage}%` }}
-                                  />
-                                </div>
-                                <span className="w-10 text-right">{percentage}%</span>
-                              </div>
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
                 </div>
               </Card>
+
+              {/* Payment Method Breakdown */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Method Breakdown</h3>
+                <div className="space-y-3">
+                  {data.payment_breakdown.map((payment, idx) => {
+                    const percentage = (
+                      (Number(payment.total_amount) / Number(data.summary.total_amount)) * 100
+                    ).toFixed(1);
+                    return (
+                      <Card key={idx} className="p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+                              {getPaymentIcon(payment.payment_mode)}
+                            </div>
+                            <div>
+                              <p className="font-semibold text-gray-900">{payment.payment_mode || "Other"}</p>
+                              <p className="text-xs text-gray-500">{payment.count} transaction{Number(payment.count) !== 1 ? "s" : ""}</p>
+                            </div>
+                          </div>
+                          <p className="text-xl font-bold text-purple-600">KES {Number(payment.total_amount).toLocaleString()}</p>
+                        </div>
+                      </Card>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           )}
 
@@ -157,9 +178,9 @@ export function ReportViewer() {
             <Empty>
               <EmptyHeader>
                 <div className="text-4xl">📊</div>
-                <EmptyTitle>Ready to View Reports</EmptyTitle>
+                <EmptyTitle>Payment Report</EmptyTitle>
                 <EmptyDescription>
-                  Select a date range and click "Generate Report" to view attendant statistics
+                  Select a date above to view your payment report
                 </EmptyDescription>
               </EmptyHeader>
             </Empty>
