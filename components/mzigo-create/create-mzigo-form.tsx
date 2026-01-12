@@ -182,7 +182,7 @@ export function CreateMzigoForm() {
         </div>
 
         {/* Receiver Details Card */}
-        <div className="rounded-2xl overflow-hidden shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+        <div className="rounded-2xl overflow-visible shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
           <div className="bg-white py-4 px-6">
             <h2 className="text-lg font-bold text-gray-800">Receiver Details</h2>
           </div>
@@ -228,7 +228,7 @@ export function CreateMzigoForm() {
       </div>
 
       {/* Mzigo Details Card */}
-      <div className="rounded-2xl overflow-hidden shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+      <div className="rounded-2xl overflow-visible shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
         <div className="bg-white py-3 px-6">
           <h2 className="text-lg font-bold text-gray-800">Mzigo Details</h2>
         </div>
