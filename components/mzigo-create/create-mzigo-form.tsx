@@ -4,10 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { VehicleInput } from "@/components/ui/vehicle-input";
 import { DestinationInput } from "@/components/ui/destination-input";
 import { SizeSelect } from "@/components/ui/size-select";
@@ -167,7 +165,7 @@ export function CreateMzigoForm() {
           <div className="bg-white py-4 px-6">
             <h2 className="text-lg font-bold text-gray-800">Sender Details</h2>
           </div>
-          <div className="bg-green-800 p-6 space-y-7">
+          <div className="bg-green-800 p-6 space-y-3.5">
             <div>
               <label className="block text-white text-sm font-semibold mb-2">Name</label>
               <Input id="senderName" name="senderName" placeholder="Full name" value={formData.senderName} onChange={handleChange} className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" required />
