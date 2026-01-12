@@ -68,7 +68,7 @@ export function DestinationInput({
 
   return (
     <div className="relative space-y-2 w-full">
-      <Label htmlFor={id} className="flex items-center gap-2">
+      <Label htmlFor={id} className="flex items-center gap-2 text-white">
         Destination
         {isLoading && <Spinner className="h-3 w-3" />}
         {error && <span className="text-xs text-red-500">({error})</span>}

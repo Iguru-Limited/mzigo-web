@@ -70,8 +70,8 @@ export function VehicleInput({
 
   return (
     <div className="relative space-y-2">
-      <Label htmlFor={id} className="flex items-center gap-2">
-        Vehicle Plate Number
+      <Label htmlFor={id} className="flex items-center gap-2 text-white">
+        carrier
         {isLoading && <Spinner className="h-3 w-3" />}
         {error && <span className="text-xs text-red-500">({error})</span>}
       </Label>
