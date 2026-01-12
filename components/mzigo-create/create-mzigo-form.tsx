@@ -184,11 +184,11 @@ export function CreateMzigoForm() {
       </div>
 
       {/* Receiver Details Section */}
-      <div className="max-w-full rounded-2xl overflow-visible shadow-lg border border-gray-200">
+      <div className="max-w-full rounded-2xl overflow-hidden shadow-lg border border-gray-200">
         <div className="bg-white py-4">
           <h2 className="text-center text-2xl font-bold text-gray-800">Receiver Details</h2>
         </div>
-        <div className="bg-blue-600 p-6 space-y-4 overflow-visible">
+        <div className="bg-blue-600 p-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-white font-semibold mb-2">Name</label>
@@ -199,7 +199,7 @@ export function CreateMzigoForm() {
               <Input id="receiverPhone" name="receiverPhone" type="tel" placeholder="Phone" value={formData.receiverPhone} onChange={handleChange} className="w-full px-4 py-2 bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400" required />
             </div>
           </div>
-          <div className={`grid ${!shouldHideField("route_field") ? "grid-cols-2" : "grid-cols-1"} gap-4 overflow-visible`}>
+          <div className={`grid ${!shouldHideField("route_field") ? "grid-cols-2" : "grid-cols-1"} gap-4`}>
             <div className={!shouldHideField("route_field") ? "" : "col-span-1"}>
               <DestinationInput
                 id="destination"
@@ -231,11 +231,11 @@ export function CreateMzigoForm() {
       </div>
 
       {/* Mzigo Details Section */}
-      <div className="max-w-full rounded-2xl overflow-visible shadow-lg border border-gray-200">
+      <div className="max-w-full rounded-2xl overflow-hidden shadow-lg border border-gray-200">
         <div className="bg-white py-4">
           <h2 className="text-center text-2xl font-bold text-gray-800">Mzigo Details</h2>
         </div>
-        <div className="bg-neutral-800 p-6 space-y-4 overflow-visible">
+        <div className="bg-neutral-800 p-6 space-y-4">
           {!shouldHideField("vehicle_field") && (
             <div>
               <label className="block text-white font-semibold mb-2">Vehicle</label>
@@ -329,7 +329,7 @@ export function CreateMzigoForm() {
         </div>
       </div>
 
-      <Button type="submit" className="w-full py-2" disabled={isLoading}>{isLoading ? "Creating Mzigo..." : "Create Mzigo"}</Button>
+      <Button type="submit" className="w-full py-2" disabled={isLoading}>{isLoading ? "Processing" : "Process"}</Button>
 
       <ReceiptPreview
         open={receiptOpen}
