@@ -24,20 +24,6 @@ import { ReceiptData } from "@/types/operations/receipt";
 export function CreateMzigoForm() {
   const router = useRouter();
   const { data: session } = useSession();
-  const { createMzigo, isOffline, offlineEnabled } = useCreateMzigo();
-  const { data: vehicles, isLoading: vehiclesLoading, error: vehiclesError } = useVehicles();
-  const { data: destinations, isLoading: destinationsLoading, error: destinationsError } = useDestinations();
-  const { data: sizes, isLoading: sizesLoading, error: sizesError } = useSizes();
-  const { data: routes, isLoading: routesLoading, error: routesError } = useRoutes();
-  const { data: paymentMethods, isLoading: paymentMethodsLoading, error: paymentMethodsError } = usePaymentMethods();
-
-  // Parse fields to hide from session (comma-separated string)
-  const fieldsToHide = session?.company?.fields_to_hide
-    ? session.company.fields_to_hide.split(",").map((f) => f.trim().toLowerCase())
-    : [];
-
-  const shouldHideField = (fieldId: string) => fieldsToHide.includes(fieldId.toLowerCase());
-
   const [formData, setFormData] = useState({
     senderName: "",
     senderPhone: "",
@@ -55,6 +41,21 @@ export function CreateMzigoForm() {
     commission: "",
     specialInstructions: "",
   });
+  const { createMzigo, isOffline, offlineEnabled } = useCreateMzigo();
+  const { data: vehicles, isLoading: vehiclesLoading, error: vehiclesError } = useVehicles();
+  const { data: destinations, isLoading: destinationsLoading, error: destinationsError } = useDestinations(formData.receiverRoute);
+  const { data: sizes, isLoading: sizesLoading, error: sizesError } = useSizes();
+  const { data: routes, isLoading: routesLoading, error: routesError } = useRoutes();
+  const { data: paymentMethods, isLoading: paymentMethodsLoading, error: paymentMethodsError } = usePaymentMethods();
+
+  // Parse fields to hide from session (comma-separated string)
+  const fieldsToHide = session?.company?.fields_to_hide
+    ? session.company.fields_to_hide.split(",").map((f) => f.trim().toLowerCase())
+    : [];
+
+  const shouldHideField = (fieldId: string) => fieldsToHide.includes(fieldId.toLowerCase());
+
+  
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -204,7 +205,9 @@ export function CreateMzigoForm() {
                 <RouteInput
                   id="receiverRoute"
                   value={formData.receiverRoute}
-                  onChange={(value) => setFormData((prev) => ({ ...prev, receiverRoute: value }))}
+                  onChange={(value) =>
+                    setFormData((prev) => ({ ...prev, receiverRoute: value, destination: "" }))
+                  }
                   routes={routes}
                   isLoading={routesLoading}
                   error={routesError}
@@ -214,16 +217,28 @@ export function CreateMzigoForm() {
               </div>
             )}
 
-              <DestinationInput
-                id="destination"
-                value={formData.destination}
-                onChange={(value) => setFormData((prev) => ({ ...prev, destination: value }))}
-                destinations={destinations}
-                isLoading={destinationsLoading}
-                error={destinationsError}
-                placeholder="Choose destination"
-                required
-              />
+              {formData.receiverRoute ? (
+                <DestinationInput
+                  id="destination"
+                  value={formData.destination}
+                  onChange={(value) => setFormData((prev) => ({ ...prev, destination: value }))}
+                  destinations={destinations}
+                  isLoading={destinationsLoading}
+                  error={destinationsError}
+                  placeholder="Choose destination"
+                  required
+                />
+              ) : (
+                <div className="mt-2">
+                  <label className="block text-white text-sm font-semibold mb-2">Destination</label>
+                  <Input
+                    id="destination-disabled"
+                    value="Select a route first"
+                    readOnly
+                    className="w-full px-3.5 py-2.5 bg-gray-100 rounded-lg border border-gray-300 text-gray-500 text-sm cursor-not-allowed"
+                  />
+                </div>
+              )}
             </div>           
           </div>
         </div>

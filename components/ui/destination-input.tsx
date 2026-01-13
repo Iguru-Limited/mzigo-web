@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
@@ -16,12 +16,9 @@ interface DestinationInputProps {
   placeholder?: string;
   required?: boolean;
   disabled?: boolean;
+  allowCustom?: boolean;
 }
 
-/**
- * Destination input component with autocomplete suggestions
- * Provides type-ahead suggestions based on destination name
- */
 export function DestinationInput({
   id = "destination",
   value,
@@ -32,42 +29,43 @@ export function DestinationInput({
   placeholder = "Search destination by name",
   required = false,
   disabled = false,
+  allowCustom = true,
 }: DestinationInputProps) {
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [forceCustom, setForceCustom] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  // Filter destinations based on input
+  useEffect(() => {
+    if (!value) setForceCustom(false);
+  }, [value]);
+
   const filteredDestinations = useMemo(() => {
     if (!value.trim()) return [];
-
     const searchTerm = value.toLowerCase();
-    return destinations.filter((destination) =>
-      destination.name.toLowerCase().includes(searchTerm)
-    );
+    return destinations.filter((d) => d.name.toLowerCase().includes(searchTerm));
   }, [value, destinations]);
 
-  const handleSelect = (destination: Destination) => {
-    onChange(destination.name);
+  const handleSelect = (d: Destination) => {
+    onChange(d.name);
     setShowSuggestions(false);
+    setForceCustom(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onChange(e.target.value);
-    setShowSuggestions(true);
+    if (!forceCustom) setShowSuggestions(true);
   };
 
   const handleBlur = () => {
-    // Delay hiding suggestions to allow click on suggestion
     setTimeout(() => setShowSuggestions(false), 200);
   };
 
   const handleFocus = () => {
-    if (value.trim()) {
-      setShowSuggestions(true);
-    }
+    if (!forceCustom && value.trim()) setShowSuggestions(true);
   };
 
   return (
-    <div className="relative space-y-2 w-full">
+    <div className="relative space-y-2 w-full mb-4">
       <Label htmlFor={id} className="flex items-center gap-2 text-white">
         Destination
         {isLoading && <Spinner className="h-3 w-3" />}
@@ -86,10 +84,10 @@ export function DestinationInput({
           disabled={disabled || isLoading}
           className="w-full bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
           autoComplete="off"
+          ref={inputRef}
         />
 
-        {/* Suggestions Dropdown */}
-        {showSuggestions && filteredDestinations.length > 0 && (
+        {showSuggestions && !forceCustom && (
           <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-input rounded-md shadow-lg max-h-48 overflow-y-auto">
             {filteredDestinations.map((destination) => (
               <button
@@ -100,22 +98,41 @@ export function DestinationInput({
               >
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{destination.name}</span>
-                  <span className="text-xs text-gray-500">
-                    {/* Route #{destination.route} */}
-                  </span>
-                </div>
-                <div className="text-xs text-gray-400 mt-0.5">
-                  {/* 📞 {destination.phone_number} */}
                 </div>
               </button>
             ))}
+            {filteredDestinations.length === 0 && (
+              <div className="px-4 py-3 text-sm text-gray-500">No destinations found</div>
+            )}
+            {allowCustom && (
+              <button
+                type="button"
+                onClick={() => {
+                  setForceCustom(true);
+                  setShowSuggestions(false);
+                  inputRef.current?.focus();
+                }}
+                className="w-full text-left px-4 py-2 border-t hover:bg-gray-50 text-sm text-gray-700"
+              >
+                Other… (type custom destination)
+              </button>
+            )}
           </div>
         )}
 
-        {/* No results message */}
-        {showSuggestions && value.trim() && filteredDestinations.length === 0 && (
-          <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-input rounded-md shadow-lg px-4 py-3">
-            <p className="text-sm text-gray-500">No destinations found</p>
+        {forceCustom && (
+          <div className="mt-1 text-xs text-gray-200">
+            Using custom destination. {" "}
+            <button
+              type="button"
+              className="underline"
+              onClick={() => {
+                setForceCustom(false);
+                if (value) setShowSuggestions(true);
+              }}
+            >
+              Use list
+            </button>
           </div>
         )}
       </div>

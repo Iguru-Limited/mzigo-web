@@ -8,13 +8,14 @@ import type { UseDataListReturn } from "@/hooks/types";
  * Hook to fetch and manage destinations list with offline support
  * Uses SWR for caching and IndexedDB for persistent offline storage
  */
-export function useDestinations(): UseDataListReturn<Destination> {
-  const url = "/api/destinations";
+export function useDestinations(routeId?: string): UseDataListReturn<Destination> {
+  const shouldFetch = Boolean(routeId);
+  const url = shouldFetch ? `/api/destinations?route=${encodeURIComponent(String(routeId))}` : null;
 
   const { data, error, isLoading, isOffline, refresh } = useOfflineData<Destination[]>(
     url,
     {
-      cacheKey: "destinations",
+      cacheKey: `destinations:route:${routeId ?? "none"}`,
       referenceType: "destinations",
       transform: (response: unknown) => {
         const res = response as DestinationListResponse;
@@ -27,9 +28,9 @@ export function useDestinations(): UseDataListReturn<Destination> {
   );
 
   return {
-    data: data || [],
-    isLoading,
-    error: error?.message || null,
+    data: shouldFetch ? (data || []) : [],
+    isLoading: shouldFetch ? isLoading : false,
+    error: shouldFetch ? (error?.message || null) : null,
     isOffline,
     refetch: async () => { await refresh(); },
   };

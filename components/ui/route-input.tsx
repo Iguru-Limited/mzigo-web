@@ -62,7 +62,12 @@ export function RouteInput({
           id={id}
           value={currentDisplayValue}
           onChange={(e) => {
-            setDisplayValue(e.target.value);
+            const next = e.target.value;
+            setDisplayValue(next);
+            // If a route is already selected, typing should clear the selection
+            if (value) {
+              onChange("");
+            }
             setShow(true);
           }}
           onFocus={() => setShow(true)}
@@ -73,6 +78,21 @@ export function RouteInput({
           autoComplete="off"
           className="bg-white text-foreground"
         />
+        {value && (
+          <button
+            type="button"
+            aria-label="Clear route"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              onChange("");
+              setDisplayValue("");
+              setShow(false);
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-sm px-1"
+          >
+            ×
+          </button>
+        )}
         {show && filtered.length > 0 && (
           <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-input rounded-md shadow-lg max-h-48 overflow-y-auto">
             {filtered.map((r) => (
