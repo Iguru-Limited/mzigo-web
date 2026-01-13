@@ -23,7 +23,7 @@ export function SizeSelect({
   required = false,
 }: SizeSelectProps) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 text-white">
       <Label htmlFor={id}>Package Size</Label>
       <select
         id={id}

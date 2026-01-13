@@ -9,8 +9,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
-    const url = getApiUrl(API_ENDPOINTS.LIST_DESTINATION);
-    const upstream = await fetch(url, {
+    const baseUrl = getApiUrl(API_ENDPOINTS.LIST_DESTINATION);
+    const upstreamUrl = new URL(baseUrl);
+    const route = req.nextUrl.searchParams.get("route");
+    if (route) {
+      upstreamUrl.searchParams.set("route", route);
+    }
+
+    const upstream = await fetch(upstreamUrl.toString(), {
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${token.accessToken}`,

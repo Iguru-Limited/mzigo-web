@@ -70,8 +70,8 @@ export function VehicleInput({
 
   return (
     <div className="relative space-y-2">
-      <Label htmlFor={id} className="flex items-center gap-2">
-        Vehicle Plate Number
+      <Label htmlFor={id} className="flex items-center gap-2 text-white">
+        carrier
         {isLoading && <Spinner className="h-3 w-3" />}
         {error && <span className="text-xs text-red-500">({error})</span>}
       </Label>
@@ -98,7 +98,7 @@ export function VehicleInput({
                 key={vehicle.id}
                 type="button"
                 onClick={() => handleSelect(vehicle)}
-                className="w-full text-left px-4 py-2 hover:bg-gray-100 focus:bg-gray-100 focus:outline-none transition-colors"
+                className="w-full text-left px-4 py-2 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <span className="font-medium">{vehicle.number_plate}</span>

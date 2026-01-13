@@ -49,21 +49,21 @@ export function MzigoBrowser() {
       </div>
 
       {/* Traffic Type Tabs */}
-      <div className="flex gap-8 border-b border-gray-200">
+      <div className="flex gap-8 border-b border-border">
         <button
           onClick={() => setTrafficType("outgoing")}
           className={`pb-3 font-semibold text-base transition-colors relative ${
             trafficType === "outgoing"
-              ? "text-cyan-500"
-              : "text-gray-600 hover:text-gray-900"
+              ? "text-primary"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${trafficType === "outgoing" ? "bg-cyan-500" : "bg-gray-400"}`}></div>
+            <div className={`w-2 h-2 rounded-full ${trafficType === "outgoing" ? "bg-primary" : "bg-muted-foreground"}`}></div>
             Outgoing
           </div>
           {trafficType === "outgoing" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500"></div>
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"></div>
           )}
         </button>
 
@@ -71,16 +71,16 @@ export function MzigoBrowser() {
           onClick={() => setTrafficType("incoming")}
           className={`pb-3 font-semibold text-base transition-colors relative ${
             trafficType === "incoming"
-              ? "text-cyan-500"
-              : "text-gray-600 hover:text-gray-900"
+              ? "text-primary"
+              : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${trafficType === "incoming" ? "bg-cyan-500" : "bg-gray-400"}`}></div>
+            <div className={`w-2 h-2 rounded-full ${trafficType === "incoming" ? "bg-primary" : "bg-muted-foreground"}`}></div>
             Incoming
           </div>
           {trafficType === "incoming" && (
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-cyan-500"></div>
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"></div>
           )}
         </button>
       </div>
@@ -99,7 +99,7 @@ export function MzigoBrowser() {
                   type="date"
                   value={selectedDate}
                   onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2.5 bg-gray-100 border border-gray-200 rounded-lg text-sm font-medium text-gray-900 focus:outline-none focus:bg-white focus:border-cyan-500"
+                  className="w-full pl-10 pr-4 py-2.5 bg-secondary border border-input rounded-lg text-sm font-medium text-foreground focus:outline-none focus:bg-background focus:border-ring"
                 />
               </div>
               <p className="text-xs text-gray-500 mt-1">{formatDate(selectedDate)}</p>
@@ -131,7 +131,8 @@ export function MzigoBrowser() {
         {/* Search Button */}
         <Button
           type="submit"
-          className="w-full bg-cyan-500 hover:bg-cyan-600 text-white font-semibold py-2.5 h-auto flex items-center justify-center gap-2 rounded-lg"
+          className="w-full font-semibold py-2.5 h-auto flex items-center justify-center gap-2 rounded-lg"
+          variant="default"
         >
           <Search className="w-5 h-5" />
           Search
@@ -161,7 +162,7 @@ export function MzigoBrowser() {
           {!isLoading && !error && data.length === 0 && (
             <Empty>
               <EmptyHeader>
-                <div className="text-5xl text-cyan-500 mb-3"><Package className="w-12 h-12" /></div>
+                <div className="text-5xl text-primary mb-3"><Package className="w-12 h-12" /></div>
                 <EmptyTitle>Search for Parcels</EmptyTitle>
                 <EmptyDescription>
                   Select a date and destination, then tap Search to view {trafficType} parcels
@@ -188,7 +189,7 @@ export function MzigoBrowser() {
       {!activeFilters && (
         <Empty>
           <EmptyHeader>
-            <div className="text-5xl text-cyan-500 mb-3"><Package className="w-12 h-12" /></div>
+            <div className="text-5xl text-primary mb-3"><Package className="w-12 h-12" /></div>
             <EmptyTitle>Search for Parcels</EmptyTitle>
             <EmptyDescription>
               Select a date and destination, then tap Search to view {trafficType} parcels
@@ -208,11 +209,11 @@ function BrowseResultCard({ mzigo, type }: { mzigo: BrowseMzigoItem; type?: stri
           <div className="flex items-center justify-between">
             <h3 className="font-semibold">Receipt #{mzigo.receipt_number}</h3>
             <div className="flex gap-2">
-              <span className="text-xs bg-slate-700 text-white px-2 py-1 rounded">
+              <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">
                 {mzigo.active_status === "1" ? "Active" : "Inactive"}
               </span>
               {type && (
-                <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded capitalize">
+                <span className="text-xs bg-accent text-accent-foreground px-2 py-1 rounded capitalize">
                   {type}
                 </span>
               )}

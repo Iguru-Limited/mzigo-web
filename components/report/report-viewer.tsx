@@ -1,17 +1,22 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import { useAttendantStats } from "@/hooks/mzigo";
 import type { AttendantStatsParams } from "@/types/operations/attendant-stats";
 import { ChevronLeft, ChevronRight, Calendar, Banknote, CreditCard, DollarSign } from "lucide-react";
 
+function toLocalISO(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
 function today(): string {
-  const d = new Date();
-  return d.toISOString().slice(0, 10);
+  return toLocalISO(new Date());
 }
 
 function formatDate(dateStr: string): string {
@@ -38,13 +43,14 @@ export function ReportViewer() {
     start_date: today(),
     end_date: today(),
   });
+  const dateInputRef = useRef<HTMLInputElement>(null);
 
   const { data, isLoading, error } = useAttendantStats(activeFilters);
 
   const handlePreviousDay = () => {
     const date = new Date(selectedDate + "T00:00:00");
     date.setDate(date.getDate() - 1);
-    const newDate = date.toISOString().slice(0, 10);
+    const newDate = toLocalISO(date);
     setSelectedDate(newDate);
     setActiveFilters({ start_date: newDate, end_date: newDate });
   };
@@ -52,7 +58,7 @@ export function ReportViewer() {
   const handleNextDay = () => {
     const date = new Date(selectedDate + "T00:00:00");
     date.setDate(date.getDate() + 1);
-    const newDate = date.toISOString().slice(0, 10);
+    const newDate = toLocalISO(date);
     setSelectedDate(newDate);
     setActiveFilters({ start_date: newDate, end_date: newDate });
   };
@@ -63,50 +69,78 @@ export function ReportViewer() {
     setActiveFilters({ start_date: todayDate, end_date: todayDate });
   };
 
+  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDate = e.target.value;
+    if (newDate) {
+      setSelectedDate(newDate);
+      setActiveFilters({ start_date: newDate, end_date: newDate });
+    }
+  };
+
+  const handleDateClick = () => {
+    dateInputRef.current?.showPicker();
+  };
+
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
+      </div>
+
       {/* Date Selector Card */}
-      <Card className="p-6 bg-white rounded-2xl shadow-md">
-        <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-purple-600 uppercase tracking-wide">SELECT DATE</h3>
-          <div className="flex items-center justify-between gap-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handlePreviousDay}
-              className="h-10 w-10 rounded-full hover:bg-purple-100 text-purple-600"
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
+      <div className="space-y-2">
+        <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide">SELECT DATE</h3>
+        <div className="flex items-center gap-3 relative">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handlePreviousDay}
+            className="h-10 w-10 rounded-lg hover:bg-gray-100 z-10 flex-shrink-0"
+            type="button"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </Button>
 
-            <div className="flex-1">
-              <div className="bg-gradient-to-r from-purple-400 to-purple-500 rounded-xl p-4 text-white text-center">
-                <p className="text-2xl font-bold">{new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
-                <p className="text-sm opacity-90">{new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</p>
-              </div>
-            </div>
+          <button
+            type="button"
+            onClick={handleDateClick}
+            className="flex-1 bg-slate-900 rounded-2xl p-4 text-white text-center shadow-lg cursor-pointer hover:bg-slate-800 transition-colors relative"
+          >
+            <p className="text-xl font-bold">{new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
+            <p className="text-xs opacity-80 mt-1">{new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</p>
+            <input
+              ref={dateInputRef}
+              type="date"
+              value={selectedDate}
+              onChange={handleDateChange}
+              className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+            />
+          </button>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={handleNextDay}
-              className="h-10 w-10 rounded-full hover:bg-purple-100 text-purple-600"
-            >
-              <ChevronRight className="w-5 h-5" />
-            </Button>
-          </div>
-
-          {selectedDate !== today() && (
-            <Button
-              onClick={handleJumpToToday}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 h-auto flex items-center justify-center gap-2"
-            >
-              <Calendar className="w-5 h-5" />
-              Jump to Today
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleNextDay}
+            className="h-10 w-10 rounded-lg hover:bg-gray-100 z-10 flex-shrink-0"
+            type="button"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </Button>
         </div>
-      </Card>
+
+        {selectedDate !== today() && (
+          <Button
+            onClick={handleJumpToToday}
+            className="w-full font-medium py-2 h-auto flex items-center justify-center gap-2 rounded-lg"
+            variant="outline"
+            type="button"
+          >
+            <Calendar className="w-4 h-4" />
+            Jump to Today
+          </Button>
+        )}
+      </div>
 
       {activeFilters && (
         <>
@@ -130,33 +164,31 @@ export function ReportViewer() {
           {!isLoading && !error && data && (
             <div className="space-y-6">
               {/* Total Amount Card */}
-              <Card className="p-6 bg-white rounded-2xl shadow-md">
-                <h3 className="text-sm font-semibold text-purple-600 uppercase tracking-wide mb-4">Total Amount</h3>
+              <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-sm">
+                <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-4">Total Amount</h3>
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-4xl font-bold text-gray-900">KES {Number(data.summary.total_amount).toLocaleString()}</p>
                   </div>
-                  <div className="flex gap-2">
-                    <span className="bg-purple-100 text-purple-700 text-sm font-semibold px-3 py-1 rounded-full">
-                      {data.summary.total_packages} Packages
+                  <div className="flex gap-2 items-center">
+                    <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
+                    <span className="text-sm font-medium text-gray-700">
+                      {data.summary.total_packages} Package{Number(data.summary.total_packages) !== 1 ? 's' : ''}
                     </span>
                   </div>
                 </div>
-              </Card>
+              </div>
 
               {/* Payment Method Breakdown */}
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Payment Method Breakdown</h3>
+                <h3 className="text-base font-semibold text-gray-900 mb-4">Payment Method Breakdown</h3>
                 <div className="space-y-3">
                   {data.payment_breakdown.map((payment, idx) => {
-                    const percentage = (
-                      (Number(payment.total_amount) / Number(data.summary.total_amount)) * 100
-                    ).toFixed(1);
                     return (
-                      <Card key={idx} className="p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
+                      <div key={idx} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all">
                         <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+                          <div className="flex items-center gap-3">
+                            <div className="w-11 h-11 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600">
                               {getPaymentIcon(payment.payment_mode)}
                             </div>
                             <div>
@@ -164,9 +196,9 @@ export function ReportViewer() {
                               <p className="text-xs text-gray-500">{payment.count} transaction{Number(payment.count) !== 1 ? "s" : ""}</p>
                             </div>
                           </div>
-                          <p className="text-xl font-bold text-purple-600">KES {Number(payment.total_amount).toLocaleString()}</p>
+                          <p className="text-lg font-bold text-gray-900">KES {Number(payment.total_amount).toLocaleString()}</p>
                         </div>
-                      </Card>
+                      </div>
                     );
                   })}
                 </div>

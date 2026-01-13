@@ -1,6 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { DispatchManager } from "@/components/dispatch/dispatch-manager";
 
 export default function DispatchPage() {
@@ -10,10 +16,11 @@ export default function DispatchPage() {
         {/* <h1 className="text-2xl font-bold md:text-3xl">Dispatch</h1> */}
       </div>
 
-      <div className="grid gap-4 md:gap-6">
-        <Card>
+      <div className="grid gap-4 md:gap-6 max-w-5xl w-full mx-auto">
+        <Card className="border-border/70 shadow-sm bg-card/90">
           <CardHeader>
-            {/* <CardTitle>Dispatch Management</CardTitle> */}
+            <CardTitle>Dispatch</CardTitle>
+            <CardDescription>Confirm loads, assign routes, and track departures.</CardDescription>
           </CardHeader>
           <CardContent>
             <DispatchManager />

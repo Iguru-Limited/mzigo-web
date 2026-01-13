@@ -18,6 +18,7 @@ declare module "next-auth" {
       name: string;
       app_title: string;
       icon_name: string;
+      rank: string;
     }>;
     company?: {
       id: string;
@@ -55,6 +56,7 @@ declare module "next-auth" {
       name: string;
       app_title: string;
       icon_name: string;
+      rank: string;
     }>;
     company?: {
       id: string;
@@ -93,6 +95,7 @@ declare module "next-auth/jwt" {
       name: string;
       app_title: string;
       icon_name: string;
+      rank: string;
     }>;
     company?: {
       id: string;

@@ -1,6 +1,12 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { MzigoSearcher } from "@/components/mzigo-search/mzigo-searcher";
 
 export default function SearchMzigosPage() {
@@ -10,10 +16,11 @@ export default function SearchMzigosPage() {
         <h1 className="text-2xl font-bold md:text-3xl">Search Mzigos</h1>
       </div>
 
-      <div className="grid gap-4 md:gap-6">
-        <Card>
+      <div className="grid gap-4 md:gap-6 max-w-5xl w-full mx-auto">
+        <Card className="border-border/70 shadow-sm bg-card/90">
           <CardHeader>
             <CardTitle>Search for Mzigos</CardTitle>
+            <CardDescription>Find consignments quickly by barcode, QR, or filters.</CardDescription>
           </CardHeader>
           <CardContent>
             <MzigoSearcher />
