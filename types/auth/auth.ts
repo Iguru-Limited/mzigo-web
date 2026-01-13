@@ -31,6 +31,7 @@ export interface LoginResponse {
       name: string;
       app_title: string;
       icon_name: string;
+      rank: string;
     }>;
   };
 }

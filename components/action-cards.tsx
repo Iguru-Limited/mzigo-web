@@ -27,7 +27,7 @@ interface ActionCardConfig {
   icon: IconProp;
   href: string;
   color: string;
-  requiredRights: string[];
+  primaryRight: string; // The role name to use for access control and rank sorting
 }
 
 const ACTION_CARDS: ActionCardConfig[] = [
@@ -37,15 +37,7 @@ const ACTION_CARDS: ActionCardConfig[] = [
     icon: faPlus,
     href: "/mzigo/create",
     color: "bg-slate-700",
-    requiredRights: ["create"],
-  },
-  {
-    id: "report",
-    label: "View Report",
-    icon: faFileLines,
-    href: "/report",
-    color: "bg-slate-700",
-    requiredRights: ["report"],
+    primaryRight: "create",
   },
   {
     id: "browse",
@@ -53,7 +45,15 @@ const ACTION_CARDS: ActionCardConfig[] = [
     icon: faEye,
     href: "/mzigo/browse",
     color: "bg-slate-700",
-    requiredRights: ["browse", "search", "report"],
+    primaryRight: "browse",
+  },
+  {
+    id: "report",
+    label: "View Report",
+    icon: faFileLines,
+    href: "/report",
+    color: "bg-slate-700",
+    primaryRight: "report",
   },
   {
     id: "search",
@@ -61,55 +61,7 @@ const ACTION_CARDS: ActionCardConfig[] = [
     icon: faMagnifyingGlass,
     href: "/mzigo/search",
     color: "bg-slate-700",
-    requiredRights: ["search"],
-  },
-  {
-    id: "delivery",
-    label: "Delivery",
-    icon: faTruck,
-    href: "/delivery",
-    color: "bg-slate-700",
-    requiredRights: ["delivery"],
-  },
-  {
-    id: "notify",
-    label: "Notifications",
-    icon: faBell,
-    href: "/notifications",
-    color: "bg-slate-700",
-    requiredRights: ["notify"],
-  },
-  {
-    id: "collection",
-    label: "Collections",
-    icon: faBox,
-    href: "/collections",
-    color: "bg-slate-700",
-    requiredRights: ["collection"],
-  },
-  {
-    id: "dispatch",
-    label: "Dispatch",
-    icon: faChartBar,
-    href: "/dispatch",
-    color: "bg-slate-700",
-    requiredRights: ["dispatch"],
-  }, 
-  {
-    id: "load-legacy",
-    label: "Legacy Loading",
-    icon: faClockRotateLeft,
-    href: "/load?mode=legacy",
-    color: "bg-slate-700",
-    requiredRights: ["legacy_loading"],
-  },
-  {
-    id: "load-detailed",
-    label: "Detailed Loading",
-    icon: faListCheck,
-    href: "/load?mode=detailed",
-    color: "bg-slate-700",
-    requiredRights: ["detailed_loading"],
+    primaryRight: "search",
   },
   {
     id: "load-direct",
@@ -117,7 +69,23 @@ const ACTION_CARDS: ActionCardConfig[] = [
     icon: faBolt,
     href: "/load?mode=direct",
     color: "bg-slate-700",
-    requiredRights: ["direct_load"],
+    primaryRight: "direct_load",
+  },
+  {
+    id: "load-legacy",
+    label: "Legacy Loading",
+    icon: faClockRotateLeft,
+    href: "/load?mode=legacy",
+    color: "bg-slate-700",
+    primaryRight: "legacy_loading",
+  },
+  {
+    id: "load-detailed",
+    label: "Detailed Loading",
+    icon: faListCheck,
+    href: "/load?mode=detailed",
+    color: "bg-slate-700",
+    primaryRight: "detailed_loading",
   },
   {
     id: "reprint",
@@ -125,7 +93,39 @@ const ACTION_CARDS: ActionCardConfig[] = [
     icon: faCopy,
     href: "/duplicate",
     color: "bg-slate-700",
-    requiredRights: ["reprint"],
+    primaryRight: "reprint",
+  },
+  {
+    id: "dispatch",
+    label: "Dispatch",
+    icon: faChartBar,
+    href: "/dispatch",
+    color: "bg-slate-700",
+    primaryRight: "dispatch",
+  },
+  {
+    id: "delivery",
+    label: "Delivery",
+    icon: faTruck,
+    href: "/delivery",
+    color: "bg-slate-700",
+    primaryRight: "delivery",
+  },
+  {
+    id: "collection",
+    label: "Collections",
+    icon: faBox,
+    href: "/collections",
+    color: "bg-slate-700",
+    primaryRight: "collection",
+  },
+  {
+    id: "notify",
+    label: "Notifications",
+    icon: faBell,
+    href: "/notifications",
+    color: "bg-slate-700",
+    primaryRight: "notify",
   },
   {
     id: "lookup",
@@ -133,7 +133,7 @@ const ACTION_CARDS: ActionCardConfig[] = [
     icon: faQrcode,
     href: "/lookup",
     color: "bg-slate-700",
-    requiredRights: ["search"],
+    primaryRight: "qr_scanner",
   },
 ];
 
@@ -145,11 +145,51 @@ export function ActionCards() {
   }
 
   const userRights = session.user.rights;
+  const rolesObject = session.rolesObject || [];
 
-  // Filter cards based on user rights
+  // Create a map of role rank to rank for sorting
+  const rankMap = new Map<number, number>();
+  rolesObject.forEach((role) => {
+    const rank = parseInt(role.rank, 10);
+    if (!isNaN(rank)) {
+      // Store the rank for each rank value
+      rankMap.set(rank, rank);
+    }
+  });
+
+  // Create a map of primaryRight to rank for lookup during sort
+  const primaryRightToRankMap = new Map<string, number>();
+  rolesObject.forEach((role) => {
+    const rank = parseInt(role.rank, 10);
+    if (!isNaN(rank)) {
+      primaryRightToRankMap.set(role.name, rank);
+    }
+  });
+
+  
+  // Filter cards based on user rights and sort by rank (ascending order)
   const availableCards = ACTION_CARDS.filter((card) =>
-    card.requiredRights.some((right) => userRights.includes(right))
-  );
+    userRights.includes(card.primaryRight)
+  ).sort((a, b) => {
+    const aRank = primaryRightToRankMap.get(a.primaryRight) ?? Infinity;
+    const bRank = primaryRightToRankMap.get(b.primaryRight) ?? Infinity;
+    
+    console.log(`🔍 DEBUG - Comparing: "${a.label}" (${a.primaryRight}, rank: ${aRank}) vs "${b.label}" (${b.primaryRight}, rank: ${bRank})`);
+    
+    // If ranks are equal, maintain original order by using card index
+    if (aRank === bRank) {
+      return ACTION_CARDS.indexOf(a) - ACTION_CARDS.indexOf(b);
+    }
+    
+    // Sort by rank in ascending order (1, 2, 3, ...)
+    return aRank - bRank;
+  });
+
+  console.log("🔍 DEBUG - availableCards after sorting:", availableCards.map((c) => ({
+    label: c.label,
+    primaryRight: c.primaryRight,
+    rank: primaryRightToRankMap.get(c.primaryRight),
+  })));
 
   if (availableCards.length === 0) {
     return null;
