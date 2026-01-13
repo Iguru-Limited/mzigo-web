@@ -198,20 +198,9 @@ export function CreateMzigoForm() {
             </div>
             <div>
               {/* <label className="block text-white text-sm font-semibold mb-2">Destination</label> */}
-              <DestinationInput
-                id="destination"
-                value={formData.destination}
-                onChange={(value) => setFormData((prev) => ({ ...prev, destination: value }))}
-                destinations={destinations}
-                isLoading={destinationsLoading}
-                error={destinationsError}
-                placeholder="Choose destination"
-                required
-              />
-            </div>
-            {!shouldHideField("route_field") && (
+               {!shouldHideField("route_field") && (
               <div>
-                <label className="block text-white text-sm font-semibold mb-2">Route</label>
+                {/* <label className="block text-white text-sm font-semibold mb-2">Route</label> */}
                 <RouteInput
                   id="receiverRoute"
                   value={formData.receiverRoute}
@@ -224,6 +213,18 @@ export function CreateMzigoForm() {
                 />
               </div>
             )}
+
+              <DestinationInput
+                id="destination"
+                value={formData.destination}
+                onChange={(value) => setFormData((prev) => ({ ...prev, destination: value }))}
+                destinations={destinations}
+                isLoading={destinationsLoading}
+                error={destinationsError}
+                placeholder="Choose destination"
+                required
+              />
+            </div>           
           </div>
         </div>
       </div>
@@ -274,7 +275,7 @@ export function CreateMzigoForm() {
 
             {!shouldHideField("size_field") && (
               <div>
-                <label className="block text-white text-sm font-semibold mb-1.5">Package Size</label>
+                {/* <label className="block text-white text-sm font-semibold mb-1.5">Package Size</label> */}
                 <SizeSelect
                   id="packageSize"
                   value={formData.packageSize}

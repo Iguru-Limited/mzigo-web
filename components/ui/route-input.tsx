@@ -51,8 +51,8 @@ export function RouteInput({
   };
 
   return (
-    <div className="relative space-y-2">
-      <Label htmlFor={id} className="flex items-center gap-2">
+    <div className="relative space-y-2 mb-4">
+      <Label htmlFor={id} className="flex items-center gap-2 text-white">
         Route
         {isLoading && <Spinner className="h-3 w-3" />}
         {error && <span className="text-xs text-red-500">({error})</span>}
@@ -71,6 +71,7 @@ export function RouteInput({
           required={required}
           disabled={isLoading}
           autoComplete="off"
+          className="bg-white text-foreground"
         />
         {show && filtered.length > 0 && (
           <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-input rounded-md shadow-lg max-h-48 overflow-y-auto">
