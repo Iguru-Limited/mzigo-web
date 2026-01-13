@@ -79,7 +79,7 @@ export function RouteInput({
                 key={r.id}
                 type="button"
                 onClick={() => handleSelect(r)}
-                className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                className="w-full text-left px-4 py-2 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground transition-colors"
               >
                 <span className="font-medium">{r.route_name}</span>
               </button>

@@ -150,13 +150,14 @@ export function CreateMzigoForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
-      {error && (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          <p className="font-medium">Error</p>
-          <p className="text-sm">{error}</p>
-        </div>
-      )}
+    <div className="mzigo-form-original-theme">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <p className="font-medium">Error</p>
+            <p className="text-sm">{error}</p>
+          </div>
+        )}
 
       {/* Split Pane: Sender & Receiver Side by Side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -339,5 +340,6 @@ export function CreateMzigoForm() {
         }}
       />
     </form>
+    </div>
   );
 }

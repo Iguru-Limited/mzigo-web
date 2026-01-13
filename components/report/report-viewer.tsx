@@ -68,19 +68,19 @@ export function ReportViewer() {
       {/* Date Selector Card */}
       <Card className="p-6 bg-white rounded-2xl shadow-md">
         <div className="space-y-4">
-          <h3 className="text-sm font-semibold text-purple-600 uppercase tracking-wide">SELECT DATE</h3>
+          <h3 className="text-sm font-semibold text-primary uppercase tracking-wide">SELECT DATE</h3>
           <div className="flex items-center justify-between gap-4">
             <Button
               variant="ghost"
               size="icon"
               onClick={handlePreviousDay}
-              className="h-10 w-10 rounded-full hover:bg-purple-100 text-purple-600"
+              className="h-10 w-10 rounded-full"
             >
               <ChevronLeft className="w-5 h-5" />
             </Button>
 
             <div className="flex-1">
-              <div className="bg-gradient-to-r from-purple-400 to-purple-500 rounded-xl p-4 text-white text-center">
+              <div className="bg-primary rounded-xl p-4 text-primary-foreground text-center">
                 <p className="text-2xl font-bold">{new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</p>
                 <p className="text-sm opacity-90">{new Date(selectedDate + "T00:00:00").toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" })}</p>
               </div>
@@ -90,7 +90,7 @@ export function ReportViewer() {
               variant="ghost"
               size="icon"
               onClick={handleNextDay}
-              className="h-10 w-10 rounded-full hover:bg-purple-100 text-purple-600"
+              className="h-10 w-10 rounded-full"
             >
               <ChevronRight className="w-5 h-5" />
             </Button>
@@ -99,7 +99,8 @@ export function ReportViewer() {
           {selectedDate !== today() && (
             <Button
               onClick={handleJumpToToday}
-              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 h-auto flex items-center justify-center gap-2"
+              className="w-full font-semibold py-2 h-auto flex items-center justify-center gap-2"
+              variant="default"
             >
               <Calendar className="w-5 h-5" />
               Jump to Today
@@ -131,13 +132,13 @@ export function ReportViewer() {
             <div className="space-y-6">
               {/* Total Amount Card */}
               <Card className="p-6 bg-white rounded-2xl shadow-md">
-                <h3 className="text-sm font-semibold text-purple-600 uppercase tracking-wide mb-4">Total Amount</h3>
+                <h3 className="text-sm font-semibold text-primary uppercase tracking-wide mb-4">Total Amount</h3>
                 <div className="flex items-end justify-between">
                   <div>
                     <p className="text-4xl font-bold text-gray-900">KES {Number(data.summary.total_amount).toLocaleString()}</p>
                   </div>
                   <div className="flex gap-2">
-                    <span className="bg-purple-100 text-purple-700 text-sm font-semibold px-3 py-1 rounded-full">
+                    <span className="bg-accent text-accent-foreground text-sm font-semibold px-3 py-1 rounded-full">
                       {data.summary.total_packages} Packages
                     </span>
                   </div>
@@ -156,15 +157,15 @@ export function ReportViewer() {
                       <Card key={idx} className="p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center text-purple-600">
+                            <div className="w-12 h-12 rounded-lg bg-accent flex items-center justify-center text-accent-foreground">
                               {getPaymentIcon(payment.payment_mode)}
                             </div>
                             <div>
-                              <p className="font-semibold text-gray-900">{payment.payment_mode || "Other"}</p>
-                              <p className="text-xs text-gray-500">{payment.count} transaction{Number(payment.count) !== 1 ? "s" : ""}</p>
+                              <p className="font-semibold text-foreground">{payment.payment_mode || "Other"}</p>
+                              <p className="text-xs text-muted-foreground">{payment.count} transaction{Number(payment.count) !== 1 ? "s" : ""}</p>
                             </div>
                           </div>
-                          <p className="text-xl font-bold text-purple-600">KES {Number(payment.total_amount).toLocaleString()}</p>
+                          <p className="text-xl font-bold text-primary">KES {Number(payment.total_amount).toLocaleString()}</p>
                         </div>
                       </Card>
                     );
