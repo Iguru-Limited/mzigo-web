@@ -70,11 +70,13 @@ export function useCreateMzigo() {
         resolvedPaymentModeName,
         offlineReceiptCount: offlineCount,
       });
+      // Build payload for sync with offline waybill code
+      const payloadForSync = { ...payload, offline: receiptData.receipt_number };
       
       try {
         // Save to IndexedDB (include receipt data for later retrieval)
         await saveOfflineMzigo(offlineId, {
-          payload,
+          payload: payloadForSync,
           receiptData,
         });
         
@@ -83,7 +85,7 @@ export function useCreateMzigo() {
           type: "create",
           endpoint: "/api/mzigo",
           method: "POST",
-          payload,
+          payload: payloadForSync,
           maxRetries: 5,
         });
 
@@ -142,11 +144,12 @@ export function useCreateMzigo() {
           receiptFormatJson,
           resolvedPaymentModeName,
         });
+        const payloadForSync = { ...payload, offline: receiptData.receipt_number };
         
         try {
           // Save to IndexedDB (include receipt data)
           await saveOfflineMzigo(offlineId, {
-            payload,
+            payload: payloadForSync,
             receiptData,
           });
           
@@ -154,7 +157,7 @@ export function useCreateMzigo() {
             type: "create",
             endpoint: "/api/mzigo",
             method: "POST",
-            payload,
+            payload: payloadForSync,
             maxRetries: 5,
           });
 
