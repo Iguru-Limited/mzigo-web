@@ -296,6 +296,7 @@ export function LoadingManager() {
               error={destError}
               placeholder="Select destination"
               required
+              requireRoute={false}
             />
           </div>
           {mode === "detailed" && (
