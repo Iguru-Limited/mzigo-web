@@ -9,8 +9,10 @@ import type { UseDataListReturn } from "@/hooks/types";
  * Uses SWR for caching and IndexedDB for persistent offline storage
  */
 export function useDestinations(routeId?: string): UseDataListReturn<Destination> {
-  const shouldFetch = Boolean(routeId);
-  const url = shouldFetch ? `/api/destinations?route=${encodeURIComponent(String(routeId))}` : null;
+  let url = `/api/destinations`;
+  if (routeId) {
+    url = `/api/destinations?route=${encodeURIComponent(String(routeId))}`;
+  }
 
   const { data, error, isLoading, isOffline, refresh } = useOfflineData<Destination[]>(
     url,
@@ -28,9 +30,9 @@ export function useDestinations(routeId?: string): UseDataListReturn<Destination
   );
 
   return {
-    data: shouldFetch ? (data || []) : [],
-    isLoading: shouldFetch ? isLoading : false,
-    error: shouldFetch ? (error?.message || null) : null,
+    data: data || [],
+    isLoading: isLoading,
+    error: error?.message || null,
     isOffline,
     refetch: async () => { await refresh(); },
   };

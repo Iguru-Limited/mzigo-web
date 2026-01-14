@@ -4,8 +4,10 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { VehicleInput } from "@/components/ui/vehicle-input";
 import { DestinationInput } from "@/components/ui/destination-input";
 import { SizeSelect } from "@/components/ui/size-select";
@@ -24,6 +26,9 @@ import { ReceiptData } from "@/types/operations/receipt";
 export function CreateMzigoForm() {
   const router = useRouter();
   const { data: session } = useSession();
+  const { createMzigo, isOffline, offlineEnabled } = useCreateMzigo();
+  const { data: vehicles, isLoading: vehiclesLoading, error: vehiclesError } = useVehicles();
+  
   const [formData, setFormData] = useState({
     senderName: "",
     senderPhone: "",
@@ -41,8 +46,8 @@ export function CreateMzigoForm() {
     commission: "",
     specialInstructions: "",
   });
-  const { createMzigo, isOffline, offlineEnabled } = useCreateMzigo();
-  const { data: vehicles, isLoading: vehiclesLoading, error: vehiclesError } = useVehicles();
+
+  // Fetch destinations based on selected route
   const { data: destinations, isLoading: destinationsLoading, error: destinationsError } = useDestinations(formData.receiverRoute);
   const { data: sizes, isLoading: sizesLoading, error: sizesError } = useSizes();
   const { data: routes, isLoading: routesLoading, error: routesError } = useRoutes();
@@ -54,8 +59,6 @@ export function CreateMzigoForm() {
     : [];
 
   const shouldHideField = (fieldId: string) => fieldsToHide.includes(fieldId.toLowerCase());
-
-  
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -151,14 +154,13 @@ export function CreateMzigoForm() {
   }
 
   return (
-    <div className="mzigo-form-original-theme">
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-            <p className="font-medium">Error</p>
-            <p className="text-sm">{error}</p>
-          </div>
-        )}
+    <form onSubmit={handleSubmit} className="space-y-6">
+      {error && (
+        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+          <p className="font-medium">Error</p>
+          <p className="text-sm">{error}</p>
+        </div>
+      )}
 
       {/* Split Pane: Sender & Receiver Side by Side */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -167,7 +169,7 @@ export function CreateMzigoForm() {
           <div className="bg-white py-4 px-6">
             <h2 className="text-lg font-bold text-gray-800">Sender Details</h2>
           </div>
-          <div className="bg-green-800 p-6 space-y-3.5">
+          <div className="bg-green-800 p-6 space-y-4">
             <div>
               <label className="block text-white text-sm font-semibold mb-2">Name</label>
               <Input id="senderName" name="senderName" placeholder="Full name" value={formData.senderName} onChange={handleChange} className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" required />
@@ -188,7 +190,7 @@ export function CreateMzigoForm() {
           <div className="bg-white py-4 px-6">
             <h2 className="text-lg font-bold text-gray-800">Receiver Details</h2>
           </div>
-          <div className="bg-blue-600 p-6 space-y-4">
+          <div className="bg-blue-600 p-6 space-y-4 overflow-visible">
             <div>
               <label className="block text-white text-sm font-semibold mb-2">Name</label>
               <Input id="receiverName" name="receiverName" placeholder="Full name" value={formData.receiverName} onChange={handleChange} className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required />
@@ -197,17 +199,12 @@ export function CreateMzigoForm() {
               <label className="block text-white text-sm font-semibold mb-2">Phone</label>
               <Input id="receiverPhone" name="receiverPhone" type="tel" placeholder="Phone number" value={formData.receiverPhone} onChange={handleChange} className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required />
             </div>
-            <div>
-              {/* <label className="block text-white text-sm font-semibold mb-2">Destination</label> */}
-               {!shouldHideField("route_field") && (
+            {!shouldHideField("route_field") && (
               <div>
-                {/* <label className="block text-white text-sm font-semibold mb-2">Route</label> */}
                 <RouteInput
                   id="receiverRoute"
                   value={formData.receiverRoute}
-                  onChange={(value) =>
-                    setFormData((prev) => ({ ...prev, receiverRoute: value, destination: "" }))
-                  }
+                  onChange={(value) => setFormData((prev) => ({ ...prev, receiverRoute: value }))}
                   routes={routes}
                   isLoading={routesLoading}
                   error={routesError}
@@ -216,36 +213,26 @@ export function CreateMzigoForm() {
                 />
               </div>
             )}
-
-              {formData.receiverRoute ? (
-                <DestinationInput
-                  id="destination"
-                  value={formData.destination}
-                  onChange={(value) => setFormData((prev) => ({ ...prev, destination: value }))}
-                  destinations={destinations}
-                  isLoading={destinationsLoading}
-                  error={destinationsError}
-                  placeholder="Choose destination"
-                  required
-                />
-              ) : (
-                <div className="mt-2">
-                  <label className="block text-white text-sm font-semibold mb-2">Destination</label>
-                  <Input
-                    id="destination-disabled"
-                    value="Select a route first"
-                    readOnly
-                    className="w-full px-3.5 py-2.5 bg-gray-100 rounded-lg border border-gray-300 text-gray-500 text-sm cursor-not-allowed"
-                  />
-                </div>
-              )}
-            </div>           
+            <div>
+              <DestinationInput
+                id="destination"
+                value={formData.destination}
+                onChange={(value) => setFormData((prev) => ({ ...prev, destination: value }))}
+                destinations={destinations}
+                isLoading={destinationsLoading}
+                error={destinationsError}
+                placeholder={formData.receiverRoute ? "Choose destination" : "Select route first"}
+                required
+                requireRoute={true}
+                disabled={!formData.receiverRoute}
+              />
+            </div>
           </div>
         </div>
       </div>
 
       {/* Mzigo Details Card */}
-      <div className="rounded-2xl overflow-visible shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+      <div className="rounded-2xl overflow-hidden shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
         <div className="bg-white py-3 px-6">
           <h2 className="text-lg font-bold text-gray-800">Mzigo Details</h2>
         </div>
@@ -253,7 +240,6 @@ export function CreateMzigoForm() {
           <div className={`grid ${!shouldHideField("vehicle_field") ? "lg:grid-cols-2" : "grid-cols-1"} gap-6`}>
             {!shouldHideField("vehicle_field") && (
               <div>
-                {/* <label className="block text-white text-sm font-semibold mb-1.5">Vehicle</label> */}
                 <VehicleInput
                   id="vehiclePlate"
                   value={formData.vehiclePlate}
@@ -290,7 +276,6 @@ export function CreateMzigoForm() {
 
             {!shouldHideField("size_field") && (
               <div>
-                {/* <label className="block text-white text-sm font-semibold mb-1.5">Package Size</label> */}
                 <SizeSelect
                   id="packageSize"
                   value={formData.packageSize}
@@ -356,6 +341,5 @@ export function CreateMzigoForm() {
         }}
       />
     </form>
-    </div>
   );
 }

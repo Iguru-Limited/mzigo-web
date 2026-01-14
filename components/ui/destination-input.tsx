@@ -17,6 +17,7 @@ interface DestinationInputProps {
   required?: boolean;
   disabled?: boolean;
   allowCustom?: boolean;
+  requireRoute?: boolean;
 }
 
 export function DestinationInput({
@@ -30,6 +31,7 @@ export function DestinationInput({
   required = false,
   disabled = false,
   allowCustom = true,
+  requireRoute = false,
 }: DestinationInputProps) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [forceCustom, setForceCustom] = useState(false);
@@ -65,13 +67,14 @@ export function DestinationInput({
   };
 
   return (
-    <div className="relative space-y-2 w-full mb-4">
+    <div className="relative space-y-2 w-full mb-4 overflow-visible">
       <Label htmlFor={id} className="flex items-center gap-2 text-white">
         Destination
+        {requireRoute && <span className="text-xs text-yellow-300">(Route required)</span>}
         {isLoading && <Spinner className="h-3 w-3" />}
         {error && <span className="text-xs text-red-500">({error})</span>}
       </Label>
-      <div className="relative w-full">
+      <div className="relative w-full overflow-visible">
         <Input
           id={id}
           type="text"

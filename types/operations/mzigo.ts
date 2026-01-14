@@ -21,6 +21,8 @@ export interface CreateMzigoPayload {
   receiver_route: string;
   commission: string | number;
   special_instructions: string;
+  /** When syncing offline-created records, include the offline waybill (e.g., OFL-123) */
+  offline?: string;
 }
 
 export interface CreateMzigoResponse {

@@ -279,6 +279,7 @@ export function DispatchManager() {
                 error={destinationsError}
                 placeholder="Select end town"
                 required
+                requireRoute={false}
               />
             </div>
 

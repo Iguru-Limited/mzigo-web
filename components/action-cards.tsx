@@ -18,6 +18,7 @@ import {
   faListCheck,
   faBolt,
   faCopy,
+  faClipboardList,
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 
@@ -38,6 +39,14 @@ const ACTION_CARDS: ActionCardConfig[] = [
     href: "/mzigo/create",
     color: "bg-slate-700",
     primaryRight: "create",
+  },
+  {
+    id: "loading-sheets",
+    label: "Loading Sheets",
+    icon: faClipboardList,
+    href: "/loading-sheets",
+    color: "bg-slate-700",
+    primaryRight: "loading_sheet",
   },
   {
     id: "browse",

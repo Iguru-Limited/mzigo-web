@@ -41,6 +41,8 @@ export interface OfflineMzigoPayload {
   receiver_route: string;
   commission: string | number;
   special_instructions: string;
+  /** Offline waybill code to send when syncing (e.g., OFL-123) */
+  offline?: string;
 }
 
 /**

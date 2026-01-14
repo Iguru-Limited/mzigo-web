@@ -34,7 +34,8 @@ export const API_ENDPOINTS = {
   PRINT_DUPLICATE:'/mzigo/reprint.php',
   LIST_DISPATCH_SHEETS:'/dispatch/list.php',
   CREATE_DISPATCH:'/dispatch/manage.php',
-
+  LIST_LOADING_SHEETS:'/legacy_loading/details.php',
+  GET_LOADING_SHEET_DETAIL:'/legacy_loading/details.php',
 } as const;
 
 /**
@@ -51,3 +52,28 @@ export const getApiUrl = (endpoint: string): string => {
   const fullUrl = `${baseUrl}${path}`;
   return fullUrl;
 };
+
+// Export individual constants for convenience
+export const { 
+  CREATE_MZIGO,
+  LIST_VEHICLES,
+  LIST_DESTINATION,
+  LIST_SIZES,
+  LIST_ROUTES,
+  PAYMENT_METHODS,
+  QR_LOOKUP,
+  SEARCH_MZIGO,
+  BROWSE,
+  ATTENDANT_STATS,
+  LIST_UNLOADED,
+  CREATE_LEGACY_LOADING,
+  CREATE_DIRECT_LOADING,
+  CREATE_DETAILED_LOADING,
+  UPDATE_DETAILED_LOADING,
+  LIST_PARCELS,
+  PRINT_DUPLICATE,
+  LIST_DISPATCH_SHEETS,
+  CREATE_DISPATCH,
+  LIST_LOADING_SHEETS,
+  GET_LOADING_SHEET_DETAIL,
+} = API_ENDPOINTS;
