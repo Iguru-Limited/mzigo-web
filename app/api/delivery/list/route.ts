@@ -11,23 +11,23 @@ export async function GET(request: NextRequest) {
     }
 
     const searchParams = request.nextUrl.searchParams;
+    const type = searchParams.get("type");
     const start_date = searchParams.get("start_date");
     const end_date = searchParams.get("end_date");
-    const is_collected = searchParams.get("is_collected");
 
-    if (!start_date || !end_date || is_collected === null) {
+    if (!type || !start_date || !end_date) {
       return NextResponse.json(
         { 
-          message: "Missing required query parameters: start_date, end_date, is_collected" 
+          message: "Missing required query parameters: type, start_date, end_date" 
         },
         { status: 400 }
       );
     }
 
-    const upstreamUrl = new URL(getApiUrl(API_ENDPOINTS.LIST_COLLECTIONS));
+    const upstreamUrl = new URL(getApiUrl(API_ENDPOINTS.LIST_DELIVERIES));
+    upstreamUrl.searchParams.set("type", type);
     upstreamUrl.searchParams.set("start_date", start_date);
     upstreamUrl.searchParams.set("end_date", end_date);
-    upstreamUrl.searchParams.set("is_collected", is_collected);
 
     const response = await fetch(upstreamUrl.toString(), {
       method: "GET",
@@ -41,9 +41,9 @@ export async function GET(request: NextRequest) {
     const data = await response.json().catch(() => ({}));
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error("Error fetching collections:", error);
+    console.error("Error fetching deliveries:", error);
     return NextResponse.json(
-      { message: "Failed to fetch collections" },
+      { message: "Failed to fetch deliveries" },
       { status: 500 }
     );
   }

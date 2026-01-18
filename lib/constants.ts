@@ -38,6 +38,8 @@ export const API_ENDPOINTS = {
   GET_LOADING_SHEET_DETAIL:'/legacy_loading/details.php',
   LIST_COLLECTIONS:'/collection/list.php',
   CREATE_COLLECTION:'/collection/manage.php',
+  LIST_DELIVERIES:'/delivery/list.php',
+  CREATE_DELIVERY:'/delivery/manage.php',
 } as const;
 
 /**

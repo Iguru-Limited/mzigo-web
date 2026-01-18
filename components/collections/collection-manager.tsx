@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Spinner } from "@/components/ui/spinner";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
-import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -313,7 +312,7 @@ export function CollectionManager() {
                         <div className="text-2xl">🔍</div>
                         <EmptyTitle className="text-base">No Results</EmptyTitle>
                         <EmptyDescription className="text-xs">
-                          No parcels found matching "{activeQuery}"
+                          No parcels found matching &quot;{activeQuery}&quot;
                         </EmptyDescription>
                       </EmptyHeader>
                     </Empty>
@@ -473,7 +472,7 @@ function CollectionCard({ item }: { item: CollectionItem }) {
               </div>
             )}
             {item.collector_notes && (
-              <p className="text-xs text-muted-foreground italic">"{item.collector_notes}"</p>
+              <p className="text-xs text-muted-foreground italic">&quot;{item.collector_notes}&quot;</p>
             )}
           </div>
         </div>

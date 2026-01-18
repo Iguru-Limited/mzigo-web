@@ -66,3 +66,14 @@ export type {
   ListCollectionsParams,
   ListCollectionsResponse,
 } from "./operations/collections";
+
+// Delivery operations
+export type {
+  CreateDeliveryPayload,
+  CreateDeliveryData,
+  CreateDeliveryResponse,
+  DeliveredParcelInfo,
+  DeliveryItem,
+  ListDeliveriesParams,
+  ListDeliveriesResponse,
+} from "./operations/delivery";
