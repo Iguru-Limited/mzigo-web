@@ -56,3 +56,13 @@ export type { MzigoParcel, ListParcelsResponse, PrintDuplicatePayload, PrintDupl
 
 // Dispatch operations
 export type { LoadingSheet, ListLoadingSheetsResponse, CreateDispatchPayload, CreateDispatchResponse } from "./operations/dispatch";
+
+// Collections operations
+export type {
+  CreateCollectionPayload,
+  CreateCollectionData,
+  CreateCollectionResponse,
+  CollectionItem,
+  ListCollectionsParams,
+  ListCollectionsResponse,
+} from "./operations/collections";

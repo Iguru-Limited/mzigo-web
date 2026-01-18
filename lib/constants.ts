@@ -36,6 +36,8 @@ export const API_ENDPOINTS = {
   CREATE_DISPATCH:'/dispatch/manage.php',
   LIST_LOADING_SHEETS:'/legacy_loading/details.php',
   GET_LOADING_SHEET_DETAIL:'/legacy_loading/details.php',
+  LIST_COLLECTIONS:'/collection/list.php',
+  CREATE_COLLECTION:'/collection/manage.php',
 } as const;
 
 /**
