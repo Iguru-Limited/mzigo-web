@@ -28,6 +28,8 @@ declare module "next-auth" {
       model_type?: string;
       offline?: number;
       receipt_format_json?: ReceiptFormatJson;
+      minimum_amount?: number;
+      maximum_amount?: number;
     };
     accessToken?: string;
     refreshToken?: string;
@@ -66,6 +68,8 @@ declare module "next-auth" {
       model_type?: string;
       offline?: number;
       receipt_format_json?: ReceiptFormatJson;
+      minimum_amount?: number;
+      maximum_amount?: number;
     };
     accessToken?: string;
     refreshToken?: string;
@@ -105,6 +109,8 @@ declare module "next-auth/jwt" {
       model_type?: string;
       offline?: number;
       receipt_format_json?: ReceiptFormatJson;
+      minimum_amount?: number;
+      maximum_amount?: number;
     };
     role?: {
       id: string;
