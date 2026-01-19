@@ -28,6 +28,8 @@ export function CreateMzigoForm() {
   const { data: session } = useSession();
   const { createMzigo, isOffline, offlineEnabled } = useCreateMzigo();
   const { data: vehicles, isLoading: vehiclesLoading, error: vehiclesError } = useVehicles();
+  const minAmount = Number(session?.company?.minimum_amount ?? 0);
+  const maxAmount = Number(session?.company?.maximum_amount ?? 0);
   
   const [formData, setFormData] = useState({
     senderName: "",
@@ -86,6 +88,27 @@ export function CreateMzigoForm() {
     try {
       if (!session?.user) {
         setError("User not authenticated. Please log in again.");
+        setIsLoading(false);
+        return;
+      }
+
+      const amountValue = Number(formData.amountCharged);
+      if (Number.isNaN(amountValue)) {
+        setError("Please enter a valid delivery amount.");
+        setIsLoading(false);
+        return;
+      }
+
+      if (minAmount && amountValue < minAmount) {
+        setError(`Delivery amount must be at least KES ${minAmount.toLocaleString()}.`);
+        toast.error("Amount too low", { description: `Minimum allowed is KES ${minAmount.toLocaleString()}` });
+        setIsLoading(false);
+        return;
+      }
+
+      if (maxAmount && amountValue > maxAmount) {
+        setError(`Delivery amount must not exceed KES ${maxAmount.toLocaleString()}.`);
+        toast.error("Amount too high", { description: `Maximum allowed is KES ${maxAmount.toLocaleString()}` });
         setIsLoading(false);
         return;
       }
@@ -300,7 +323,18 @@ export function CreateMzigoForm() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <div>
               <label className="block text-white text-sm font-semibold mb-1.5">Delivery Amount (KES)</label>
-              <Input id="amountCharged" name="amountCharged" type="number" placeholder="0.00" value={formData.amountCharged} onChange={handleChange} className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" required />
+              <Input
+                id="amountCharged"
+                name="amountCharged"
+                type="number"
+                placeholder="0.00"
+                value={formData.amountCharged}
+                onChange={handleChange}
+                className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                required
+                min={minAmount || undefined}
+                max={maxAmount || undefined}
+              />
             </div>
             {!shouldHideField("commission_field") && (
               <div>
