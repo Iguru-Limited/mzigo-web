@@ -193,30 +193,8 @@ export async function generateBridgeReceiptHtml(
   const width = "48mm";
   const lines = data.receipt.map(lineToHtml).join("");
 
-  // Use provided QR code or try to generate it
-  let qrCodeHtml = "";
-  const isOfflineReceipt = data.receipt_number?.startsWith("OFFLINE-");
-  
-  if (data.qrCodeDataUrl) {
-    console.log("Using provided QR code data URL, length:", data.qrCodeDataUrl.length);
-    qrCodeHtml = `
-      <div style="text-align: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #000; page-break-inside: avoid;">
-        <img src="${data.qrCodeDataUrl}" alt="Package QR Code" style="width: 140px; height: 140px; display: block; margin: 0 auto; image-rendering: pixelated;" />
-      </div>
-    `;
-  } else if (data.package_token && !isOfflineReceipt) {
-    try {
-      console.log("Generating QR code for bridge HTML");
-      const qrDataUrl = await generateQRCodeDataUrl(data.package_token, 120);
-      qrCodeHtml = `
-        <div style="text-align: center; margin-top: 10px; padding-top: 8px; border-top: 1px dashed #000; page-break-inside: avoid;">
-          <img src="${qrDataUrl}" alt="Package QR Code" style="width: 120px; height: 120px; display: block; margin: 0 auto; image-rendering: pixelated;" />
-        </div>
-      `;
-    } catch (error) {
-      console.error("Failed to generate QR code for bridge:", error);
-    }
-  }
+  // QR codes are no longer included in receipt communications
+  const qrCodeHtml = "";
 
   const css = `
     <style>

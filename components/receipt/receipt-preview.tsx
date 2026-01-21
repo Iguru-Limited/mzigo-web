@@ -47,16 +47,13 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
     try {
       setIsPrinting(true);
       
-      // Create minimal bridge data payload - exclude QR image to keep URL short
-      // Bridge app will generate QR code from package_token
+      // Create minimal bridge data payload - exclude QR code and package token
       const bridgeData = {
         receipt_number: data.receipt_number,
         id: data.id,
-        package_token: data.package_token,
         s_date: data.s_date,
         s_time: data.s_time,
         receipt: data.receipt,
-        // Exclude qrCodeDataUrl and receiptHtml to keep payload small
       };
       
       // URL encode the minimal JSON payload
