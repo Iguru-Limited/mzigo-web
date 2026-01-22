@@ -77,3 +77,15 @@ export type {
   ListDeliveriesParams,
   ListDeliveriesResponse,
 } from "./operations/delivery";
+
+// Notification operations
+export type {
+  NotificationItem,
+  ListNotificationsParams,
+  ListNotificationsResponse,
+  NotifyParcelPayload,
+  NotifyParcelResponse,
+  CreateNotificationPayload,
+  CreateNotificationData,
+  CreateNotificationResponse,
+} from "./operations/notification";

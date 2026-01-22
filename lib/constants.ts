@@ -40,6 +40,8 @@ export const API_ENDPOINTS = {
   CREATE_COLLECTION:'/collection/manage.php',
   LIST_DELIVERIES:'/delivery/list.php',
   CREATE_DELIVERY:'/delivery/manage.php',
+  LIST_NOTIFICATION:'notify/list.php',
+  CREATE_NOTIFICATION:'/notify/manage.php',
 } as const;
 
 /**
@@ -80,4 +82,6 @@ export const {
   CREATE_DISPATCH,
   LIST_LOADING_SHEETS,
   GET_LOADING_SHEET_DETAIL,
+  LIST_NOTIFICATION,
+  CREATE_NOTIFICATION,
 } = API_ENDPOINTS;
