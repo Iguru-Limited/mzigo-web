@@ -468,7 +468,7 @@ function CollectionCard({ item }: { item: CollectionItem }) {
                 <p className="font-medium">
                   {new Date(item.collected_date).toLocaleDateString()} at {item.collected_time}
                 </p>
-                <p className="text-xs text-muted-foreground">Collected by: {item.collected_by_name}</p>
+                <p className="text-xs text-muted-foreground">Collected by: {item.collector_name}</p>
               </div>
             )}
             {item.collector_notes && (
