@@ -12,10 +12,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { ChevronDownIcon, PrinterIcon, PaperAirplaneIcon, DevicePhoneMobileIcon } from "@heroicons/react/24/outline";
 import { ReceiptData } from "@/types/operations/receipt";
-import { openPrintWindow, PaperWidth, generateBridgeReceiptHtml } from "@/lib/receipt";
+import { openPrintWindow, PaperWidth } from "@/lib/receipt";
 import { generateQRCodeDataUrl } from "@/lib/qr-utils";
 import { QRCodeComponent } from "@/components/receipt/qr-code";
 import { toast } from "sonner";
+import { useSession } from "next-auth/react";
 
 interface ReceiptPreviewProps {
   open: boolean;
@@ -26,12 +27,14 @@ interface ReceiptPreviewProps {
 export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
   const [isSending, setIsSending] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const { data: session } = useSession();
+  const copyCount = Math.max(1, Number(session?.user?.counter ?? 1));
 
   const handlePrint = async (paperWidth: PaperWidth = "58mm") => {
     if (data) {
       try {
         setIsPrinting(true);
-        await openPrintWindow(data, paperWidth);
+        await openPrintWindow(data, paperWidth, copyCount);
       } catch (error) {
         console.error("Failed to open print window:", error);
         toast.error("Failed to open print preview");
@@ -54,6 +57,7 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
         s_date: data.s_date,
         s_time: data.s_time,
         receipt: data.receipt,
+        copies: copyCount,
       };
       
       // URL encode the minimal JSON payload
@@ -94,8 +98,14 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
       }, 30000);
       
       // Try to open native app
-      console.log("Opening bridge app with print request...");
-      window.location.href = bridgeUrl;
+      console.log("Opening bridge app with print request copies:", copyCount);
+      for (let idx = 0; idx < copyCount; idx++) {
+        const delay = idx * 400; // slight stagger to avoid URL handler throttling
+        setTimeout(() => {
+          console.log(`Triggering bridge print copy ${idx + 1} of ${copyCount}`);
+          window.location.href = bridgeUrl;
+        }, delay);
+      }
       
       // Fallback after timeout
       setTimeout(() => {

@@ -13,6 +13,7 @@ declare module "next-auth" {
       rights?: string[];
       user_level?: string;
       printer_name?: string;
+      counter?: number;
     };
     rolesObject?: Array<{
       name: string;
@@ -34,6 +35,7 @@ declare module "next-auth" {
     accessToken?: string;
     refreshToken?: string;
     accessTokenExpiresAt?: number;
+    counter?: number;
     role?: {
       id: string;
       name: string;
@@ -54,6 +56,7 @@ declare module "next-auth" {
     rights?: string[];
     user_level?: string;
     printer_name?: string;
+    counter?: number;
     rolesObject?: Array<{
       name: string;
       app_title: string;
@@ -95,6 +98,7 @@ declare module "next-auth/jwt" {
     rights?: string[];
     user_level?: string;
     printer_name?: string;
+    counter?: number;
     rolesObject?: Array<{
       name: string;
       app_title: string;

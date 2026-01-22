@@ -147,8 +147,13 @@ export async function generateReceiptHtml(data: ReceiptData, paperWidth: PaperWi
   `;
 }
 
-export async function openPrintWindow(data: ReceiptData, paperWidth: PaperWidth = "58mm") {
+export async function openPrintWindow(
+  data: ReceiptData,
+  paperWidth: PaperWidth = "58mm",
+  copies: number = 1
+) {
   console.log("openPrintWindow called:", { receipt_number: data.receipt_number, paperWidth, hasToken: !!data.package_token });
+  const copyCount = Number.isFinite(copies) ? Math.max(1, Math.floor(copies)) : 1;
   
   const html = await generateReceiptHtml(data, paperWidth);
   console.log("HTML generated, length:", html.length, "contains QR:", html.includes("img src="));
@@ -167,8 +172,11 @@ export async function openPrintWindow(data: ReceiptData, paperWidth: PaperWidth 
     console.log("Triggering print, waiting for images...");
     await waitForImages(w);
     console.log("Images ready, focusing window and calling print()");
-    w.focus();
-    w.print();
+    for (let idx = 0; idx < copyCount; idx++) {
+      console.log(`Printing copy ${idx + 1} of ${copyCount}`);
+      w.focus();
+      w.print();
+    }
   };
 
   if (w.document.readyState === "complete") {

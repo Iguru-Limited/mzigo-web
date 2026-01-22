@@ -97,6 +97,9 @@ export const authOptions: NextAuthOptions = {
 
           if (data.access_token && data.user) {
             const now = Date.now();
+            const loginCounter = Number.isFinite(Number(data.user.counter))
+              ? Number(data.user.counter)
+              : 1;
             return {
               id: data.user.id,
               name: data.user.name,
@@ -108,6 +111,7 @@ export const authOptions: NextAuthOptions = {
               refreshTokenExpiresAt: now + REFRESH_TOKEN_EXPIRY,
               userLevel: data.user.user_level,
               printerName: data.user.printer_name,
+              counter: loginCounter,
               company: data.user.company,
               office: data.user.office,
               rights: data.user.roles.map((role) => role.name),
@@ -128,6 +132,9 @@ export const authOptions: NextAuthOptions = {
     async jwt({ token, user, trigger }) {
       // Initial sign in
       if (user) {
+        const counter = Number.isFinite((user as any).counter)
+          ? Number((user as any).counter)
+          : 1;
         token.accessToken = (user as any).accessToken;
         token.refreshToken = (user as any).refreshToken;
         token.accessTokenExpiresAt = (user as any).accessTokenExpiresAt;
@@ -135,6 +142,7 @@ export const authOptions: NextAuthOptions = {
         token.phone = (user as any).phone;
         token.userLevel = (user as any).userLevel;
         token.printer_name = (user as any).printerName;
+        token.counter = counter;
         token.company = (user as any).company;
         token.office = (user as any).office;
         token.rights = (user as any).rights;
@@ -177,11 +185,16 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
+        const counter = Number.isFinite(token.counter as number)
+          ? Number(token.counter)
+          : 1;
         session.user.id = token.sub || "";
         session.user.phone = token.phone as string;
         session.user.rights = token.rights as string[];
         session.user.user_level = token.userLevel as string;
         session.user.printer_name = token.printer_name as string;
+        session.user.counter = counter;
+        (session as any).counter = counter;
         (session as any).rolesObject = token.rolesObject;
         (session as any).company = token.company;
         (session as any).office = token.office;

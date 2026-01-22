@@ -14,18 +14,24 @@ export interface LoginResponse {
     name: string;
     user_level: string;
     printer_name?: string;
+    counter?: number;
     company: {
       id: string;
       name: string;
+      count?: string;
       fields_to_hide?: string;
       receipt_format?: number;
       model_type?: string;
       offline?: number;
       receipt_format_json?: ReceiptFormatJson;
+      minimum_amount?: number;
+      maximum_amount?: number;
     };
     office?: {
       id: string;
       name: string;
+      contact_details?: string;
+      sacco_contacts?: string;
     };
     roles: Array<{
       name: string;

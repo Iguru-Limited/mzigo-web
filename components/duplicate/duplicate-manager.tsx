@@ -21,22 +21,25 @@ import { useParcels } from "@/hooks/duplicate/use-parcels";
 import { usePrintDuplicate } from "@/hooks/duplicate/use-print-duplicate";
 import { generateQRCodeDataUrl } from "@/lib/qr-utils";
 import { QRCodeComponent } from "@/components/receipt/qr-code";
+import { useSession } from "next-auth/react";
 
 export function DuplicateManager() {
   const { items, isLoading, error } = useParcels();
   const { printDuplicate } = usePrintDuplicate();
+  const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [displayCount, setDisplayCount] = useState(5);
   const [isPrinting, setIsPrinting] = useState(false);
   const [receiptPreview, setReceiptPreview] = useState<any>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const copyCount = Math.max(1, Number(session?.user?.counter ?? 1));
 
   // Filter parcels based on search query
   const filteredParcels = useMemo(() => {
     if (!searchQuery.trim()) return items;
     const query = searchQuery.toLowerCase();
     return items.filter(
-      (parcel) =>
+        (parcel) => 
         parcel.receipt_number.toLowerCase().includes(query) ||
         parcel.sender_name.toLowerCase().includes(query) ||
         parcel.receiver_name.toLowerCase().includes(query) ||
@@ -207,7 +210,11 @@ export function DuplicateManager() {
 
       await waitForImages();
       console.log("Printing duplicate receipt...");
-      printWindow.print();
+      for (let idx = 0; idx < copyCount; idx++) {
+        console.log(`Printing duplicate copy ${idx + 1} of ${copyCount}`);
+        printWindow.focus();
+        printWindow.print();
+      }
     } catch (error) {
       console.error("Print failed:", error);
       toast.error("Failed to print receipt");
@@ -217,6 +224,27 @@ export function DuplicateManager() {
   const handlePrintViaBridge = () => {
     if (!receiptPreview) return;
 
+    // Insert DUPLICATE RECEIPT badge at the start of the receipt
+    const receiptWithBadge = [
+      {
+        text_size: "big",
+        content: "DUPLICATE RECEIPT",
+        "pre-text": "",
+        end_1: "\n",
+        is_variable: false,
+        is_bold: true,
+      },
+      {
+        text_size: "normal",
+        content: "-----------------------------",
+        "pre-text": "",
+        end_1: "\n",
+        is_variable: false,
+        is_bold: false,
+      },
+      ...(receiptPreview.receipt || []),
+    ];
+
     // Build a minimal payload to avoid URL length/decoding issues
     const minimalPayload = {
       id: receiptPreview.id,
@@ -224,62 +252,32 @@ export function DuplicateManager() {
       package_token: receiptPreview.package_token,
       s_date: receiptPreview.s_date,
       s_time: receiptPreview.s_time,
-      receipt: receiptPreview.receipt,
+      receipt: receiptWithBadge,
+      copies: copyCount,
+      is_duplicate: true,
     };
 
     const encodedData = encodeURIComponent(JSON.stringify(minimalPayload));
-    const bridgeUrl = `mzigo://print-duplicate?data=${encodedData}`;
+    // Use the same intent as create flow so the Bridge app is found
+    const bridgeUrl = `mzigo://print?data=${encodedData}`;
 
-    // Try opening via hidden iframe (more reliable on Android Chrome)
-    let cleanedUp = false;
-    const cleanup = () => {
-      if (cleanedUp) return;
-      cleanedUp = true;
-      if (iframe && iframe.parentNode) iframe.parentNode.removeChild(iframe);
-      document.removeEventListener("visibilitychange", onVisibilityChange);
-    };
+    // Fire one intent per copy with a slight stagger to avoid throttling
+    for (let idx = 0; idx < copyCount; idx++) {
+      const delay = idx * 400;
+      setTimeout(() => {
+        console.log(`Triggering bridge duplicate print copy ${idx + 1} of ${copyCount}`);
+        window.location.href = bridgeUrl;
+      }, delay);
+    }
 
-    let iframe: HTMLIFrameElement | null = document.createElement("iframe");
-    iframe.style.display = "none";
-    iframe.src = bridgeUrl;
-    document.body.appendChild(iframe);
-
-    // If the app opens, the page usually goes to background (hidden)
-    let appOpened = false;
-    const onVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        appOpened = true;
-        cleanup();
-      }
-    };
-    document.addEventListener("visibilitychange", onVisibilityChange, { once: true });
-
-    // Fallback toast only if the app did not open within the timeout
-    const fallback = setTimeout(() => {
-      cleanup();
-      if (!appOpened) {
+    // Soft fallback toast if the page stays visible (suggesting intent not handled)
+    setTimeout(() => {
+      if (document.visibilityState !== "hidden") {
         toast.info("Print Bridge app not found", {
           description: "Install or open the Bridge app, then try again.",
         });
       }
-    }, 3000);
-
-    // Extra guard: if navigation succeeds quickly via direct href, cancel fallback
-    try {
-      // Some browsers still require direct navigation to trigger intents
-      window.location.href = bridgeUrl;
-    } catch (_) {
-      // ignore
-    } finally {
-      // If page becomes hidden, cancel fallback immediately
-      const cancelIfHidden = () => {
-        if (document.visibilityState === "hidden") {
-          clearTimeout(fallback);
-          cleanup();
-        }
-      };
-      setTimeout(cancelIfHidden, 100);
-    }
+    }, 2500);
   };
 
   return (
