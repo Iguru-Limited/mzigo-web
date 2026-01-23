@@ -19,6 +19,7 @@ import {
   faBolt,
   faCopy,
   faClipboardList,
+  faRocket,
 } from "@fortawesome/free-solid-svg-icons";
 import { cn } from "@/lib/utils";
 
@@ -143,6 +144,14 @@ const ACTION_CARDS: ActionCardConfig[] = [
     href: "/lookup",
     color: "bg-slate-700",
     primaryRight: "qr_scanner",
+  },
+  {
+    id: "express",
+    label: "Express",
+    icon: faRocket,
+    href: "/express",
+    color: "bg-slate-700",
+    primaryRight: "express",
   },
 ];
 
