@@ -5,6 +5,8 @@
  * The base URL is configured via NEXT_PUBLIC_API_URL environment variable.
  */
 
+
+
 // Base URL from environment variable
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -42,6 +44,8 @@ export const API_ENDPOINTS = {
   CREATE_DELIVERY:'/delivery/manage.php',
   LIST_NOTIFICATION:'notify/list.php',
   CREATE_NOTIFICATION:'/notify/manage.php',
+  LIST_EXPRESS_PACKAGE:'/express_mzigo/list.php',
+  VERIFY_EXPRESS_PACKAGE:'/express_mzigo/verify.php',
 } as const;
 
 /**
@@ -84,4 +88,6 @@ export const {
   GET_LOADING_SHEET_DETAIL,
   LIST_NOTIFICATION,
   CREATE_NOTIFICATION,
+  LIST_EXPRESS_PACKAGE,
+  VERIFY_EXPRESS_PACKAGE,
 } = API_ENDPOINTS;

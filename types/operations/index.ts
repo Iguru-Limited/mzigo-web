@@ -35,3 +35,5 @@ export type {
   SyncOptions,
   OfflineState,
 } from "./offline";
+export type { ExpressMzigoItem, ExpressMzigoResponse } from "./express";
+export type { VerifyExpressPayload, VerifyExpressResponse, VerifyExpressSuccessResponse } from "./verify-express";

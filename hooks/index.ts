@@ -8,6 +8,8 @@ export { useReceiptLookup } from "./mzigo/use-receipt-lookup";
 export { useSearchMzigo } from "./mzigo/use-search-mzigo";
 export { useBrowseMzigo } from "./mzigo/use-browse-mzigo";
 export { useAttendantStats } from "./mzigo/use-attendant-stats";
+export { useExpressMzigo } from "./mzigo/use-express-mzigo";
+export { useVerifyExpress } from "./mzigo/use-verify-express";
 
 // Data hooks (reference data)
 export { useDestinations } from "./data/use-destinations";

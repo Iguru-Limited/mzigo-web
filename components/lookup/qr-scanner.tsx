@@ -58,7 +58,10 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
           if (state === Html5QrcodeScannerState.SCANNING) {
             await scannerRef.current.stop();
           }
-          scannerRef.current.clear();
+          const container = document.getElementById("qr-reader");
+          if (container) {
+            await scannerRef.current.clear();
+          }
         } catch {
           // Ignore cleanup errors
         }
@@ -92,7 +95,7 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
         },
         (decodedText) => {
           // Successfully scanned
-          stopScanner();
+          void stopScanner();
           onScan(decodedText);
         },
         () => {
@@ -135,9 +138,13 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
         if (state === Html5QrcodeScannerState.SCANNING) {
           await scannerRef.current.stop();
         }
-        scannerRef.current.clear();
+        const container = document.getElementById("qr-reader");
+        if (container) {
+          await scannerRef.current.clear();
+        }
       } catch (err) {
-        // Ignore errors when stopping
+        // Ignore errors when stopping/clearing
+        console.warn("QR stop/clear error", err);
       }
       scannerRef.current = null;
     }
@@ -148,14 +155,22 @@ export function QRScanner({ onScan, onError }: QRScannerProps) {
     return () => {
       // Cleanup on unmount
       if (scannerRef.current) {
-        try {
-          const state = scannerRef.current.getState();
-          if (state === Html5QrcodeScannerState.SCANNING) {
-            scannerRef.current.stop().catch(() => {});
+        const cleanup = async () => {
+          try {
+            const state = scannerRef.current?.getState();
+            if (state === Html5QrcodeScannerState.SCANNING) {
+              await scannerRef.current?.stop();
+            }
+            const container = document.getElementById("qr-reader");
+            if (container) {
+              await scannerRef.current?.clear();
+            }
+          } catch {
+            // Ignore
           }
-        } catch {
-          // Ignore
-        }
+          scannerRef.current = null;
+        };
+        void cleanup();
       }
     };
   }, []);

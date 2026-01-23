@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,14 +12,14 @@ import { faQrcode, faMagnifyingGlass } from "@fortawesome/free-solid-svg-icons";
 type TabType = "scan" | "search";
 
 export function ExpressManager() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<TabType>("scan");
   const [searchQuery, setSearchQuery] = useState("");
   const [isScanning, setIsScanning] = useState(false);
 
   const handleScan = (decodedText: string) => {
-    console.log("📦 Express QR Code Scanned:", decodedText);
+    router.push(`/express/result?q=${encodeURIComponent(decodedText)}`);
     setIsScanning(false);
-    // TODO: Handle the scanned data
   };
 
   const handleScanError = (error: string) => {
@@ -26,8 +27,8 @@ export function ExpressManager() {
   };
 
   const handleSearch = () => {
-    console.log("🔍 Searching for express package:", searchQuery);
-    // TODO: Implement search functionality
+    if (!searchQuery.trim()) return;
+    router.push(`/express/result?q=${encodeURIComponent(searchQuery.trim())}`);
   };
 
   return (
@@ -123,11 +124,6 @@ export function ExpressManager() {
                   <FontAwesomeIcon icon={faMagnifyingGlass} className="mr-2" />
                   Search
                 </Button>
-              </div>
-
-              {/* Search results will appear here */}
-              <div className="mt-6">
-                {/* TODO: Display search results */}
               </div>
             </div>
           </Card>
