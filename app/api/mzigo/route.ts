@@ -6,7 +6,10 @@ export async function POST(request: NextRequest) {
   try {
     const token = await getToken({ req: request });
     if (!token?.accessToken) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return NextResponse.json(
+        { status: "error", message: "Unauthorized - Please log in again" },
+        { status: 401 }
+      );
     }
 
     const body = await request.json();
@@ -21,6 +24,19 @@ export async function POST(request: NextRequest) {
       body: JSON.stringify(body),
     });
 
+    // Check if response is JSON or HTML
+    const contentType = response.headers.get("content-type");
+    if (contentType && contentType.includes("text/html")) {
+      // Backend returned HTML (probably a 401 redirect or error page)
+      return NextResponse.json(
+        {
+          status: "error",
+          message: "Session expired - Please refresh the page and try again",
+        },
+        { status: 401 }
+      );
+    }
+
     const data = await response.json();
 
     if (!response.ok) {
@@ -28,9 +44,13 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(data);
-  } catch {
+  } catch (error) {
+    console.error("Error in mzigo API route:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        status: "error",
+        message: error instanceof Error ? error.message : "Internal server error",
+      },
       { status: 500 }
     );
   }

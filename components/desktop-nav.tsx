@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import Image from "next/image";
 import { Home, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
@@ -14,7 +15,7 @@ export function DesktopNav() {
         <div className="grid h-16 grid-cols-3 items-center">
           {/* Logo */}
           <Link href="/dashboard" className="flex flex-col items-center justify-center gap-1">
-            <img src="/logo.jpg" alt="mzigo logo" className="h-16 w-16" style={{ objectFit: 'contain' }} />
+            <Image src="/logo.jpg" alt="mzigo logo" width={64} height={64} style={{ objectFit: 'contain' }} unoptimized />
           </Link>
 
           {/* Home */}

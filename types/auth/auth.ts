@@ -43,6 +43,9 @@ export interface LoginResponse {
 }
 
 export interface RefreshResponse {
-  message: string;
+  status: string;
   access_token: string;
+  access_token_expires_at: number;
+  refresh_token: string;
+  refresh_token_expires_at: number;
 }

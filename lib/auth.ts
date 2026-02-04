@@ -4,15 +4,15 @@ import { getApiUrl, API_ENDPOINTS } from "@/lib/constants";
 import type { LoginResponse, RefreshResponse } from "@/types/auth/auth";
 
 // Token expiration times (in milliseconds)
-const ACCESS_TOKEN_EXPIRY = 60 * 60 * 1000; // 1 hour
+const ACCESS_TOKEN_EXPIRY = 60 * 1000; // 1 minute
 const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 /**
- * Check if access token is expired or about to expire (within 5 minutes)
+ * Check if access token is expired or about to expire (within 10 seconds)
  */
 const isAccessTokenExpired = (expiryTime: number): boolean => {
   const now = Date.now();
-  const bufferTime = 5 * 60 * 1000; // 5 minutes buffer
+  const bufferTime = 10 * 1000; // 10 seconds buffer (refresh at 50-second mark)
   return now >= expiryTime - bufferTime;
 };
 
@@ -22,7 +22,8 @@ const isAccessTokenExpired = (expiryTime: number): boolean => {
 const refreshAccessToken = async (refreshToken: string): Promise<{
   accessToken: string;
   refreshToken: string;
-  expiresAt: number;
+  accessTokenExpiresAt: number;
+  refreshTokenExpiresAt: number;
 }> => {
   try {
     const refreshUrl = getApiUrl(API_ENDPOINTS.AUTH.REFRESH);
@@ -44,16 +45,16 @@ const refreshAccessToken = async (refreshToken: string): Promise<{
 
     const data: RefreshResponse = await response.json();
     
-    if (!data.access_token) {
-      throw new Error("No access token in refresh response");
+    if (!data.access_token || !data.refresh_token) {
+      throw new Error("Invalid refresh response: missing tokens");
     }
     
-    // The refresh endpoint only returns a new access_token, not a new refresh_token
-    // So we keep the existing refresh_token
+    // Use the new tokens and expiry times from the API response
     return {
       accessToken: data.access_token,
-      refreshToken: refreshToken, // Keep the existing refresh token
-      expiresAt: Date.now() + ACCESS_TOKEN_EXPIRY,
+      refreshToken: data.refresh_token, // Use the NEW refresh token from response
+      accessTokenExpiresAt: data.access_token_expires_at * 1000, // Convert to milliseconds
+      refreshTokenExpiresAt: data.refresh_token_expires_at * 1000, // Convert to milliseconds
     };
   } catch (error) {
     console.error("Error refreshing token:", error);
@@ -161,9 +162,10 @@ export const authOptions: NextAuthOptions = {
           try {
             const refreshed = await refreshAccessToken(refreshToken);
             token.accessToken = refreshed.accessToken;
-            token.refreshToken = refreshed.refreshToken; // Keep existing refresh token
-            token.accessTokenExpiresAt = refreshed.expiresAt;
-            // Refresh token expiry remains the same since backend doesn't issue a new one
+            token.refreshToken = refreshed.refreshToken; // Use NEW refresh token from response
+            token.accessTokenExpiresAt = refreshed.accessTokenExpiresAt;
+            token.refreshTokenExpiresAt = refreshed.refreshTokenExpiresAt; // Update refresh token expiry
+            console.log("Token refreshed successfully at", new Date().toISOString());
           } catch (error) {
             // If refresh fails, clear tokens to force re-login
             console.error("Token refresh failed:", error);
@@ -211,7 +213,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-    maxAge: 60 * 60, // 1 hour in seconds
+    maxAge: 60, // 1 minute in seconds
   },
   secret: process.env.NEXTAUTH_SECRET || "your-secret-key-change-in-production",
 };

@@ -106,7 +106,7 @@ export function LoginForm({
                 </p>
               </div>
               <Field>
-                <FieldLabel htmlFor="id_number">ID Number</FieldLabel>
+                <FieldLabel htmlFor="id_number">Username</FieldLabel>
                 <Input
                   id="id_number"
                   type="text"

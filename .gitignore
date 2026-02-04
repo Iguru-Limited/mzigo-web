@@ -39,3 +39,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+#tutorial
+RECEIPT_SUBMISSION_TUTORIAL.md

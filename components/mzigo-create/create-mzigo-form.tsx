@@ -156,6 +156,12 @@ export function CreateMzigoForm() {
       if (errorMessage === "OFFLINE_NOT_ALLOWED") {
         setError("You are currently offline. Please connect to the internet to continue using the app.");
         toast.error("Offline mode not available", { description: "Please connect to the internet to create a mzigo." });
+      } else if (errorMessage.includes("Session expired") || errorMessage.includes("Unauthorized")) {
+        setError("Your session has expired. Please refresh the page and try again.");
+        toast.error("Session Expired", {
+          description: "Please refresh the page to continue.",
+          duration: 6000,
+        });
       } else {
         setError(errorMessage);
         toast.error("Failed to create mzigo", { description: errorMessage });

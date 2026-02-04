@@ -14,8 +14,8 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "";
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: "/auth/login.php",
-    REFRESH: "/auth/refresh.php", // Add when refresh endpoint is available
-    LOGOUT: "/auth/logout.php", // Add when logout endpoint is available
+    REFRESH: "/auth/refresh.php",
+    LOGOUT: "/auth/logout.php",
   },
   CREATE_MZIGO:'/mzigo/manage.php',
   LIST_VEHICLES:'vehicle/list.php',
