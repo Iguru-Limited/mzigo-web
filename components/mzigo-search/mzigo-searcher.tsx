@@ -30,7 +30,7 @@ export function MzigoSearcher() {
           <div className="flex gap-2">
             <Input
               id="search"
-              placeholder="Enter tracking number, phone, or reference..."
+              placeholder="Enter tracking number or phone ..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />

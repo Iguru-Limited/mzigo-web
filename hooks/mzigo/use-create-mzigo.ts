@@ -1,11 +1,13 @@
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { syncManager, saveOfflineMzigo, useOfflineStore, getReferenceData } from "@/lib/offline";
 import type { PaymentMethod } from "@/types/reference/payment-methods";
 import { generateOfflineReceipt } from "@/lib/offline/offline-receipt";
 import type { CreateMzigoPayload, CreateMzigoResponse } from "@/types/operations/mzigo";
 
 export function useCreateMzigo() {
-  const { data: session } = useSession();
+  const { data: session, update } = useSession();
+  const router = useRouter();
   const { isOnline, refreshPendingCount } = useOfflineStore();
 
   // Check if offline capability is enabled for this company (1 = enabled, 0 = disabled)
@@ -115,6 +117,34 @@ export function useCreateMzigo() {
       });
 
       const data: CreateMzigoResponse = await response.json();
+
+      // If 401 Unauthorized, try to refresh session once before failing
+      if (response.status === 401) {
+        console.log("Received 401, attempting to refresh session...");
+        try {
+          await update();
+          
+          // Retry the request after session refresh
+          const retryResponse = await fetch("/api/mzigo", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const retryData: CreateMzigoResponse = await retryResponse.json();
+
+          if (!retryResponse.ok) {
+            throw new Error(retryData.message || "Failed to create mzigo after refresh");
+          }
+
+          return retryData;
+        } catch (refreshError) {
+          console.error("Session refresh failed:", refreshError);
+          throw new Error("Session expired - Please refresh the page and try again");
+        }
+      }
 
       if (!response.ok) {
         throw new Error(data.message || "Failed to create mzigo");

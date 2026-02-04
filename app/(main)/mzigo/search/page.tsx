@@ -20,7 +20,7 @@ export default function SearchMzigosPage() {
         <Card className="border-border/70 shadow-sm bg-card/90">
           <CardHeader>
             <CardTitle>Search for Mzigos</CardTitle>
-            <CardDescription>Find consignments quickly by barcode, QR, or filters.</CardDescription>
+            <CardDescription>Find consignments quickly by Tracking number or phone.</CardDescription>
           </CardHeader>
           <CardContent>
             <MzigoSearcher />
