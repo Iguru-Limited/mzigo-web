@@ -35,8 +35,11 @@ export function useNotifications({
       return res.json();
     },
     {
-      revalidateOnFocus: false,
-      dedupingInterval: 30000, // 30 seconds
+      revalidateOnFocus: true, // Refetch when window gains focus
+      revalidateOnReconnect: true, // Refetch when connection restored
+      refreshInterval: 30000, // Poll every 30 seconds for real-time updates
+      dedupingInterval: 5000, // Reduce dedupe to allow faster refreshes
+      keepPreviousData: true, // Show old data while fetching new
     }
   );
 

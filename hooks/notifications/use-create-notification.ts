@@ -1,6 +1,7 @@
 import { useSession } from "next-auth/react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { mutate } from "swr";
 import type { CreateNotificationResponse } from "@/types";
 
 interface UseCreateNotificationReturn {
@@ -43,6 +44,10 @@ export function useCreateNotification(): UseCreateNotificationReturn {
       }
 
       const data: CreateNotificationResponse = await response.json();
+      
+      // Refresh all notification lists after creating notifications
+      mutate((key) => typeof key === "string" && key.startsWith("/api/notifications/list"));
+      
       return data;
     } catch (err) {
       const errorObj = err instanceof Error ? err : new Error("Unknown error");

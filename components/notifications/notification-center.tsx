@@ -131,7 +131,9 @@ export function NotificationCenter() {
         setShowCreateDialog(false);
         setSelectedParcels(new Set());
         setSearchQueryCreate("");
+        // Refresh both notified and unnotified tabs
         refreshUnnotified();
+        refreshNotified();
       } else {
         toast.error("Failed to create notifications", {
           description: result.message,
@@ -154,35 +156,48 @@ export function NotificationCenter() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b">
-        <button
+      <div className="flex justify-between items-center border-b">
+        <div className="flex gap-2">
+          <button
+            onClick={() => {
+              setActiveTab("unnotified");
+              setDisplayCount(10);
+              setSearchQuery("");
+            }}
+            className={`px-4 py-2 font-medium transition-colors ${
+              activeTab === "unnotified"
+                ? "border-b-2 border-primary text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Pending ({unnotifiedNotifications.length})
+          </button>
+          <button
+            onClick={() => {
+              setActiveTab("notified");
+              setDisplayCount(10);
+              setSearchQuery("");
+            }}
+            className={`px-4 py-2 font-medium transition-colors ${
+              activeTab === "notified"
+                ? "border-b-2 border-primary text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Notified ({notifiedNotifications.length})
+          </button>
+        </div>
+        <Button
+          variant="outline"
+          size="sm"
           onClick={() => {
-            setActiveTab("unnotified");
-            setDisplayCount(10);
-            setSearchQuery("");
+            activeTab === "notified" ? refreshNotified() : refreshUnnotified();
+            toast.success("Refreshing notifications...");
           }}
-          className={`px-4 py-2 font-medium transition-colors ${
-            activeTab === "unnotified"
-              ? "border-b-2 border-primary text-primary"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
+          disabled={isLoading}
         >
-          Pending ({unnotifiedNotifications.length})
-        </button>
-        <button
-          onClick={() => {
-            setActiveTab("notified");
-            setDisplayCount(10);
-            setSearchQuery("");
-          }}
-          className={`px-4 py-2 font-medium transition-colors ${
-            activeTab === "notified"
-              ? "border-b-2 border-primary text-primary"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Notified ({notifiedNotifications.length})
-        </button>
+          🔄 Refresh
+        </Button>
       </div>
 
       {/* Filter and Search */}

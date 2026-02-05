@@ -3,6 +3,25 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@layer base {
+  :root {
+    /* System fonts instead of Google Fonts */
+    --font-geist-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+      "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    --font-geist-mono: "SF Mono", Monaco, "Cascadia Code", "Roboto Mono",
+      Consolas, "Courier New", monospace;
+  }
+
+  body {
+    font-family: var(--font-geist-sans);
+  }
+
+  code,
+  pre {
+    font-family: var(--font-geist-mono);
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -37,10 +56,10 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  --color-radius-sm: calc(var(--radius) - 4px);
+  --color-radius-md: calc(var(--radius) - 2px);
+  --color-radius-lg: var(--radius);
+  --color-radius-xl: calc(var(--radius) + 4px);
 }
 
 :root {
