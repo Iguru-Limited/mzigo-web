@@ -53,16 +53,16 @@ export const swrOfflineConfig: SWRConfiguration = {
   keepPreviousData: true,
   
   // Revalidation settings
-  revalidateOnFocus: true,
+  revalidateOnFocus: false, // Don't revalidate on every focus
   revalidateOnReconnect: true,
-  revalidateIfStale: true,
+  revalidateIfStale: false, // Don't auto-revalidate stale data
   
   // Error retry with exponential backoff
   errorRetryCount: 3,
   errorRetryInterval: 5000,
   
   // Dedupe interval
-  dedupingInterval: 2000,
+  dedupingInterval: 10000, // 10 seconds - prevent duplicate requests
   
   // Custom error retry handler
   onErrorRetry: (error, key, config, revalidate, { retryCount }) => {

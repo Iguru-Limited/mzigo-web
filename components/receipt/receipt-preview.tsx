@@ -31,25 +31,45 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
   const copyCount = Math.max(1, Number(session?.user?.counter ?? 1));
 
   const handlePrint = async (paperWidth: PaperWidth = "58mm") => {
-    if (data) {
-      try {
-        setIsPrinting(true);
-        await openPrintWindow(data, paperWidth, copyCount);
-      } catch (error) {
-        console.error("Failed to open print window:", error);
-        toast.error("Failed to open print preview");
-      } finally {
+    if (!data) return;
+    
+    setIsPrinting(true);
+    
+    // Safety timeout to reset state if something goes wrong
+    const safetyTimeout = setTimeout(() => {
+      console.warn("Print operation timed out, resetting state");
+      setIsPrinting(false);
+    }, 10000); // 10 second max
+    
+    try {
+      await openPrintWindow(data, paperWidth, copyCount);
+      // Give print dialog time to appear before resetting state
+      setTimeout(() => {
+        clearTimeout(safetyTimeout);
         setIsPrinting(false);
-      }
+      }, 1000);
+    } catch (error) {
+      clearTimeout(safetyTimeout);
+      console.error("Failed to open print window:", error);
+      toast.error("Failed to open print preview", {
+        description: error instanceof Error ? error.message : "Unknown error"
+      });
+      setIsPrinting(false);
     }
   };
 
   const handlePrintViaBridge = async () => {
     if (!data) return;
     
+    setIsPrinting(true);
+    
+    // Safety timeout to prevent hanging
+    const safetyTimeout = setTimeout(() => {
+      console.warn("Bridge print timed out, resetting state");
+      setIsPrinting(false);
+    }, 5000);
+    
     try {
-      setIsPrinting(true);
-      
       // Create minimal bridge data payload - exclude QR code and package token
       const bridgeData = {
         receipt_number: data.receipt_number,
@@ -60,7 +80,6 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
         copies: copyCount,
       };
       
-      // URL encode the minimal JSON payload
       const jsonPayload = JSON.stringify(bridgeData);
       console.log("Bridge payload (minimal):", jsonPayload.length, "bytes");
       
@@ -68,57 +87,28 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
       const bridgeUrl = `mzigo://print?data=${encodedData}`;
       
       console.log("Bridge URL length:", bridgeUrl.length, "bytes");
-      
-      // Setup callback listener for print completion
-      const handleBridgeCallback = (event: MessageEvent) => {
-        if (event.data?.type === "print_complete" && event.data?.receipt_id === data.id) {
-          console.log("✓ Print completed via bridge app");
-          toast.success("Receipt printed successfully", {
-            description: `Receipt #${data.receipt_number} has been printed.`,
-          });
-          window.removeEventListener("message", handleBridgeCallback);
-          setIsPrinting(false);
-        }
-      };
-      
-      window.addEventListener("message", handleBridgeCallback);
-      
-      // Set a timeout to remove listener if no response (print succeeded silently)
-      const timeoutId = setTimeout(() => {
-        window.removeEventListener("message", handleBridgeCallback);
-        toast.success("Print request sent", {
-          description: "Check your Bluetooth printer for the receipt.",
-        });
-        setIsPrinting(false);
-      }, 3000);
-      
-      const printCompleteTimeout = setTimeout(() => {
-        clearTimeout(timeoutId);
-        window.removeEventListener("message", handleBridgeCallback);
-      }, 30000);
-      
-      // Try to open native app
       console.log("Opening bridge app with print request copies:", copyCount);
-      for (let idx = 0; idx < copyCount; idx++) {
-        const delay = idx * 400; // slight stagger to avoid URL handler throttling
-        setTimeout(() => {
-          console.log(`Triggering bridge print copy ${idx + 1} of ${copyCount}`);
-          window.location.href = bridgeUrl;
-        }, delay);
-      }
       
-      // Fallback after timeout
+      // Try to open native app without blocking
+      const iframe = document.createElement("iframe");
+      iframe.style.display = "none";
+      iframe.src = bridgeUrl;
+      document.body.appendChild(iframe);
+      
+      // Clean up iframe after a moment
       setTimeout(() => {
-        if (isPrinting) {
-          clearTimeout(printCompleteTimeout);
-          window.removeEventListener("message", handleBridgeCallback);
-          toast.info("Print Bridge app not found", {
-            description: "Install the Web Print Bridge app to print via Bluetooth",
-          });
-          setIsPrinting(false);
-        }
-      }, 2000);
+        document.body.removeChild(iframe);
+      }, 500);
+      
+      // Show success message immediately
+      clearTimeout(safetyTimeout);
+      toast.success("Print request sent", {
+        description: "Check your Bluetooth printer for the receipt.",
+      });
+      setIsPrinting(false);
+      
     } catch (error) {
+      clearTimeout(safetyTimeout);
       console.error("✗ Failed to prepare bridge print:", error);
       toast.error("Failed to prepare print", {
         description: error instanceof Error ? error.message : "An error occurred",
@@ -131,17 +121,27 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
     if (!data) return;
     
     setIsSending(true);
+    
+    // Safety timeout
+    const safetyTimeout = setTimeout(() => {
+      console.warn("Send operation timed out");
+      setIsSending(false);
+    }, 5000);
+    
     try {
       // TODO: Implement send functionality (e.g., send via SMS, WhatsApp, or email)
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate async
+      clearTimeout(safetyTimeout);
       toast.success("Receipt sent successfully!", {
         description: `Receipt #${data.receipt_number} has been sent.`,
       });
+      setIsSending(false);
       onClose();
     } catch (error) {
+      clearTimeout(safetyTimeout);
       toast.error("Failed to send receipt", {
         description: error instanceof Error ? error.message : "An error occurred",
       });
-    } finally {
       setIsSending(false);
     }
   };

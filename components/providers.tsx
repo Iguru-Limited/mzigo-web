@@ -72,9 +72,10 @@ function SessionRefresher({ children }: { children: React.ReactNode }) {
     if (status !== "authenticated" || pathname === "/login") return;
 
     // Check periodically to refresh at 1:59 before expiry (if active)
+    // Check every 5 minutes - less aggressive
     const interval = setInterval(() => {
       checkAndRefreshSession();
-    }, 60000); // 60 seconds
+    }, 5 * 60 * 1000); // 5 minutes
 
     // Activity listeners - refresh when user returns after being idle
     const activityEvents = ["mousedown", "keydown", "scroll", "touchstart"];
@@ -126,7 +127,7 @@ function SessionRefresher({ children }: { children: React.ReactNode }) {
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider refetchInterval={60} refetchOnWindowFocus={true}>
+    <SessionProvider refetchInterval={0} refetchOnWindowFocus={false}>
       <SessionRefresher>
         <OfflineProvider>
           {children}

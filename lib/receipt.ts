@@ -15,7 +15,15 @@ async function waitForImages(printWindow: Window): Promise<void> {
 
   console.log(`Waiting for ${images.length} image(s) to load...`);
 
-  await Promise.all(
+  // Overall timeout for all images
+  const overallTimeout = new Promise<void>((resolve) => {
+    setTimeout(() => {
+      console.warn("Overall image loading timeout - proceeding anyway");
+      resolve();
+    }, 3000);
+  });
+
+  const imagePromises = Promise.all(
     images.map((img, idx) =>
       new Promise<void>((resolve) => {
         // Data URLs are typically already loaded, but check anyway
@@ -46,7 +54,9 @@ async function waitForImages(printWindow: Window): Promise<void> {
     )
   );
 
-  console.log("All images ready for print");
+  // Race between image loading and overall timeout
+  await Promise.race([imagePromises, overallTimeout]);
+  console.log("All images ready for print (or timed out)");
 }
 
 function lineToHtml(item: ReceiptItem): string {

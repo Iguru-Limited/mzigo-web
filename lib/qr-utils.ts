@@ -8,26 +8,37 @@ export function generateQRCodeDataUrl(
   size: number = 200
 ): Promise<string> {
   return new Promise((resolve, reject) => {
-    QRCode.toDataURL(
-      value,
-      {
-        width: size,
-        margin: 2,
-        errorCorrectionLevel: "M",
-        type: "image/png",
-        color: {
-          dark: "#000000",
-          light: "#FFFFFF",
+    // Timeout to prevent hanging
+    const timeout = setTimeout(() => {
+      reject(new Error("QR code generation timed out"));
+    }, 5000);
+    
+    try {
+      QRCode.toDataURL(
+        value,
+        {
+          width: size,
+          margin: 2,
+          errorCorrectionLevel: "M",
+          type: "image/png",
+          color: {
+            dark: "#000000",
+            light: "#FFFFFF",
+          },
         },
-      },
-      (error, dataUrl) => {
-        if (error) {
-          console.error("Failed to generate QR code:", error);
-          reject(error);
-        } else {
-          resolve(dataUrl as string);
+        (error, dataUrl) => {
+          clearTimeout(timeout);
+          if (error) {
+            console.error("Failed to generate QR code:", error);
+            reject(error);
+          } else {
+            resolve(dataUrl as string);
+          }
         }
-      }
-    );
+      );
+    } catch (error) {
+      clearTimeout(timeout);
+      reject(error);
+    }
   });
 }
