@@ -13,6 +13,8 @@ function SessionRefresher({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const lastActivityRef = useRef(Date.now());
   const refreshingRef = useRef(false);
+  const refreshLeadMs = 119 * 1000; // 1 minute 59 seconds before expiry
+  const idleLimitMs = 2 * 60 * 1000; // only refresh if user active within 2 minutes
 
   // Update last activity time on user interaction
   const updateActivity = useCallback(() => {
@@ -22,6 +24,19 @@ function SessionRefresher({ children }: { children: React.ReactNode }) {
   // Check if session is valid and refresh if needed
   const checkAndRefreshSession = useCallback(async () => {
     if (refreshingRef.current) return;
+    const now = Date.now();
+    const timeSinceLastActivity = now - lastActivityRef.current;
+
+    // Only refresh if user is active
+    if (timeSinceLastActivity > idleLimitMs) {
+      return;
+    }
+
+    // Only refresh when within the lead window
+    const expiresAt = (session as any)?.accessTokenExpiresAt as number | undefined;
+    if (expiresAt && expiresAt - now > refreshLeadMs) {
+      return;
+    }
     
     try {
       refreshingRef.current = true;
@@ -56,10 +71,10 @@ function SessionRefresher({ children }: { children: React.ReactNode }) {
     // Skip if not authenticated or on login page
     if (status !== "authenticated" || pathname === "/login") return;
 
-    // Refresh session every 50 seconds (before the 60-second token expiry)
+    // Check periodically to refresh at 1:59 before expiry (if active)
     const interval = setInterval(() => {
       checkAndRefreshSession();
-    }, 50000); // 50 seconds
+    }, 60000); // 60 seconds
 
     // Activity listeners - refresh when user returns after being idle
     const activityEvents = ["mousedown", "keydown", "scroll", "touchstart"];
@@ -68,8 +83,8 @@ function SessionRefresher({ children }: { children: React.ReactNode }) {
       const now = Date.now();
       const timeSinceLastActivity = now - lastActivityRef.current;
       
-      // If user was idle for more than 60 seconds, refresh session immediately
-      if (timeSinceLastActivity > 60000 && session) {
+      // If user was idle for more than 2 minutes, refresh on return
+      if (timeSinceLastActivity > idleLimitMs && session) {
         console.log("User returned after idle period - refreshing session");
         checkAndRefreshSession();
       }
@@ -87,8 +102,8 @@ function SessionRefresher({ children }: { children: React.ReactNode }) {
         const now = Date.now();
         const timeSinceLastActivity = now - lastActivityRef.current;
         
-        // If tab was hidden for more than 60 seconds, refresh immediately
-        if (timeSinceLastActivity > 60000) {
+        // If tab was hidden for more than 2 minutes, refresh on return
+        if (timeSinceLastActivity > idleLimitMs) {
           console.log("Tab visible after being hidden - refreshing session");
           checkAndRefreshSession();
         }
@@ -104,14 +119,14 @@ function SessionRefresher({ children }: { children: React.ReactNode }) {
       });
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [session, status, pathname, checkAndRefreshSession, updateActivity]);
+  }, [session, status, pathname, checkAndRefreshSession, updateActivity, idleLimitMs]);
 
   return <>{children}</>;
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <SessionProvider refetchInterval={50} refetchOnWindowFocus={true}>
+    <SessionProvider refetchInterval={60} refetchOnWindowFocus={true}>
       <SessionRefresher>
         <OfflineProvider>
           {children}

@@ -4,15 +4,15 @@ import { getApiUrl, API_ENDPOINTS } from "@/lib/constants";
 import type { LoginResponse, RefreshResponse } from "@/types/auth/auth";
 
 // Token expiration times (in milliseconds)
-const ACCESS_TOKEN_EXPIRY = 60 * 1000; // 1 minute
+const ACCESS_TOKEN_EXPIRY = 60 * 60 * 1000; // 1 hour
 const REFRESH_TOKEN_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 /**
- * Check if access token is expired or about to expire (within 10 seconds)
+ * Check if access token is expired or about to expire (within 1 minute 59 seconds)
  */
 const isAccessTokenExpired = (expiryTime: number): boolean => {
   const now = Date.now();
-  const bufferTime = 10 * 1000; // 10 seconds buffer (refresh at 50-second mark)
+  const bufferTime = 119 * 1000; // 1 minute 59 seconds buffer
   return now >= expiryTime - bufferTime;
 };
 
@@ -213,7 +213,7 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-    maxAge: 60, // 1 minute in seconds
+    maxAge: 60 * 60, // 1 hour in seconds
   },
   secret: process.env.NEXTAUTH_SECRET || "your-secret-key-change-in-production",
 };
