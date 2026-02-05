@@ -33,7 +33,8 @@ export function DestinationInput({
   allowCustom = true,
   requireRoute = false,
 }: DestinationInputProps) {
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [show, setShow] = useState(false);
+  const [displayValue, setDisplayValue] = useState("");
   const [forceCustom, setForceCustom] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -41,78 +42,89 @@ export function DestinationInput({
     if (!value) setForceCustom(false);
   }, [value]);
 
-  const filteredDestinations = useMemo(() => {
-    if (!value.trim()) return [];
-    const searchTerm = value.toLowerCase();
-    return destinations.filter((d) => d.name.toLowerCase().includes(searchTerm));
-  }, [value, destinations]);
+  // Compute display value from destination name
+  const currentDisplayValue = useMemo(() => {
+    if (!value) return displayValue;
+    const selectedDestination = destinations.find((d) => d.name === value);
+    return selectedDestination ? selectedDestination.name : value; // Allow custom values
+  }, [value, destinations, displayValue]);
+
+  // Filter destinations - show all on focus, filter on type
+  const filtered = useMemo(() => {
+    if (!destinations || destinations.length === 0) return [];
+    const q = currentDisplayValue.trim().toLowerCase();
+    if (!q) return destinations.slice(0, 8); // Show first 8 when empty
+    return destinations.filter((d) => d.name.toLowerCase().includes(q));
+  }, [destinations, currentDisplayValue]);
 
   const handleSelect = (d: Destination) => {
     onChange(d.name);
-    setShowSuggestions(false);
+    setDisplayValue(d.name);
+    setShow(false);
     setForceCustom(false);
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
-    if (!forceCustom) setShowSuggestions(true);
-  };
-
-  const handleBlur = () => {
-    setTimeout(() => setShowSuggestions(false), 200);
-  };
-
-  const handleFocus = () => {
-    if (!forceCustom && value.trim()) setShowSuggestions(true);
-  };
-
   return (
-    <div className="relative space-y-2 w-full mb-4 overflow-visible">
+    <div className="relative space-y-2 mb-4">
       <Label htmlFor={id} className="flex items-center gap-2 text-white">
         Destination
         {requireRoute && <span className="text-xs text-yellow-300">(Route required)</span>}
         {isLoading && <Spinner className="h-3 w-3" />}
         {error && <span className="text-xs text-red-500">({error})</span>}
       </Label>
-      <div className="relative w-full overflow-visible">
+      <div className="relative">
         <Input
           id={id}
-          type="text"
+          value={currentDisplayValue}
+          onChange={(e) => {
+            const next = e.target.value;
+            setDisplayValue(next);
+            onChange(next); // Allow typing custom values
+            if (!forceCustom) setShow(true);
+          }}
+          onFocus={() => !forceCustom && setShow(true)}
+          onBlur={() => setTimeout(() => setShow(false), 200)}
           placeholder={placeholder}
-          value={value}
-          onChange={handleInputChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
           required={required}
           disabled={disabled || isLoading}
-          className="w-full bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
           autoComplete="off"
+          className="bg-white text-foreground"
           ref={inputRef}
         />
-
-        {showSuggestions && !forceCustom && (
+        {value && (
+          <button
+            type="button"
+            aria-label="Clear destination"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              onChange("");
+              setDisplayValue("");
+              setShow(false);
+              setForceCustom(false);
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-sm px-1"
+          >
+            ×
+          </button>
+        )}
+        {show && !forceCustom && filtered.length > 0 && (
           <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-input rounded-md shadow-lg max-h-48 overflow-y-auto">
-            {filteredDestinations.map((destination) => (
+            {filtered.map((destination) => (
               <button
                 key={destination.id}
                 type="button"
                 onClick={() => handleSelect(destination)}
-                className="w-full text-left px-4 py-2 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
+                className="w-full text-left px-4 py-2 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground transition-colors"
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{destination.name}</span>
-                </div>
+                <span className="font-medium">{destination.name}</span>
               </button>
             ))}
-            {filteredDestinations.length === 0 && (
-              <div className="px-4 py-3 text-sm text-gray-500">No destinations found</div>
-            )}
             {allowCustom && (
               <button
                 type="button"
                 onClick={() => {
                   setForceCustom(true);
-                  setShowSuggestions(false);
+                  setShow(false);
                   inputRef.current?.focus();
                 }}
                 className="w-full text-left px-4 py-2 border-t hover:bg-gray-50 text-sm text-gray-700"
@@ -122,16 +134,20 @@ export function DestinationInput({
             )}
           </div>
         )}
-
+        {show && !forceCustom && filtered.length === 0 && !allowCustom && (
+          <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-input rounded-md shadow-lg px-4 py-3">
+            <p className="text-sm text-gray-500">No destinations found</p>
+          </div>
+        )}
         {forceCustom && (
           <div className="mt-1 text-xs text-gray-200">
-            Using custom destination. {" "}
+            Using custom destination.{" "}
             <button
               type="button"
               className="underline"
               onClick={() => {
                 setForceCustom(false);
-                if (value) setShowSuggestions(true);
+                if (value) setShow(true);
               }}
             >
               Use list

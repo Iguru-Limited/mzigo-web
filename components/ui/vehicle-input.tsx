@@ -29,94 +29,95 @@ export function VehicleInput({
   vehicles,
   isLoading,
   error,
-  placeholder = "e.g., KAA 123B or fleet number",
+  placeholder = "Search vehicle by plate or fleet number",
   required = false,
   disabled = false,
 }: VehicleInputProps) {
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [show, setShow] = useState(false);
+  const [displayValue, setDisplayValue] = useState("");
 
-  // Filter vehicles based on input
-  const filteredVehicles = useMemo(() => {
-    if (!value.trim()) return [];
+  // Compute display value from vehicle plate
+  const currentDisplayValue = useMemo(() => {
+    if (!value) return displayValue;
+    const selectedVehicle = vehicles.find((v) => v.number_plate === value);
+    return selectedVehicle ? selectedVehicle.number_plate : displayValue;
+  }, [value, vehicles, displayValue]);
 
-    const searchTerm = value.toLowerCase();
+  // Filter vehicles - show all on focus, filter on type
+  const filtered = useMemo(() => {
+    if (!vehicles || vehicles.length === 0) return [];
+    const q = currentDisplayValue.trim().toLowerCase();
+    if (!q) return vehicles.slice(0, 8); // Show first 8 when empty
     return vehicles.filter(
       (vehicle) =>
-        vehicle.number_plate.toLowerCase().includes(searchTerm) ||
-        vehicle.fleet_number.toLowerCase().includes(searchTerm)
+        vehicle.number_plate.toLowerCase().includes(q)
     );
-  }, [value, vehicles]);
+  }, [vehicles, currentDisplayValue]);
 
   const handleSelect = (vehicle: Vehicle) => {
     onChange(vehicle.number_plate);
-    setShowSuggestions(false);
-  };
-
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    onChange(e.target.value);
-    setShowSuggestions(true);
-  };
-
-  const handleBlur = () => {
-    // Delay hiding suggestions to allow click on suggestion
-    setTimeout(() => setShowSuggestions(false), 200);
-  };
-
-  const handleFocus = () => {
-    if (value.trim()) {
-      setShowSuggestions(true);
-    }
+    setDisplayValue(vehicle.number_plate);
+    setShow(false);
   };
 
   return (
-    <div className="relative space-y-2">
+    <div className="relative space-y-2 mb-4">
       <Label htmlFor={id} className="flex items-center gap-2 text-white">
-        carrier
+        Carrier
         {isLoading && <Spinner className="h-3 w-3" />}
         {error && <span className="text-xs text-red-500">({error})</span>}
       </Label>
       <div className="relative">
         <Input
           id={id}
-          type="text"
+          value={currentDisplayValue}
+          onChange={(e) => {
+            const next = e.target.value;
+            setDisplayValue(next);
+            // If a vehicle is already selected, typing should clear the selection
+            if (value) {
+              onChange("");
+            }
+            setShow(true);
+          }}
+          onFocus={() => setShow(true)}
+          onBlur={() => setTimeout(() => setShow(false), 200)}
           placeholder={placeholder}
-          value={value}
-          onChange={handleInputChange}
-          onFocus={handleFocus}
-          onBlur={handleBlur}
           required={required}
           disabled={disabled || isLoading}
-          className="w-full bg-white rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
           autoComplete="off"
+          className="bg-white text-foreground"
         />
-
-        {/* Suggestions Dropdown */}
-        {showSuggestions && filteredVehicles.length > 0 && (
+        {value && (
+          <button
+            type="button"
+            aria-label="Clear vehicle"
+            onMouseDown={(e) => e.preventDefault()}
+            onClick={() => {
+              onChange("");
+              setDisplayValue("");
+              setShow(false);
+            }}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 text-sm px-1"
+          >
+            ×
+          </button>
+        )}
+        {show && filtered.length > 0 && (
           <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-input rounded-md shadow-lg max-h-48 overflow-y-auto">
-            {filteredVehicles.map((vehicle) => (
+            {filtered.map((vehicle) => (
               <button
                 key={vehicle.id}
                 type="button"
                 onClick={() => handleSelect(vehicle)}
-                className="w-full text-left px-4 py-2 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground focus:outline-none transition-colors"
+                className="w-full text-left px-4 py-2 hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground transition-colors"
               >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{vehicle.number_plate}</span>
-                  <span className="text-xs text-gray-500">
-                    {/* Fleet #{vehicle.fleet_number} */}
-                  </span>
-                </div>
-                <div className="text-xs text-gray-400 mt-0.5">
-                  {/* {vehicle.active_status === "1" ? "✓ Active" : "Inactive"} •{" "} */}
-                  {/* {vehicle.load_count} loads */}
-                </div>
+                <span className="font-medium">{vehicle.number_plate}</span>                
               </button>
             ))}
           </div>
         )}
-
-        {/* No results message */}
-        {showSuggestions && value.trim() && filteredVehicles.length === 0 && (
+        {show && filtered.length === 0 && (
           <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white border border-input rounded-md shadow-lg px-4 py-3">
             <p className="text-sm text-gray-500">No vehicles found</p>
           </div>
