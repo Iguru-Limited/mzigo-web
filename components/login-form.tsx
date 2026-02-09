@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
@@ -82,22 +82,28 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <div className="bg-muted relative hidden md:block overflow-hidden h-full min-h-96">
-            <img
-              src="/logo.jpg"
-              alt="Login Image"
-              className="w-full h-full object-cover dark:brightness-[0.2] dark:grayscale"
-            />
-          </div>
-          <div className="flex flex-col items-center w-full py-8">
-            {/* The Logo Container */}
-            <div className="mb-4">
+          <Suspense fallback={<div className="bg-muted relative hidden md:block overflow-hidden h-full min-h-96" />}>
+            <div className="bg-muted relative hidden md:block overflow-hidden h-full min-h-96">
               <img
-                src="/logo1.jpg"
-                alt="Mzigo Logo"
-                className="w-32 h-32 object-contain"
+                src="/logo.jpg"
+                alt="Login Image"
+                loading="eager"
+                className="w-full h-full object-cover dark:brightness-[0.2] dark:grayscale"
               />
             </div>
+          </Suspense>
+          <div className="flex flex-col items-center w-full py-8">
+            {/* The Logo Container */}
+            <Suspense fallback={<div className="w-32 h-32 bg-muted rounded" />}>
+              <div className="mb-4">
+                <img
+                  src="/logo.jpg"
+                  alt="Mzigo Logo"
+                  loading="eager"
+                  className="w-32 h-32 object-contain"
+                />
+              </div>
+            </Suspense>
 
             {/* The Form */}
             <div className="w-full">
@@ -110,11 +116,13 @@ export function LoginForm({
                     </p>
                   </div>
                   <Field>
-                    <FieldLabel htmlFor="idNumber" className="text-base">ID Number</FieldLabel>
+                    <FieldLabel htmlFor="idNumber" className="text-base">Username</FieldLabel>
                     <Input
                       id="idNumber"
                       type="text"
-                      placeholder="Enter your ID number"
+                      placeholder="
+                      
+                      username"
                       value={idNumber}
                       onChange={(e) => setIdNumber(e.target.value)}
                       disabled={isLoading}
@@ -124,7 +132,7 @@ export function LoginForm({
                   </Field>
                   <Field>
                     <div className="flex items-center">
-                      <FieldLabel htmlFor="passPhrase" className="text-base">Pass Phrase</FieldLabel>
+                      <FieldLabel htmlFor="passPhrase" className="text-base">Password</FieldLabel>
                     </div>
                     <Input
                       id="passPhrase"
