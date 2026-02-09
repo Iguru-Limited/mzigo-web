@@ -53,20 +53,18 @@ export default function MainLayout({
       {/* Offline status banner */}
       <OfflineBanner />
 
-      {/* Mobile Navigation - Only visible on mobile */}
-      <div className="lg:hidden">
-        <MobileNav />
-        <main className="flex flex-1 flex-col">
-          {children}
-        </main>
-      </div>
+      {/* Mobile Navigation */}
+      <MobileNav />
 
+      {/* Desktop Navigation - Only visible on desktop */}
       <div className="hidden lg:block">
         <DesktopNav />
-        <main className="mx-auto flex max-w-7xl flex-1 flex-col px-6">
-          {children}
-        </main>
       </div>
+
+      {/* Main content */}
+      <main className="flex flex-1 flex-col lg:mx-auto lg:max-w-7xl lg:px-6 pb-24 lg:pb-0">
+        {children}
+      </main>
     </>
   );
 }
