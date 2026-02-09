@@ -93,7 +93,7 @@ export function LoginForm({
             {/* The Logo Container */}
             <div className="mb-4">
               <img
-                src="/logo.jpg"
+                src="/logo1.jpg"
                 alt="Mzigo Logo"
                 className="w-32 h-32 object-contain"
               />
