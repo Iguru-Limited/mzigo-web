@@ -7,7 +7,6 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import Image from "next/image";
 import {
   Field,
   FieldGroup,
@@ -83,26 +82,20 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card className="overflow-hidden p-0">
         <CardContent className="grid p-0 md:grid-cols-2">
-          <div className="bg-muted relative hidden md:block">
-            <Image
+          <div className="bg-muted relative hidden md:block overflow-hidden h-full min-h-96">
+            <img
               src="/logo.jpg"
               alt="Login Image"
-              fill
-              sizes="50vw"
-              className="object-cover dark:brightness-[0.2] dark:grayscale"
-              unoptimized
+              className="w-full h-full object-cover dark:brightness-[0.2] dark:grayscale"
             />
           </div>
-          <div className="flex flex-col items-center w-full">
+          <div className="flex flex-col items-center w-full py-8">
             {/* The Logo Container */}
-            <div className="relative w-32 h-32 shrink-0">
-              <Image
+            <div className="mb-4">
+              <img
                 src="/logo.webp"
                 alt="Mzigo Logo"
-                fill
-                sizes="128px"
-                className="object-contain"
-                unoptimized
+                className="w-32 h-32 object-contain"
               />
             </div>
 
