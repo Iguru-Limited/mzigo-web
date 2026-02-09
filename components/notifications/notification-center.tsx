@@ -164,7 +164,7 @@ export function NotificationCenter() {
               setDisplayCount(10);
               setSearchQuery("");
             }}
-            className={`px-4 py-2 font-medium transition-colors ${
+            className={`px-4 py-2 font-medium hover:cursor-pointer transition-colors ${
               activeTab === "unnotified"
                 ? "border-b-2 border-primary text-primary"
                 : "text-muted-foreground hover:text-foreground"
@@ -178,7 +178,7 @@ export function NotificationCenter() {
               setDisplayCount(10);
               setSearchQuery("");
             }}
-            className={`px-4 py-2 font-medium transition-colors ${
+            className={`px-4 py-2 font-medium hover:cursor-pointer transition-colors ${
               activeTab === "notified"
                 ? "border-b-2 border-primary text-primary"
                 : "text-muted-foreground hover:text-foreground"

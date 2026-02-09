@@ -19,6 +19,8 @@ export function MobileNav() {
   const name = session?.user?.name || "N/A";
   const level = session?.user?.user_level || "N/A";
   const company = session?.company?.name || "N/A";
+    const location = session?.office?.name || "N/A";
+
 
   const handleLogout = () => {
     signOut({ callbackUrl: "/login" });
@@ -29,7 +31,7 @@ export function MobileNav() {
       <div className="sticky top-0 z-50 border-b bg-background lg:hidden">
         <div className="flex items-center justify-between px-4 py-3">
         {/* Logo */}
-        <Link href="/dashboard" className="flex items-center">
+        <Link href="/dashboard" className="flex items-center cursor-pointer">
           <img src="/logo.jpg" alt="mzigo logo" className="h-12 w-12 object-contain" />
         </Link>
 
@@ -38,7 +40,7 @@ export function MobileNav() {
             <DropdownMenuTrigger asChild>
               <button
                 type="button"
-                className="flex flex-col items-center justify-center gap-1 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+                className="flex flex-col items-center justify-center gap-1 py-1 text-xs font-medium text-muted-foreground hover:text-foreground cursor-pointer"
               >
                 <Avatar className="h-8 w-8">
                   <AvatarFallback className="bg-muted">
@@ -61,6 +63,10 @@ export function MobileNav() {
                 <span className="text-xs text-muted-foreground">Level</span>
                 <span className="font-medium text-foreground">{level}</span>
               </DropdownMenuItem>
+              <DropdownMenuItem className="flex flex-col items-start gap-1">
+                  <span className="text-xs text-muted-foreground">Location</span>
+                  <span className="font-medium text-foreground">{location}</span>
+                </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -72,7 +78,7 @@ export function MobileNav() {
           <Link
             href="/dashboard"
             className={cn(
-              "flex flex-col items-center justify-center gap-1 py-1 text-xs font-medium transition-colors",
+              "flex flex-col items-center justify-center gap-1 py-1 text-xs font-medium transition-colors cursor-pointer",
               pathname === "/dashboard"
                 ? "text-primary"
                 : "text-muted-foreground hover:text-foreground"
@@ -85,7 +91,7 @@ export function MobileNav() {
           <button
             type="button"
             onClick={handleLogout}
-            className="flex flex-col items-center justify-center gap-1 py-1 text-xs font-medium text-muted-foreground hover:text-foreground"
+            className="flex flex-col items-center justify-center gap-1 py-1 text-xs font-medium text-muted-foreground hover:text-foreground cursor-pointer"
           >
             <LogOut className="h-7 w-7" />
             <span>logout</span>

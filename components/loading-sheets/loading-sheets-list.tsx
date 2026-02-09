@@ -174,7 +174,7 @@ export function LoadingSheetsList() {
             ) : (
               <div className="space-y-2 md:space-y-4">
                 {sheets.map((sheet) => (
-                  <Link key={sheet.id} href={`/loading-sheets/${sheet.id}`} className="block group">
+                  <Link key={sheet.id} href={`/loading-sheets/${sheet.id}`} className="block group cursor-pointer">
                     <Card className="border-border/70 shadow-md hover:shadow-xl transition-all duration-200 group-hover:border-primary/30 bg-gradient-to-br from-white to-slate-50/30 group-hover:to-primary/5">
                       <CardContent className="p-3 md:p-5">
                         <div className="flex items-start gap-3 md:gap-4">

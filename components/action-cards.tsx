@@ -223,8 +223,8 @@ export function ActionCards() {
       </div> */}
       <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3">
         {availableCards.map((card) => (
-          <Link key={card.id} href={card.href}>
-            <div className="group cursor-pointer rounded-lg border border-border/50 p-6 transition-all hover:border-primary/50 hover:bg-accent hover:shadow-md">
+          <Link key={card.id} href={card.href} className="cursor-pointer">
+            <div className="group rounded-lg border border-border/50 p-6 transition-all hover:border-primary/50 hover:bg-accent hover:shadow-md">
               <div className="flex flex-col items-center gap-4 text-center">
                 <div
                   className={cn(

@@ -20,12 +20,13 @@ export function DesktopNav() {
   const name = session?.user?.name || "N/A";
   const level = session?.user?.user_level || "N/A";
   const company = session?.company?.name || "N/A";
+  const location = session?.office?.name || "N/A";
   return (
     <header className="sticky top-0 z-20 w-full border-b bg-background">
       <div className="mx-auto max-w-7xl px-6">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/dashboard" className="flex items-center">
+          <Link href="/dashboard" className="flex items-center cursor-pointer">
             <Image src="/logo.jpg" alt="mzigo logo" width={64} height={64} style={{ objectFit: "contain" }} unoptimized />
           </Link>
 
@@ -34,7 +35,7 @@ export function DesktopNav() {
             <Link
               href="/dashboard"
               className={cn(
-                "flex flex-col items-center justify-center gap-1 text-sm font-medium transition-colors",
+                "flex flex-col items-center justify-center gap-1 text-sm font-medium transition-colors cursor-pointer",
                 pathname === "/dashboard" ? "text-primary" : "text-muted-foreground hover:text-foreground"
               )}
             >
@@ -46,7 +47,7 @@ export function DesktopNav() {
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="flex flex-col items-center justify-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
+                  className="flex flex-col items-center justify-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground cursor-pointer"
                 >
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-muted">
@@ -69,13 +70,17 @@ export function DesktopNav() {
                   <span className="text-xs text-muted-foreground">Level</span>
                   <span className="font-medium text-foreground">{level}</span>
                 </DropdownMenuItem>
+                <DropdownMenuItem className="flex flex-col items-start gap-1">
+                  <span className="text-xs text-muted-foreground">Location</span>
+                  <span className="font-medium text-foreground">{location}</span>
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
 
             {/* Logout */}
             <button
               onClick={() => signOut({ callbackUrl: "/login" })}
-              className="flex flex-col items-center justify-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground"
+              className="flex flex-col items-center justify-center gap-1 text-sm font-medium text-muted-foreground hover:text-foreground cursor-pointer"
             >
               <LogOut className="h-8 w-8" />
               <span className="text-xs">Logout</span>

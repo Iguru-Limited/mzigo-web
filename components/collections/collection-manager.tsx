@@ -203,7 +203,7 @@ export function CollectionManager() {
       <div className="flex gap-2 border-b">
         <button
           onClick={() => handleTabChange("collected")}
-          className={`px-4 py-2 font-medium text-sm transition-colors ${
+          className={`px-4 py-2 font-medium hover:cursor-pointer text-sm transition-colors ${
             activeTab === "collected"
               ? "text-primary border-b-2 border-primary -mb-0.5"
               : "text-muted-foreground hover:text-foreground"
@@ -213,7 +213,7 @@ export function CollectionManager() {
         </button>
         <button
           onClick={() => handleTabChange("to_collect")}
-          className={`px-4 py-2 font-medium text-sm transition-colors ${
+          className={`px-4 py-2 font-medium hover:cursor-pointer text-sm transition-colors ${
             activeTab === "to_collect"
               ? "text-primary border-b-2 border-primary -mb-0.5"
               : "text-muted-foreground hover:text-foreground"

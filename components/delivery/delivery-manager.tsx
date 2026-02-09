@@ -220,7 +220,7 @@ export function DeliveryManager() {
       <div className="flex gap-2 border-b">
         <button
           onClick={() => handleTabChange("delivered")}
-          className={`px-4 py-2 font-medium text-sm transition-colors ${
+          className={`px-4 py-2 hover:cursor-pointer font-medium text-sm transition-colors ${
             activeTab === "delivered"
               ? "text-primary border-b-2 border-primary -mb-0.5"
               : "text-muted-foreground hover:text-foreground"
@@ -230,7 +230,7 @@ export function DeliveryManager() {
         </button>
         <button
           onClick={() => handleTabChange("undelivered")}
-          className={`px-4 py-2 font-medium text-sm transition-colors ${
+          className={`px-4 py-2 hover:cursor-pointer font-medium text-sm transition-colors ${
             activeTab === "undelivered"
               ? "text-primary border-b-2 border-primary -mb-0.5"
               : "text-muted-foreground hover:text-foreground"

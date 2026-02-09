@@ -44,7 +44,7 @@ export function ExpressManager() {
       <div className="flex gap-2 border-b">
         <button
           onClick={() => setActiveTab("scan")}
-          className={`px-4 py-2 font-medium transition-colors ${
+          className={`px-4 py-2 hover:cursor-pointer font-medium transition-colors ${
             activeTab === "scan"
               ? "border-b-2 border-primary text-primary"
               : "text-muted-foreground hover:text-foreground"
@@ -55,7 +55,7 @@ export function ExpressManager() {
         </button>
         <button
           onClick={() => setActiveTab("search")}
-          className={`px-4 py-2 font-medium transition-colors ${
+          className={`px-4 py-2 font-medium transition-colors hover:cursor-pointer ${
             activeTab === "search"
               ? "border-b-2 border-primary text-primary"
               : "text-muted-foreground hover:text-foreground"
@@ -79,7 +79,7 @@ export function ExpressManager() {
               </div>
 
               {!isScanning ? (
-                <Button onClick={() => setIsScanning(true)} size="lg">
+                <Button onClick={() => setIsScanning(true)} size="lg" >
                   <FontAwesomeIcon icon={faQrcode} className="mr-2" />
                   Start Scanning
                 </Button>

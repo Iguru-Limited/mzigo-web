@@ -52,14 +52,14 @@ export function MzigoBrowser() {
       <div className="flex gap-8 border-b border-border">
         <button
           onClick={() => setTrafficType("outgoing")}
-          className={`pb-3 font-semibold text-base transition-colors relative ${
+          className={`pb-3 font-semibold text-base transition-colors relative hover:cursor-pointer ${
             trafficType === "outgoing"
               ? "text-primary"
               : "text-muted-foreground hover:text-foreground"
           }`}
         >
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${trafficType === "outgoing" ? "bg-primary" : "bg-muted-foreground"}`}></div>
+            <div className={`w-2 h-2  rounded-full ${trafficType === "outgoing" ? "bg-primary" : "bg-muted-foreground"}`}></div>
             Outgoing
           </div>
           {trafficType === "outgoing" && (
@@ -69,7 +69,7 @@ export function MzigoBrowser() {
 
         <button
           onClick={() => setTrafficType("incoming")}
-          className={`pb-3 font-semibold text-base transition-colors relative ${
+          className={`pb-3 font-semibold hover:cursor-pointer text-base transition-colors relative ${
             trafficType === "incoming"
               ? "text-primary"
               : "text-muted-foreground hover:text-foreground"
