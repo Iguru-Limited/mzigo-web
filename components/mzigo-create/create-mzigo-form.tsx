@@ -22,6 +22,14 @@ import {
 } from "@/hooks";
 import { ReceiptPreview } from "@/components/receipt/receipt-preview";
 import { ReceiptData } from "@/types/operations/receipt";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export function CreateMzigoForm() {
   const router = useRouter();
@@ -47,6 +55,7 @@ export function CreateMzigoForm() {
     vehiclePlate: "",
     commission: "",
     specialInstructions: "",
+    quantity: "",
   });
 
   // Fetch destinations based on selected route
@@ -66,6 +75,9 @@ export function CreateMzigoForm() {
   const [error, setError] = useState<string | null>(null);
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [isAdvancing, setIsAdvancing] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -80,8 +92,10 @@ export function CreateMzigoForm() {
     setError(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
     setIsLoading(true);
     setError(null);
 
@@ -114,7 +128,7 @@ export function CreateMzigoForm() {
       }
 
       // Map form data to API payload structure
-      const payload = {
+      const payload: any = {
         sender_name: formData.senderName,
         sender_phone: formData.senderPhone,
         receiver_name: formData.receiverName,
@@ -131,6 +145,11 @@ export function CreateMzigoForm() {
         commission: formData.commission || "0",
         special_instructions: formData.specialInstructions,
       };
+
+      // Include quantity only if it exists and is not empty
+      if (formData.quantity.trim()) {
+        payload.quantity = formData.quantity;
+      }
 
       const response = await createMzigo(payload);
 
@@ -171,6 +190,62 @@ export function CreateMzigoForm() {
     }
   };
 
+  const validateStep1 = () => {
+    if (
+      !formData.senderName.trim() ||
+      !formData.senderPhone.trim() ||
+      !formData.receiverName.trim() ||
+      !formData.receiverPhone.trim() ||
+      !formData.receiverRoute.trim() ||
+      !formData.destination.trim()
+    ) {
+      setError("Please fill all Sender and Receiver details before continuing.");
+      toast.error("Incomplete details", {
+        description: "Fill in all required fields in step 1 to proceed.",
+      });
+      return false;
+    }
+    setError(null);
+    return true;
+  };
+
+  const validateStep2 = () => {
+    if (
+      (!shouldHideField("extra_field") && !formData.parcelDescription.trim()) ||
+      !formData.parcelValue.trim() ||
+      (!shouldHideField("size_field") && !formData.packageSize.trim()) ||
+      !formData.amountCharged.trim() ||
+      (!shouldHideField("commission_field") && formData.commission === "") ||
+      !formData.paymentMode.trim()
+    ) {
+      setError("Please fill all parcel and payment details before confirming.");
+      toast.error("Incomplete details", {
+        description: "Fill in all required fields in step 2 to proceed.",
+      });
+      return false;
+    }
+    setError(null);
+    return true;
+  };
+
+  const handleNextStep = () => {
+    if (!validateStep1()) return;
+    setIsAdvancing(true);
+    setTimeout(() => {
+      setStep(2);
+      setIsAdvancing(false);
+    }, 1500);
+  };
+
+  const handleBackStep = () => {
+    setStep(1);
+  };
+
+  const handleOpenConfirm = () => {
+    if (!validateStep2()) return;
+    setShowConfirm(true);
+  };
+
   if (isOffline && !offlineEnabled) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[50vh] p-6">
@@ -183,7 +258,8 @@ export function CreateMzigoForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <div>
+      <form onSubmit={handleSubmit} className="space-y-6">
       {error && (
         <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
           <p className="font-medium">Error</p>
@@ -191,14 +267,15 @@ export function CreateMzigoForm() {
         </div>
       )}
 
-      {/* Split Pane: Sender & Receiver Side by Side */}
+      {/* Step 1: Sender & Receiver */}
+      {step === 1 && (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Sender Details Card */}
         <div className="rounded-2xl overflow-hidden shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
           <div className="bg-white py-4 px-6">
             <h2 className="text-lg font-bold text-gray-800">Sender Details</h2>
           </div>
-          <div className="bg-green-800 p-6 space-y-4">
+          <div className="bg-[#0E6E3C] p-6 space-y-4">
             <div>
               <label className="block text-white text-sm font-semibold mb-2">Name</label>
               <Input id="senderName" name="senderName" placeholder="Full name" value={formData.senderName} onChange={handleChange} className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent" required />
@@ -219,7 +296,7 @@ export function CreateMzigoForm() {
           <div className="bg-white py-4 px-6">
             <h2 className="text-lg font-bold text-gray-800">Receiver Details</h2>
           </div>
-          <div className="bg-blue-600 p-6 space-y-4 overflow-visible">
+          <div className="bg-[#0E6E3C] p-6 space-y-4 overflow-visible">
             <div>
               <label className="block text-white text-sm font-semibold mb-2">Name</label>
               <Input id="receiverName" name="receiverName" placeholder="Full name" value={formData.receiverName} onChange={handleChange} className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required />
@@ -259,118 +336,161 @@ export function CreateMzigoForm() {
           </div>
         </div>
       </div>
+      )}
 
-      {/* Mzigo Details Card */}
-      <div className="rounded-2xl overflow-hidden shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-        <div className="bg-white py-3 px-6">
-          <h2 className="text-lg font-bold text-gray-800">Mzigo Details</h2>
-        </div>
-        <div className="bg-neutral-800 p-6">
-          <div className={`grid ${!shouldHideField("vehicle_field") ? "lg:grid-cols-2" : "grid-cols-1"} gap-6`}>
-            {!shouldHideField("vehicle_field") && (
-              <div>
-                <VehicleInput
-                  id="vehiclePlate"
-                  value={formData.vehiclePlate}
-                  onChange={(value) => setFormData((prev) => ({ ...prev, vehiclePlate: value }))}
-                  vehicles={vehicles}
-                  isLoading={vehiclesLoading}
-                  error={vehiclesError}
-                  placeholder="Select vehicle"
-                  required
-                />
-              </div>
-            )}
-
-            {!shouldHideField("extra_field") && (
-              <div>
-                <label className="block text-white text-sm font-semibold mb-1.5">Parcel Description</label>
-                <textarea
-                  id="parcelDescription"
-                  name="parcelDescription"
-                  placeholder="Describe the parcel contents"
-                  value={formData.parcelDescription}
-                  onChange={handleChange}
-                  rows={3}
-                  className="w-full px-3.5 py-2.5 bg-white text-gray-900 rounded-lg border border-gray-300 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent"
-                  required
-                />
-              </div>
-            )}
-
-            <div>
-              <label className="block text-white text-sm font-semibold mb-1.5">Parcel Value (KES)</label>
-              <Input id="parcelValue" name="parcelValue" type="number" placeholder="0.00" value={formData.parcelValue} onChange={handleChange} className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent" required />
+      {/* Step 2: Mzigo & Payment Details */}
+      {step === 2 && (
+        <div className="space-y-6">
+          {/* Mzigo Details Card */}
+          <div className="rounded-2xl overflow-hidden shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+            <div className="bg-white py-3 px-6">
+              <h2 className="text-lg font-bold text-gray-800">Mzigo Details</h2>
             </div>
+            <div className="bg-[#0E6E3C] p-6">
+              <div className={`grid ${!shouldHideField("vehicle_field") ? "lg:grid-cols-2" : "grid-cols-1"} gap-6`}>
+                {!shouldHideField("vehicle_field") && (
+                  <div>
+                    <VehicleInput
+                      id="vehiclePlate"
+                      value={formData.vehiclePlate}
+                      onChange={(value) => setFormData((prev) => ({ ...prev, vehiclePlate: value }))}
+                      vehicles={vehicles}
+                      isLoading={vehiclesLoading}
+                      error={vehiclesError}
+                      placeholder="Select vehicle"
+                      required
+                    />
+                  </div>
+                )}
 
-            {!shouldHideField("size_field") && (
-              <div>
-                <SizeSelect
-                  id="packageSize"
-                  value={formData.packageSize}
-                  onChange={(value) => setFormData((prev) => ({ ...prev, packageSize: value }))}
-                  sizes={sizes}
-                  isLoading={sizesLoading}
-                  error={sizesError}
-                  required
-                />
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+                {!shouldHideField("extra_field") && (
+                  <div>
+                    <label className="block text-white text-sm font-semibold mb-1.5">Parcel Description</label>
+                    <textarea
+                      id="parcelDescription"
+                      name="parcelDescription"
+                      placeholder="Describe the parcel contents"
+                      value={formData.parcelDescription}
+                      onChange={handleChange}
+                      rows={3}
+                      className="w-full px-3.5 py-2.5 bg-white text-gray-900 rounded-lg border border-gray-300 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent"
+                      required
+                    />
+                  </div>
+                )}
 
-      {/* Payment Details Card */}
-      <div className="rounded-2xl overflow-hidden shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-        <div className="bg-white py-3 px-6">
-          <h2 className="text-lg font-bold text-gray-800">Payment Details</h2>
-        </div>
-        <div className="bg-amber-700 p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <label className="block text-white text-sm font-semibold mb-1.5">Delivery Amount (KES)</label>
-              <Input
-                id="amountCharged"
-                name="amountCharged"
-                type="number"
-                placeholder="0.00"
-                value={formData.amountCharged}
-                onChange={handleChange}
-                className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
-                required
-                min={minAmount || undefined}
-                max={maxAmount || undefined}
-              />
-            </div>
-            {!shouldHideField("commission_field") && (
-              <div>
-                <label className="block text-white text-sm font-semibold mb-1.5">Commission (KES)</label>
-                <Input id="commission" name="commission" type="number" placeholder="0.00" value={formData.commission} onChange={handleChange} className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+                <div>
+                  <label className="block text-white text-sm font-semibold mb-1.5">Parcel Value (KES)</label>
+                  <Input id="parcelValue" name="parcelValue" type="number" placeholder="0.00" value={formData.parcelValue} onChange={handleChange} className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent" required />
+                </div>
+
+                {!shouldHideField("size_field") && (
+                  <div>
+                    <SizeSelect
+                      id="packageSize"
+                      value={formData.packageSize}
+                      onChange={(value) => setFormData((prev) => ({ ...prev, packageSize: value }))}
+                      sizes={sizes}
+                      isLoading={sizesLoading}
+                      error={sizesError}
+                      required
+                    />
+                  </div>
+                )}
+
+                {!shouldHideField("quantity_field") && (
+                  <div>
+                    <label className="block text-white text-sm font-semibold mb-1.5">Quantity</label>
+                    <Input id="quantity" name="quantity" type="number" placeholder="Enter quantity" value={formData.quantity} onChange={handleChange} className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent" />
+                  </div>
+                )}
               </div>
-            )}
-            <div className={!shouldHideField("commission_field") ? "lg:col-span-2" : "lg:col-span-2"}>
-              <label className="block text-white text-sm font-semibold mb-1.5">Payment Method</label>
-              <select
-                id="paymentMode"
-                name="paymentMode"
-                value={formData.paymentMode}
-                onChange={handleChange}
-                required
-                disabled={paymentMethodsLoading}
-                className="w-full px-3.5 py-2.5 bg-white text-gray-900 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                <option value="">{paymentMethodsLoading ? "Loading..." : paymentMethodsError ? "Error loading" : "Select payment method"}</option>
-                {paymentMethods.map((method) => (
-                  <option key={method.id} value={method.id}>{method.payment_method}</option>
-                ))}
-              </select>
-              {paymentMethodsError && <p className="text-xs text-yellow-100 mt-1">{paymentMethodsError}</p>}
             </div>
           </div>
-        </div>
-      </div>
 
-      <Button type="submit" className="w-full py-2.5 bg-green-700 hover:bg-green-800 text-white font-semibold rounded-lg transition-colors" disabled={isLoading}>{isLoading ? "Processing..." : "Create Mzigo"}</Button>
+          {/* Payment Details Card */}
+          <div className="rounded-2xl overflow-hidden shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+            <div className="bg-white py-3 px-6">
+              <h2 className="text-lg font-bold text-gray-800">Payment Details</h2>
+            </div>
+            <div className="bg-[#0E6E3C] p-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-white text-sm font-semibold mb-1.5">Delivery Amount (KES)</label>
+                  <Input
+                    id="amountCharged"
+                    name="amountCharged"
+                    type="number"
+                    placeholder="0.00"
+                    value={formData.amountCharged}
+                    onChange={handleChange}
+                    className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                    required
+                    min={minAmount || undefined}
+                    max={maxAmount || undefined}
+                  />
+                </div>
+                {!shouldHideField("commission_field") && (
+                  <div>
+                    <label className="block text-white text-sm font-semibold mb-1.5">Commission (KES)</label>
+                    <Input id="commission" name="commission" type="number" placeholder="0.00" value={formData.commission} onChange={handleChange} className="w-full px-3.5 py-2.5 bg-white rounded-lg border border-gray-300 text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent" />
+                  </div>
+                )}
+                <div className={!shouldHideField("commission_field") ? "lg:col-span-2" : "lg:col-span-2"}>
+                  <label className="block text-white text-sm font-semibold mb-1.5">Payment Method</label>
+                  <select
+                    id="paymentMode"
+                    name="paymentMode"
+                    value={formData.paymentMode}
+                    onChange={handleChange}
+                    required
+                    disabled={paymentMethodsLoading}
+                    className="w-full px-3.5 py-2.5 bg-white text-gray-900 rounded-lg border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <option value="">{paymentMethodsLoading ? "Loading..." : paymentMethodsError ? "Error loading" : "Select payment method"}</option>
+                    {paymentMethods.map((method) => (
+                      <option key={method.id} value={method.id}>{method.payment_method}</option>
+                    ))}
+                  </select>
+                  {paymentMethodsError && <p className="text-xs text-yellow-100 mt-1">{paymentMethodsError}</p>}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleBackStep}
+              className="flex-1"
+              disabled={isLoading}
+            >
+              Back
+            </Button>
+            <Button
+              type="button"
+              className="flex-1 py-2.5 bg-[#0E6E3C] hover:bg-[#0B5A34] text-white font-semibold rounded-lg transition-colors"
+              disabled={isLoading}
+              onClick={handleOpenConfirm}
+            >
+              Review &amp; Confirm
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {step === 1 && (
+        <Button
+          type="button"
+          className="w-full py-2.5 bg-[#0E6E3C] hover:bg-[#0B5A34] text-white font-semibold rounded-lg transition-colors"
+          disabled={isAdvancing}
+          onClick={handleNextStep}
+        >
+          {isAdvancing ? "Preparing next step..." : "Continue"}
+        </Button>
+      )}
+      </form>
 
       <ReceiptPreview
         open={receiptOpen}
@@ -380,6 +500,65 @@ export function CreateMzigoForm() {
           router.push("/dashboard");
         }}
       />
-    </form>
+      <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Mzigo Details</DialogTitle>
+            <DialogDescription>
+              Please review the key details below before creating the mzigo.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <div>
+              <p className="font-semibold">Sender</p>
+              <p>{formData.senderName} ({formData.senderPhone})</p>
+            </div>
+            <div>
+              <p className="font-semibold">Receiver</p>
+              <p>
+                {formData.receiverName} ({formData.receiverPhone})
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Route: {formData.receiverRoute || "-"}, Destination: {formData.destination || "-"}
+              </p>
+            </div>
+            <div>
+              <p className="font-semibold">Parcel</p>
+              <p>{formData.parcelDescription || "(No description)"}</p>
+            </div>
+            <div>
+              <p className="font-semibold">Payment</p>
+              <p>
+                Amount: KES {formData.amountCharged || "0.00"}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Method: {formData.paymentModeName || "Not selected"}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowConfirm(false)}
+              disabled={isLoading}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="bg-[#0E6E3C] hover:bg-[#0B5A34] text-white"
+              disabled={isLoading}
+              onClick={async () => {
+                setShowConfirm(false);
+                await handleSubmit();
+              }}
+            >
+              {isLoading ? "Processing..." : "Confirm & Create"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

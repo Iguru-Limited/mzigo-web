@@ -74,6 +74,88 @@ function lineToHtml(item: ReceiptItem): string {
   return `<div style="${style}; white-space: pre-wrap;">${label}${content}${end}</div>`;
 }
 
+export async function generateReceiptHtmlForPdf(data: ReceiptData): Promise<string> {
+  const lines = data.receipt.map(lineToHtml).join("");
+  
+  // Generate QR code for package token (online only - not for offline receipts)
+  let qrCodeHtml = "";
+  const isOfflineReceipt = data.receipt_number?.startsWith("OFFLINE-");
+  if (data.package_token && !isOfflineReceipt) {
+    try {
+      const qrDataUrl = await generateQRCodeDataUrl(data.package_token, 120);
+      qrCodeHtml = `
+        <div style="text-align: center; margin-top: 12px; padding-top: 8px; border-top: 1px dashed #000; page-break-inside: avoid; width: 100%; display: flex; justify-content: center;">
+          <img src="${qrDataUrl}" alt="Package QR Code" style="width: 120px; height: 120px; display: block; image-rendering: crisp-edges;" />
+        </div>
+      `;
+    } catch (error) {
+      console.error("Failed to generate QR code for receipt:", error);
+    }
+  }
+
+  return `
+    <!doctype html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>Receipt ${data.receipt_number}</title>
+        <style>
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+          }
+          html, body { 
+            width: 100%;
+            margin: 0;
+            padding: 0;
+          }
+          body { 
+            font-family: monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            padding: 8px;
+            background-color: white;
+            color: black;
+            display: flex;
+            justify-content: center;
+          }
+          .receipt-container {
+            width: fit-content;
+            margin: 0 auto;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+          }
+          .receipt { 
+            width: 100%;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+            text-align: center;
+          }
+          img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 0 auto;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt-container">
+          <div class="receipt">
+            ${lines}
+          </div>
+          ${qrCodeHtml}
+        </div>
+      </body>
+    </html>
+  `;
+}
+
 export async function generateReceiptHtml(data: ReceiptData, paperWidth: PaperWidth = "58mm"): Promise<string> {
   const width = paperWidth === "58mm" ? "48mm" : "72mm";
   const pageSize = paperWidth === "58mm" ? "58mm auto" : "80mm auto";
@@ -255,4 +337,57 @@ export async function generateBridgeReceiptHtml(
       </body>
     </html>
   `;
+}
+
+export async function downloadReceipt(data: ReceiptData): Promise<void> {
+  const { jsPDF } = await import("jspdf");
+  const html2canvas = (await import("html2canvas")).default;
+  
+  // Use simplified HTML without external styles
+  const html = await generateReceiptHtmlForPdf(data);
+  
+  // Create a temporary container
+  const container = document.createElement("div");
+  container.innerHTML = html;
+  container.style.position = "absolute";
+  container.style.left = "-9999px";
+  container.style.top = "0";
+  container.style.width = "210mm";
+  container.style.backgroundColor = "white";
+  container.style.color = "black";
+  
+  document.body.appendChild(container);
+  
+  try {
+    // Convert HTML to canvas with basic options
+    const canvas = await html2canvas(container, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: "#ffffff",
+      allowTaint: true,
+      removeContainer: false,
+    });
+    
+    // Create PDF
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+    });
+    
+    const imgWidth = 210; // A4 width in mm
+    const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    
+    const imgData = canvas.toDataURL("image/png");
+    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+    
+    // Trigger download
+    pdf.save(`receipt-${data.receipt_number}.pdf`);
+  } finally {
+    // Clean up
+    if (container.parentNode) {
+      document.body.removeChild(container);
+    }
+  }
 }

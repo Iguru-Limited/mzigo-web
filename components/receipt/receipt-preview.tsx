@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,9 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDownIcon, PrinterIcon, PaperAirplaneIcon, DevicePhoneMobileIcon } from "@heroicons/react/24/outline";
+import { ChevronDownIcon, PrinterIcon, PaperAirplaneIcon, DevicePhoneMobileIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { ReceiptData } from "@/types/operations/receipt";
-import { openPrintWindow, PaperWidth } from "@/lib/receipt";
+import { openPrintWindow, PaperWidth, downloadReceipt } from "@/lib/receipt";
 import { generateQRCodeDataUrl } from "@/lib/qr-utils";
 import { QRCodeComponent } from "@/components/receipt/qr-code";
 import { toast } from "sonner";
@@ -25,10 +26,35 @@ interface ReceiptPreviewProps {
 }
 
 export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
+  const router = useRouter();
   const [isSending, setIsSending] = useState(false);
   const [isPrinting, setIsPrinting] = useState(false);
+  const [isDownloading, setIsDownloading] = useState(false);
   const { data: session } = useSession();
   const copyCount = Math.max(1, Number(session?.user?.counter ?? 1));
+
+  const handleDownload = async () => {
+    if (!data) return;
+
+    setIsDownloading(true);
+
+    try {
+      await downloadReceipt(data);
+      toast.success("Receipt downloaded successfully!", {
+        description: `Receipt #${data.receipt_number} has been downloaded.`,
+      });
+      // Redirect to homepage after successful download
+      onClose();
+      router.push("/dashboard");
+    } catch (error) {
+      console.error("Failed to download receipt:", error);
+      toast.error("Failed to download receipt", {
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   const handlePrint = async (paperWidth: PaperWidth = "58mm") => {
     if (!data) return;
@@ -195,8 +221,8 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
           <Button variant="outline" onClick={onClose}>Close</Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button disabled={!data || isSending || isPrinting}>
-                {isSending ? "Sending..." : isPrinting ? "Printing..." : "Actions"}
+              <Button disabled={!data || isSending || isPrinting || isDownloading}>
+                {isSending ? "Sending..." : isPrinting ? "Printing..." : isDownloading ? "Downloading..." : "Actions"}
                 <ChevronDownIcon className="ml-2 h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -213,6 +239,11 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
               <DropdownMenuItem onClick={() => handlePrint("80mm")}>
                 <PrinterIcon className="mr-2 h-4 w-4" />
                 Print (80mm)
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleDownload}>
+                <ArrowDownTrayIcon className="mr-2 h-4 w-4" />
+                Download Receipt
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSend} disabled={isOfflineReceipt}>
