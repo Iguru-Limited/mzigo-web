@@ -66,11 +66,15 @@ export function LoadingSheetsList() {
   const dateDisplay = formatDateDisplay(selectedDate);
 
   return (
-    <div className="flex flex-1 flex-col gap-3 md:gap-6 w-full">
-      {/* Date Selector Card */}
-      <Card className="border-border/70 shadow-md hover:shadow-lg transition-shadow bg-gradient-to-br from-card to-card/80">
-        <CardContent className="p-4 md:p-6">
-          <div className="flex items-center gap-2 mb-4 md:mb-6">
+    <div className="flex justify-center w-full">
+      <div className="flex flex-1 flex-col gap-3 md:gap-6 w-full max-w-4xl px-4 py-6">
+        <div className="flex items-center gap-2 justify-center">
+          <h1 className="text-xl md:text-2xl font-semibold">Loading Sheets</h1>
+        </div>
+        {/* Date Selector Card */}
+        <Card className="border-border/70 shadow-md hover:shadow-lg transition-shadow bg-gradient-to-br from-card to-card/80 max-w-md mx-auto w-full">
+          <CardContent className="p-4 md:p-6">
+          <div className="flex items-center gap-2 mb-4 md:mb-6 justify-center">
             <Calendar className="w-4 h-4 md:w-5 md:h-5 text-primary" />
             <span className="text-xs md:text-sm font-semibold uppercase tracking-wider text-muted-foreground">Select Date</span>
           </div>
@@ -124,14 +128,14 @@ export function LoadingSheetsList() {
       </Card>
 
       {/* Content */}
-      <div className="w-full">
-        {isLoading && (
-          <div className="space-y-3 md:space-y-4">
-            <Skeleton className="h-32 w-full rounded-lg" />
-            <Skeleton className="h-32 w-full rounded-lg" />
-            <Skeleton className="h-32 w-full rounded-lg" />
-          </div>
-        )}
+        <div className="w-full">
+          {isLoading && (
+            <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              <Skeleton className="h-32 w-full rounded-lg" />
+              <Skeleton className="h-32 w-full rounded-lg" />
+              <Skeleton className="h-32 w-full rounded-lg" />
+            </div>
+          )}
 
         {error && (
           <Card className="border-red-300 bg-gradient-to-r from-red-50 to-red-100/50 shadow-md">
@@ -150,7 +154,7 @@ export function LoadingSheetsList() {
 
         {!isLoading && !error && (
           <>
-            <div className="flex items-center justify-between mb-4 md:mb-6 px-1">
+            <div className="flex items-center justify-center mb-4 md:mb-6 px-1">
               <div>
                 <p className="text-xs md:text-sm font-semibold text-muted-foreground uppercase tracking-wider">
                   {sheets.length} Sheet{sheets.length !== 1 ? "s" : ""}
@@ -172,11 +176,11 @@ export function LoadingSheetsList() {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-2 md:space-y-4">
+              <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
                 {sheets.map((sheet) => (
                   <Link key={sheet.id} href={`/loading-sheets/${sheet.id}`} className="block group cursor-pointer">
-                    <Card className="border-border/70 shadow-md hover:shadow-xl transition-all duration-200 group-hover:border-primary/30 bg-gradient-to-br from-white to-slate-50/30 group-hover:to-primary/5">
-                      <CardContent className="p-3 md:p-5">
+                    <Card className="h-full border-border/70 shadow-md hover:shadow-xl transition-all duration-200 group-hover:border-primary/30 bg-gradient-to-br from-white to-slate-50/30 group-hover:to-primary/5">
+                      <CardContent className="p-3 md:p-5 h-full flex flex-col">
                         <div className="flex items-start gap-3 md:gap-4">
                           <div className="mt-1 flex-shrink-0">
                             <FileText className="w-4 h-4 md:w-5 md:h-5 text-primary/70 group-hover:text-primary transition-colors" />
@@ -226,7 +230,7 @@ export function LoadingSheetsList() {
                               </div>
                             </div>
 
-                            <div className="flex items-center gap-1 text-xs md:text-sm font-medium text-primary group-hover:gap-2 transition-all">
+                            <div className="mt-auto flex items-center gap-1 text-xs md:text-sm font-medium text-primary group-hover:gap-2 transition-all">
                               <span>View Details</span>
                               <ChevronRight className="w-3.5 h-3.5 md:w-4 md:h-4" />
                             </div>
@@ -240,6 +244,7 @@ export function LoadingSheetsList() {
             )}
           </>
         )}
+        </div>
       </div>
     </div>
   );

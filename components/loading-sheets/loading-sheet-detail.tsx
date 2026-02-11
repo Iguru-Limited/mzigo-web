@@ -193,14 +193,14 @@ export function LoadingSheetDetail({ sheet }: LoadingSheetDetailProps) {
             <Package className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
             <span>Parcels ({sheet.parcel_count})</span>
           </h2>
-          <div className="space-y-2 md:space-y-3">
+          <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
             {sheet.parcels.map((parcel: any) => (
-              <Card key={parcel.id} className="border-border/50 bg-gradient-to-br from-white to-slate-50">
-                <CardContent className="p-3 md:p-4">
+              <Card key={parcel.id} className="border-border/50 bg-gradient-to-br from-white to-slate-50 h-full">
+                <CardContent className="p-3 md:p-4 h-full flex flex-col">
                   <div className="flex items-start justify-between gap-2 mb-2">
-                    <h3 className="font-semibold text-xs md:text-sm text-primary">{parcel.receipt_number}</h3>
+                    <h3 className="font-semibold text-xs md:text-sm text-primary truncate">{parcel.receipt_number}</h3>
                   </div>
-                  <div className="space-y-1 text-xs md:text-sm">
+                  <div className="space-y-1 text-xs md:text-sm flex-1">
                     <p className="flex items-start gap-2">
                       <span className="text-muted-foreground min-w-fit">Sender:</span>
                       <span className="font-medium break-words">{parcel.sender_name}</span>
@@ -216,10 +216,10 @@ export function LoadingSheetDetail({ sheet }: LoadingSheetDetailProps) {
                       <span className="text-muted-foreground min-w-fit">Desc:</span>
                       <span className="break-words">{parcel.parcel_description}</span>
                     </p>
-                    <p className="flex items-start gap-2 pt-1 border-t border-border/30">
-                      <span className="text-muted-foreground min-w-fit">Amount:</span>
-                      <span className="font-semibold text-green-600">KSh {parcel.amount_charged}</span>
-                    </p>
+                  </div>
+                  <div className="flex items-start gap-2 pt-2 mt-2 border-t border-border/30 text-xs md:text-sm">
+                    <span className="text-muted-foreground min-w-fit">Amount:</span>
+                    <span className="font-semibold text-green-600">KSh {parcel.amount_charged}</span>
                   </div>
                 </CardContent>
               </Card>
