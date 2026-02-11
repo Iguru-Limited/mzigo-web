@@ -93,9 +93,7 @@ export function LoadingSheetDetail({ sheet }: LoadingSheetDetailProps) {
       </Button>
 
       {/* Header Card */}
-      <Card className="border-border/70 shadow-md hover:shadow-lg transition-shadow">
-        <CardContent className="p-4 md:p-6">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 sm:gap-4 mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-center gap-3 sm:gap-4 mb-4">
             <div className="flex items-start gap-3 min-w-0">
               <FileText className="w-5 h-5 md:w-6 md:h-6 text-primary mt-1 flex-shrink-0" />
               <div className="min-w-0">
@@ -117,35 +115,32 @@ export function LoadingSheetDetail({ sheet }: LoadingSheetDetailProps) {
               </span>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 mt-4">
+          <div className="flex justify-center">
             <Button
               variant="default"
               onClick={() => setShowPrintPreview(true)}
-              className="flex items-center justify-center gap-2 flex-1 sm:flex-auto"
             >
               <Eye className="w-4 h-4" />
               <span>Preview & Print</span>
             </Button>
           </div>
-        </CardContent>
-      </Card>
 
       {/* Sheet Information Card */}
-      <Card className="border-border/70 shadow-md hover:shadow-lg transition-shadow">
+      <Card className="border-border/70 shadow-sm">
         <CardContent className="p-4 md:p-6">
-          <h2 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-2">
+          <h2 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-2 justify-center">
             <FileText className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
             <span>Sheet Information</span>
           </h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
-            <div className="flex items-start gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 p-10 ">
+            <div className="flex  gap-3">
               <MapPin className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs md:text-sm text-muted-foreground">Destination</p>
                 <p className="font-medium text-sm md:text-base break-words">{sheet.destination_name}</p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
+            <div className="flex  gap-3">
               <User className="w-4 h-4 md:w-5 md:h-5 text-muted-foreground mt-0.5 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs md:text-sm text-muted-foreground">Loader</p>
@@ -186,11 +181,9 @@ export function LoadingSheetDetail({ sheet }: LoadingSheetDetailProps) {
         </CardContent>
       </Card>
 
-      {/* Parcels Card */}
-      <Card className="border-border/70 shadow-md hover:shadow-lg transition-shadow">
-        <CardContent className="p-4 md:p-6">
-          <h2 className="text-base md:text-lg font-semibold mb-4 flex items-center gap-2">
-            <Package className="w-4 h-4 md:w-5 md:h-5 flex-shrink-0" />
+      {/* Parcels Card */}      
+          <h2 className="text-base md:text-lg font-semibold  flex items-center gap-2">
+            <Package className="w-4 h-4 md:w-5 md:h-5" />
             <span>Parcels ({sheet.parcel_count})</span>
           </h2>
           <div className="grid gap-3 md:gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
@@ -232,8 +225,8 @@ export function LoadingSheetDetail({ sheet }: LoadingSheetDetailProps) {
               </CardContent>
             </Card>
           )}
-        </CardContent>
-      </Card>
+      
+      
 
       {/* Print Preview Dialog */}
       <Dialog open={showPrintPreview} onOpenChange={setShowPrintPreview}>
