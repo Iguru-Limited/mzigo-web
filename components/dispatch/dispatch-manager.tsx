@@ -110,78 +110,78 @@ export function DispatchManager() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Dispatch Management</h2>
-      </div>
-
-      {/* Tabs */}
-      <Card className="p-1">
-        <div className="flex gap-1">
-          <Button
-            variant={activeTab === "undispatched" ? "default" : "ghost"}
-            onClick={() => handleTabChange("undispatched")}
-            className="flex-1"
-          >
-            Undispatched ({undispatchedSheets.length})
-          </Button>
-          <Button
-            variant={activeTab === "dispatched" ? "default" : "ghost"}
-            onClick={() => handleTabChange("dispatched")}
-            className="flex-1"
-          >
-            Dispatched ({dispatchedSheets.length})
-          </Button>
+    <div className="flex justify-center min-h-screen">
+      <div className="w-full max-w-4xl px-4 py-6 space-y-6">
+        <div className="flex items-center justify-center">
+          <h2 className="text-xl font-semibold">Dispatch Management</h2>
         </div>
-      </Card>
 
-      {/* Date Range Filter */}
-      <Card className="p-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">Start Date</label>
-            <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        {/* Tabs */}
+        <Card className="p-1">
+          <div className="flex gap-1">
+            <Button
+              variant={activeTab === "undispatched" ? "default" : "ghost"}
+              onClick={() => handleTabChange("undispatched")}
+              className="flex-1"
+            >
+              Undispatched ({undispatchedSheets.length})
+            </Button>
+            <Button
+              variant={activeTab === "dispatched" ? "default" : "ghost"}
+              onClick={() => handleTabChange("dispatched")}
+              className="flex-1"
+            >
+              Dispatched ({dispatchedSheets.length})
+            </Button>
           </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">End Date</label>
-            <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+        </Card>
+
+        {/* Date Range Filter */}
+        <Card className="p-4  mx-auto w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Start Date</label>
+              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-1">End Date</label>
+              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+            </div>
           </div>
-        </div>
-        {filteredSheets.length > 0 && (
-          <p className="text-sm text-muted-foreground mt-3">
-            Showing {displayedSheets.length} of {filteredSheets.length} sheet{filteredSheets.length !== 1 ? 's' : ''}
-          </p>
-        )}
-      </Card>
+          {filteredSheets.length > 0 && (
+            <p className="text-sm text-muted-foreground mt-3 text-center">
+              Showing {displayedSheets.length} of {filteredSheets.length} sheet{filteredSheets.length !== 1 ? 's' : ''}
+            </p>
+          )}
+        </Card>
 
-      <Separator />
+        <Separator />
 
-      {isLoading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Spinner className="h-4 w-4" /> Loading loading sheets…
-        </div>
-      ) : error ? (
-        <div className="text-sm text-red-600">{error.message}</div>
-      ) : filteredSheets.length === 0 ? (
-        <Empty>
-          <EmptyHeader>
-            <div className="text-4xl">📦</div>
-            <EmptyTitle>No {activeTab === "undispatched" ? "Undispatched" : "Dispatched"} Sheets</EmptyTitle>
-            <EmptyDescription>
-              {activeTab === "undispatched"
-                ? "All loading sheets have been dispatched or no sheets in selected date range"
-                : "No loading sheets have been dispatched in selected date range"}
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      ) : (
-        <>
-          <div className="grid gap-4">
-            {displayedSheets.map((sheet) => (
-              <Card key={sheet.id} className="p-4">
-                <div className="space-y-3">
-                  {/* Header */}
-                  <div className="flex items-start justify-between gap-2">
+        {isLoading ? (
+          <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground py-8">
+            <Spinner className="h-4 w-4" /> Loading loading sheets…
+          </div>
+        ) : error ? (
+          <div className="text-sm text-red-600 text-center">{error.message}</div>
+        ) : filteredSheets.length === 0 ? (
+          <Empty>
+            <EmptyHeader>
+              <div className="text-4xl">📦</div>
+              <EmptyTitle>No {activeTab === "undispatched" ? "Undispatched" : "Dispatched"} Sheets</EmptyTitle>
+              <EmptyDescription>
+                {activeTab === "undispatched"
+                  ? "All loading sheets have been dispatched or no sheets in selected date range"
+                  : "No loading sheets have been dispatched in selected date range"}
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <>
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {displayedSheets.map((sheet) => (
+                <Card key={sheet.id} className="p-3 flex flex-col">
+                  <div className="space-y-2 flex-1">
+                    {/* Header */}
                     <div>
                       <p className="font-semibold text-sm">{sheet.sheet_number}</p>
                       <p className="text-xs text-muted-foreground">
@@ -193,28 +193,25 @@ export function DispatchManager() {
                         </p>
                       )}
                     </div>
-                    <span className="text-sm font-medium bg-muted px-2 py-1 rounded">
-                      {sheet.parcel_count} parcel{sheet.parcel_count !== "1" ? "s" : ""}
-                    </span>
-                  </div>
 
-                  {/* Details */}
-                  <div className="grid grid-cols-2 gap-3 text-xs">
-                    <div>
-                      <p className="font-medium text-muted-foreground">Destination</p>
-                      <p className="font-semibold">{sheet.destination_name}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-muted-foreground">Vehicle</p>
-                      <p className="font-semibold">{sheet.vehicle}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-muted-foreground">Loading Date</p>
-                      <p className="font-semibold">{sheet.loading_date}</p>
-                    </div>
-                    <div>
-                      <p className="font-medium text-muted-foreground">Sheet ID</p>
-                      <p className="font-semibold">#{sheet.id}</p>
+                    {/* Details */}
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div>
+                        <p className="font-medium text-muted-foreground">Destination</p>
+                        <p className="font-semibold text-sm">{sheet.destination_name}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-muted-foreground">Vehicle</p>
+                        <p className="font-semibold text-sm">{sheet.vehicle}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-muted-foreground">Date</p>
+                        <p className="font-semibold text-sm">{sheet.loading_date}</p>
+                      </div>
+                      <div>
+                        <p className="font-medium text-muted-foreground">Parcels</p>
+                        <p className="font-semibold text-sm">{sheet.parcel_count}</p>
+                      </div>
                     </div>
                   </div>
 
@@ -224,95 +221,95 @@ export function DispatchManager() {
                       variant="default"
                       size="sm"
                       onClick={() => handleDispatch(sheet.sheet_number)}
-                      className="w-full"
+                      className="w-full mt-3"
                     >
                       Dispatch
                     </Button>
                   )}
-                </div>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
 
-          {/* Load More Button */}
-          {hasMore && (
-            <div className="flex justify-center pt-4">
-              <Button variant="outline" onClick={handleLoadMore}>
-                Load More ({displayCount} / {filteredSheets.length})
+            {/* Load More Button */}
+            {hasMore && (
+              <div className="flex justify-center pt-4">
+                <Button variant="outline" onClick={handleLoadMore}>
+                  Load More ({displayCount} / {filteredSheets.length})
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Dispatch Dialog */}
+        <Dialog open={showDispatchDialog} onOpenChange={setShowDispatchDialog}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Dispatch Loading Sheet</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Sheet: <span className="font-semibold">{selectedSheet}</span>
+                </p>
+              </div>
+
+              <div>
+                <VehicleInput
+                  value={courier}
+                  onChange={setCourier}
+                  vehicles={vehicles}
+                  isLoading={vehiclesLoading}
+                  error={vehiclesError}
+                  placeholder="Select courier vehicle"
+                  required
+                />
+              </div>
+
+              <div>
+                <DestinationInput
+                  value={endTown}
+                  onChange={setEndTown}
+                  destinations={destinations}
+                  isLoading={destinationsLoading}
+                  error={destinationsError}
+                  placeholder="Select end town"
+                  required
+                  requireRoute={false}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Courier Contacts
+                </label>
+                <Input
+                  type="number"
+                  placeholder="Enter courier contact number"
+                  value={courierContacts}
+                  onChange={(e) => setCourierContacts(e.target.value)}
+                  required
+                />
+              </div>
+            </div>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setShowDispatchDialog(false)}>
+                Cancel
               </Button>
-            </div>
-          )}
-        </>
-      )}
-
-      {/* Dispatch Dialog */}
-      <Dialog open={showDispatchDialog} onOpenChange={setShowDispatchDialog}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle>Dispatch Loading Sheet</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <p className="text-sm text-muted-foreground mb-4">
-                Sheet: <span className="font-semibold">{selectedSheet}</span>
-              </p>
-            </div>
-
-            <div>
-              <VehicleInput
-                value={courier}
-                onChange={setCourier}
-                vehicles={vehicles}
-                isLoading={vehiclesLoading}
-                error={vehiclesError}
-                placeholder="Select courier vehicle"
-                required
-              />
-            </div>
-
-            <div>
-              <DestinationInput
-                value={endTown}
-                onChange={setEndTown}
-                destinations={destinations}
-                isLoading={destinationsLoading}
-                error={destinationsError}
-                placeholder="Select end town"
-                required
-                requireRoute={false}
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-2">
-                Courier Contacts
-              </label>
-              <Input
-                type="text"
-                placeholder="Enter courier contact number"
-                value={courierContacts}
-                onChange={(e) => setCourierContacts(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => setShowDispatchDialog(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSubmitDispatch} disabled={isDispatching || !courier || !endTown || !courierContacts}>
-              {isDispatching ? (
-                <>
-                  <Spinner className="h-4 w-4 mr-2" />
-                  Dispatching...
-                </>
-              ) : (
-                "Confirm Dispatch"
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              <Button onClick={handleSubmitDispatch} disabled={isDispatching || !courier || !endTown || !courierContacts}>
+                {isDispatching ? (
+                  <>
+                    <Spinner className="h-4 w-4 mr-2" />
+                    Dispatching...
+                  </>
+                ) : (
+                  "Confirm Dispatch"
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 }
