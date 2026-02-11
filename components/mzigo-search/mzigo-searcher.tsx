@@ -26,7 +26,7 @@ export function MzigoSearcher() {
     <div className="space-y-6">
       <form onSubmit={handleSearch} className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="search">Search Mzigo</Label>
+          {/* <Label htmlFor="search">Search Mzigo</Label> */}
           <div className="flex gap-2">
             <Input
               id="search"

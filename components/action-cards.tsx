@@ -215,24 +215,19 @@ export function ActionCards() {
 
   return (
     <div className="space-y-6">
-      {/* <div>
-        <h2 className="text-lg font-semibold">Quick Actions</h2>
-        <p className="text-sm text-muted-foreground">
-          Available actions based on your rights
-        </p>
-      </div> */}
-      <div className="grid gap-4 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3">
+      
+      <div className="grid gap-3 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3">
         {availableCards.map((card) => (
           <Link key={card.id} href={card.href} className="cursor-pointer">
-            <div className="group rounded-lg border border-border/50 p-6 transition-all hover:border-primary/50 hover:bg-accent hover:shadow-md">
-              <div className="flex flex-col items-center gap-4 text-center">
+            <div className="group rounded-lg border border-border/50 p-4 transition-all hover:border-primary/50 hover:bg-accent hover:shadow-md">
+              <div className="flex flex-col items-center gap-2 text-center">
                 <div
                   className={cn(
-                    "rounded-lg p-4 text-white transition-transform group-hover:scale-110",
+                    "rounded-lg p-3 text-white transition-transform group-hover:scale-110",
                     card.color
                   )}
                 >
-                  <FontAwesomeIcon icon={card.icon} className="text-2xl" />
+                  <FontAwesomeIcon icon={card.icon} className="text-xl" />
                 </div>
                 <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors text-sm">
                   {card.label}

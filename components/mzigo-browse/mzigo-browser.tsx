@@ -44,12 +44,12 @@ export function MzigoBrowser() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex items-center gap-3 mb-6 justify-center">
         <h1 className="text-2xl font-bold text-gray-900">Browse/Search</h1>
       </div>
 
       {/* Traffic Type Tabs */}
-      <div className="flex gap-8 border-b border-border">
+      <div className="flex gap-8 border-b border-border justify-center items-center">
         <button
           onClick={() => setTrafficType("outgoing")}
           className={`pb-3 font-semibold text-base transition-colors relative hover:cursor-pointer ${
@@ -86,10 +86,11 @@ export function MzigoBrowser() {
       </div>
 
       {/* Filters Section */}
-      <form onSubmit={handleSearch} className="space-y-4">
-        <div>
-          <h3 className="text-sm font-semibold text-gray-900 mb-4">Filters</h3>
-          <div className="space-y-4">
+      <div className="flex justify-center">
+        <form onSubmit={handleSearch} className="space-y-2 space-x-2 w-full max-w-2xl">
+          <div>
+            <h3 className="text-sm font-semibold text-gray-900 mb-4">Filters</h3>
+            <div className="space-y-4">
             {/* Date Filter */}
             <div>
               <label className="text-sm text-gray-700 mb-2 block">Date</label>
@@ -128,21 +129,23 @@ export function MzigoBrowser() {
           </div>
         </div>
 
-        {/* Search Button */}
-        <Button
-          type="submit"
-          className="w-full font-semibold py-2.5 h-auto flex items-center justify-center gap-2 rounded-lg"
-          variant="default"
-        >
-          <Search className="w-5 h-5" />
-          Search
-        </Button>
-      </form>
+          {/* Search Button */}
+          <Button
+            type="submit"
+            className="w-full font-semibold py-2.5 h-auto flex items-center justify-center gap-2 rounded-lg"
+            variant="default"
+          >
+            <Search className="w-5 h-5" />
+            Search
+          </Button>
+        </form>
+      </div>
 
       {activeFilters && (
-        <>
-          {isLoading && (
-            <div className="space-y-3">
+        <div className="flex justify-center">
+          <div className="w-full max-w-2xl">
+            {isLoading && (
+              <div className="space-y-3">
               <Skeleton className="h-24 w-full" />
               <Skeleton className="h-24 w-full" />
               <Skeleton className="h-24 w-full" />
@@ -172,18 +175,21 @@ export function MzigoBrowser() {
           )}
 
           {!isLoading && !error && data.length > 0 && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center justify-center">
                 <p className="text-sm text-gray-600">
                   Found {count} {trafficType} mzigo{count !== 1 ? "s" : ""}
                 </p>
               </div>
-              {data.map((mzigo) => (
-                <BrowseResultCard key={mzigo.id} mzigo={mzigo} type={trafficType} />
-              ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {data.map((mzigo) => (
+                  <BrowseResultCard key={mzigo.id} mzigo={mzigo} type={trafficType} />
+                ))}
+              </div>
             </div>
           )}
-        </>
+          </div>
+        </div>
       )}
 
       {!activeFilters && (
@@ -203,12 +209,12 @@ export function MzigoBrowser() {
 
 function BrowseResultCard({ mzigo, type }: { mzigo: BrowseMzigoItem; type?: string }) {
   return (
-    <Card className="p-4 hover:shadow-md transition-shadow">
-      <div className="grid gap-4 md:grid-cols-2">
+    <Card className="p-4 hover:shadow-md transition-shadow h-full">
+      <div className="space-y-3">
         <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <h3 className="font-semibold">Receipt #{mzigo.receipt_number}</h3>
-            <div className="flex gap-2">
+          <div className="space-y-2">
+            <h3 className="font-semibold text-sm">Receipt #{mzigo.receipt_number}</h3>
+            <div className="flex gap-2 flex-wrap">
               <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">
                 {mzigo.active_status === "1" ? "Active" : "Inactive"}
               </span>
@@ -219,23 +225,26 @@ function BrowseResultCard({ mzigo, type }: { mzigo: BrowseMzigoItem; type?: stri
               )}
             </div>
           </div>
-          <p className="text-sm text-muted-foreground">
-            {mzigo.sender_name}({mzigo.sender_phone}) → {mzigo.receiver_name}({mzigo.receiver_phone})
+          <p className="text-xs text-muted-foreground line-clamp-2">
+            {mzigo.sender_name} → {mzigo.receiver_name}
           </p>
-          <div className="grid gap-1 text-sm">
-            <p>
-              <span className="font-medium">From:</span> {mzigo.sender_town} 
-            </p>
-            <p>
-              <span className="font-medium">To:</span> {mzigo.receiver_town}
-            </p>
-          </div>
         </div>
-        <div className="space-y-2">
-          <div className="grid gap-2 text-sm">
+        
+        <div className="space-y-2 text-xs">
+          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+            <div>
+              <span className="text-muted-foreground">From:</span>
+              <p className="font-medium">{mzigo.sender_town}</p>
+            </div>
+            <div>
+              <span className="text-muted-foreground">To:</span>
+              <p className="font-medium">{mzigo.receiver_town}</p>
+            </div>
+          </div>
+          <div className="border-t pt-2 space-y-1">
             <div className="flex justify-between">
               <span className="text-muted-foreground">Amount:</span>
-              <span className="font-medium">{mzigo.amount_charged}</span>
+              <span className="font-semibold">{mzigo.amount_charged}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Payment:</span>
@@ -251,9 +260,8 @@ function BrowseResultCard({ mzigo, type }: { mzigo: BrowseMzigoItem; type?: stri
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">Date:</span>
-              <span>{mzigo.s_date} {mzigo.s_time}</span>
+              <span>{mzigo.s_date}</span>
             </div>
-            
           </div>
         </div>
       </div>

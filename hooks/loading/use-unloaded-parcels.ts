@@ -28,8 +28,9 @@ export function useUnloadedParcels({ startDate, endDate, destinationId }: UseUnl
   };
 
   const { data, error, isLoading, mutate, isValidating } = useSWR<UnloadedParcel[]>(key, fetcher, {
-    revalidateOnFocus: false,
-    keepPreviousData: true,
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    revalidateOnMount: true,
     dedupingInterval: 1000,
   });
 

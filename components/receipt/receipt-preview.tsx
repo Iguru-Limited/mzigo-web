@@ -2,19 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { PreviewDialog, type PreviewAction } from "@/components/ui/preview-dialog";
 import { ChevronDownIcon, PrinterIcon, PaperAirplaneIcon, DevicePhoneMobileIcon, ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { ReceiptData } from "@/types/operations/receipt";
 import { openPrintWindow, PaperWidth, downloadReceipt } from "@/lib/receipt";
-import { generateQRCodeDataUrl } from "@/lib/qr-utils";
 import { QRCodeComponent } from "@/components/receipt/qr-code";
 import { toast } from "sonner";
 import { useSession } from "next-auth/react";
@@ -174,86 +166,81 @@ export function ReceiptPreview({ open, onClose, data }: ReceiptPreviewProps) {
 
   const isOfflineReceipt = data?.receipt_number?.startsWith("OFFLINE-");
 
+  const actions: PreviewAction[] = data
+    ? [
+        {
+          label: "Print via Bridge App",
+          icon: <DevicePhoneMobileIcon className="w-4 h-4" />,
+          onClick: handlePrintViaBridge,
+          disabled: isPrinting,
+          separator: true,
+        },
+        {
+          label: "Print (58mm - P-50)",
+          icon: <PrinterIcon className="w-4 h-4" />,
+          onClick: () => handlePrint("58mm"),
+          disabled: isPrinting,
+        },
+        {
+          label: "Print (80mm)",
+          icon: <PrinterIcon className="w-4 h-4" />,
+          onClick: () => handlePrint("80mm"),
+          disabled: isPrinting,
+          separator: true,
+        },
+        {
+          label: "Download Receipt",
+          icon: <ArrowDownTrayIcon className="w-4 h-4" />,
+          onClick: handleDownload,
+          disabled: isDownloading,
+          separator: true,
+        },
+        {
+          label: `Send ${isOfflineReceipt ? "(unavailable offline)" : ""}`,
+          icon: <PaperAirplaneIcon className="w-4 h-4" />,
+          onClick: handleSend,
+          disabled: isSending || isOfflineReceipt,
+        },
+      ]
+    : [];
+
   return (
-    <Dialog open={open} onOpenChange={(v) => (!v ? onClose() : undefined)}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            Receipt Preview
-            {isOfflineReceipt && (
-              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
-                Offline
+    <PreviewDialog
+      open={open}
+      onClose={onClose}
+      title="Receipt Preview"
+      maxWidth="md"
+      actions={actions}
+    >
+      {isOfflineReceipt && (
+        <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-3 py-2 rounded text-sm mb-4 flex items-center gap-2">
+          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-800">
+            Offline
+          </span>
+          This receipt was created offline and will sync when you&apos;re back online.
+        </div>
+      )}
+
+      {!data && <p className="text-sm text-muted-foreground">No receipt data.</p>}
+      {data && (
+        <div className="rounded border p-3 bg-white max-h-[60vh] overflow-auto font-mono text-sm leading-6">
+          {/* Render receipt lines simply for preview */}
+          {data.receipt.map((item, idx) => (
+            <div key={idx} className={item.is_bold ? "font-bold" : ""}>
+              <span className={item.text_size === "big" ? "text-lg" : item.text_size === "normal" ? "text-sm" : "text-xs"}>
+                {(item["pre-text"] || "") + (item.content || "")}
               </span>
-            )}
-          </DialogTitle>
-        </DialogHeader>
+            </div>
+          ))}
 
-        {isOfflineReceipt && (
-          <div className="bg-yellow-50 border border-yellow-200 text-yellow-800 px-3 py-2 rounded text-sm">
-            This receipt was created offline and will sync when you&apos;re back online.
-          </div>
-        )}
-
-        <div className="mt-2">
-          {!data && <p className="text-sm text-muted-foreground">No receipt data.</p>}
-          {data && (
-            <div className="rounded border p-3 bg-white max-h-[60vh] overflow-auto font-mono text-sm leading-6">
-              {/* Render receipt lines simply for preview */}
-              {data.receipt.map((item, idx) => (
-                <div key={idx} className={item.is_bold ? "font-bold" : ""}>
-                  <span className={item.text_size === "big" ? "text-lg" : item.text_size === "normal" ? "text-sm" : "text-xs"}>
-                    {(item["pre-text"] || "") + (item.content || "")}
-                  </span>
-                </div>
-              ))}
-              
-              {/* QR Code for package token (online only) */}
-              {data.package_token && !isOfflineReceipt && (
-                <div className="mt-4 border-t border-dashed pt-4 flex flex-col items-center">
-                  <QRCodeComponent value={data.package_token} size={150} />
-                </div>
-              )}
+          {/* QR Code for package token (online only) */}
+          {data.package_token && !isOfflineReceipt && (
+            <div className="mt-4 border-t border-dashed pt-4 flex flex-col items-center">
+              <QRCodeComponent value={data.package_token} size={150} />
             </div>
           )}
         </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Close</Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button disabled={!data || isSending || isPrinting || isDownloading}>
-                {isSending ? "Sending..." : isPrinting ? "Printing..." : isDownloading ? "Downloading..." : "Actions"}
-                <ChevronDownIcon className="ml-2 h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handlePrintViaBridge}>
-                <DevicePhoneMobileIcon className="mr-2 h-4 w-4" />
-                Print via Bridge App
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => handlePrint("58mm")}>
-                <PrinterIcon className="mr-2 h-4 w-4" />
-                Print (58mm - P-50)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handlePrint("80mm")}>
-                <PrinterIcon className="mr-2 h-4 w-4" />
-                Print (80mm)
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleDownload}>
-                <ArrowDownTrayIcon className="mr-2 h-4 w-4" />
-                Download Receipt
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={handleSend} disabled={isOfflineReceipt}>
-                <PaperAirplaneIcon className="mr-2 h-4 w-4" />
-                Send {isOfflineReceipt && "(unavailable offline)"}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      )}
+    </PreviewDialog>
   );
 }
