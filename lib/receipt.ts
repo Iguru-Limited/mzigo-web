@@ -74,19 +74,34 @@ function lineToHtml(item: ReceiptItem): string {
   return `<div style="${style}; white-space: pre-wrap;">${label}${content}${end}</div>`;
 }
 
+// Optimized for PDF - smaller fonts to fit on single page
+function lineToHtmlPdf(item: ReceiptItem): string {
+  const sizeMap: Record<string, string> = {
+    small: "font-size:8px",
+    normal: "font-size:10px",
+    big: "font-size:11px",
+  };
+  const fontWeight = item.is_bold ? "font-weight:700" : "font-weight:400";
+  const label = item["pre-text"] ?? "";
+  const content = item.content ?? "";
+  const end = item["end_1"] ?? ""; // includes line breaks
+  const style = `${sizeMap[item.text_size] || sizeMap.normal}; ${fontWeight};`;
+  return `<div style="${style}; white-space: pre-wrap; line-height: 1.2;">${label}${content}${end}</div>`;
+}
+
 export async function generateReceiptHtmlForPdf(data: ReceiptData): Promise<string> {
-  const lines = data.receipt.map(lineToHtml).join("");
+  const lines = data.receipt.map(lineToHtmlPdf).join("");
   
   // Generate QR code for package token (online only - not for offline receipts)
   let qrCodeHtml = "";
   const isOfflineReceipt = data.receipt_number?.startsWith("OFFLINE-");
   if (data.package_token && !isOfflineReceipt) {
     try {
-      // Smaller QR code for PDF to reduce file size (100px instead of 120px)
-      const qrDataUrl = await generateQRCodeDataUrl(data.package_token, 100);
+      // Smaller QR code for PDF (80px - smaller to fit on one page)
+      const qrDataUrl = await generateQRCodeDataUrl(data.package_token, 80);
       qrCodeHtml = `
-        <div style="text-align: center; margin-top: 12px; padding-top: 8px; border-top: 1px dashed #000; page-break-inside: avoid; width: 100%; display: flex; justify-content: center;">
-          <img src="${qrDataUrl}" alt="Package QR Code" style="width: 100px; height: 100px; display: block; image-rendering: crisp-edges;" />
+        <div style="text-align: center; margin-top: 8px; padding-top: 6px; border-top: 1px dashed #000; page-break-inside: avoid; width: 100%; display: flex; justify-content: center;">
+          <img src="${qrDataUrl}" alt="Package QR Code" style="width: 80px; height: 80px; display: block; image-rendering: crisp-edges;" />
         </div>
       `;
     } catch (error) {
@@ -114,9 +129,9 @@ export async function generateReceiptHtmlForPdf(data: ReceiptData): Promise<stri
           }
           body { 
             font-family: monospace;
-            font-size: 12px;
-            line-height: 1.4;
-            padding: 8px;
+            font-size: 10px;
+            line-height: 1.2;
+            padding: 4px;
             background-color: white;
             color: black;
             display: flex;
@@ -370,9 +385,9 @@ export async function downloadReceipt(data: ReceiptData): Promise<void> {
     // Wait for any images to load
     await new Promise(resolve => setTimeout(resolve, 300));
     
-    // Convert HTML to canvas - capture full content height
+    // Convert HTML to canvas - capture full content height with high quality
     const canvas = await html2canvas(container, {
-      scale: 1.5,
+      scale: 2, // High quality for good output
       useCORS: true,
       logging: false,
       backgroundColor: "#ffffff",
@@ -398,8 +413,8 @@ export async function downloadReceipt(data: ReceiptData): Promise<void> {
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
     const maxHeightPerPage = pageHeight - (margin * 2);
     
-    // Convert canvas to JPEG for smaller file size
-    const imgData = canvas.toDataURL("image/jpeg", 0.85);
+    // Convert canvas to JPEG for better quality (90% instead of 85%)
+    const imgData = canvas.toDataURL("image/jpeg", 0.90);
     
     // Add image - it will fit on first page
     pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, imgHeight);
