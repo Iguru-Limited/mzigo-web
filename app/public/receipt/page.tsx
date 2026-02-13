@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
 import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
 import { downloadReceipt } from "@/lib/receipt";
-import type { ReceiptData } from "@/types/operations/receipt";
 import { toast } from "sonner";
 
 export default function PublicReceiptPage() {
@@ -18,15 +17,14 @@ export default function PublicReceiptPage() {
   const handleDownload = async () => {
     if (!receipt) return;
     try {
-      const payload: ReceiptData = {
+      await downloadReceipt({
         id: receipt.id,
         receipt_number: receipt.receipt_number,
-        receipt: receipt.receipt,
+        receipt: receipt.receipt as any,
         s_date: receipt.s_date,
         s_time: receipt.s_time,
         package_token: receipt.package_token,
-      };
-      await downloadReceipt(payload);
+      });
       toast.success("Receipt downloaded");
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to download receipt");
