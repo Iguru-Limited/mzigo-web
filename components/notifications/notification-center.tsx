@@ -147,24 +147,26 @@ export function NotificationCenter() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Notifications</h1>
-        <Button onClick={() => setShowCreateDialog(true)}>
-          Create Notifications
-        </Button>
-      </div>
+    <div className="flex justify-center w-full">
+      <div className="w-full max-w-4xl px-4 py-6 space-y-6">
+        <div className="flex items-center justify-center gap-3">
+          <h1 className="text-2xl font-semibold">Notifications</h1>
+        </div>
+        <div className="flex justify-center">
+          <Button onClick={() => setShowCreateDialog(true)}>
+            Create Notifications
+          </Button>
+        </div>
 
-      {/* Tabs */}
-      <div className="flex justify-between items-center border-b">
-        <div className="flex gap-2">
+        {/* Tabs */}
+        <div className="flex justify-center items-center border-b gap-8">
           <button
             onClick={() => {
               setActiveTab("unnotified");
               setDisplayCount(10);
               setSearchQuery("");
             }}
-            className={`px-4 py-2 font-medium hover:cursor-pointer transition-colors ${
+            className={`pb-3 font-medium hover:cursor-pointer transition-colors ${
               activeTab === "unnotified"
                 ? "border-b-2 border-primary text-primary"
                 : "text-muted-foreground hover:text-foreground"
@@ -178,7 +180,7 @@ export function NotificationCenter() {
               setDisplayCount(10);
               setSearchQuery("");
             }}
-            className={`px-4 py-2 font-medium hover:cursor-pointer transition-colors ${
+            className={`pb-3 font-medium hover:cursor-pointer transition-colors ${
               activeTab === "notified"
                 ? "border-b-2 border-primary text-primary"
                 : "text-muted-foreground hover:text-foreground"
@@ -186,168 +188,160 @@ export function NotificationCenter() {
           >
             Notified ({notifiedNotifications.length})
           </button>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            activeTab === "notified" ? refreshNotified() : refreshUnnotified();
-            toast.success("Refreshing notifications...");
-          }}
-          disabled={isLoading}
-        >
-          🔄 Refresh
-        </Button>
-      </div>
-
-      {/* Filter and Search */}
-      <Card className="p-4">
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Start Date</label>
-              <Input
-                type="date"
-                value={startDate}
-                onChange={(e) => {
-                  setStartDate(e.target.value);
-                  setDisplayCount(10);
-                }}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-2">End Date</label>
-              <Input
-                type="date"
-                value={endDate}
-                onChange={(e) => {
-                  setEndDate(e.target.value);
-                  setDisplayCount(10);
-                }}
-              />
-            </div>
-          </div>
-          {filteredNotifications.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              Found {filteredNotifications.length} notification
-              {filteredNotifications.length !== 1 ? "s" : ""}
-            </p>
-          )}
-        </div>
-      </Card>
-
-      <Separator />
-
-      {/* Content Area */}
-      {isLoading ? (
-        <div className="flex items-center justify-center min-h-[400px]">
-          <div className="flex flex-col items-center gap-2">
-            <Spinner className="h-8 w-8" />
-            <p className="text-muted-foreground">Loading notifications…</p>
-          </div>
-        </div>
-      ) : error ? (
-        <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-          <p className="font-medium">Error loading notifications</p>
-          <p className="text-sm">{error.message}</p>
-          <Button size="sm" variant="outline" onClick={() => 
-            activeTab === "notified" ? refreshNotified() : refreshUnnotified()
-          } className="mt-2">
-            Retry
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              activeTab === "notified" ? refreshNotified() : refreshUnnotified();
+              toast.success("Refreshing notifications...");
+            }}
+            disabled={isLoading}
+          >
+            🔄 Refresh
           </Button>
         </div>
-      ) : filteredNotifications.length === 0 ? (
-        <Empty>
-          <EmptyHeader>
-            <div className="text-4xl">📬</div>
-            <EmptyTitle>
-              {searchQuery ? "No Notifications Found" : "No Notifications"}
-            </EmptyTitle>
-            <EmptyDescription>
-              {activeTab === "notified"
-                ? "No notified parcels in this period"
-                : "No pending notifications"}
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      ) : (
-        <>
-          <div className="grid gap-4">
-            {displayedNotifications.map((notification) => (
-              <Card key={notification.id} className="p-4 hover:shadow-md transition-shadow">
-                <div className="space-y-3">
-                  {/* Header */}
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <p className="font-semibold text-lg">{notification.receipt_number}</p>
-                      <p className="text-xs text-muted-foreground">{notification.s_date}</p>
+
+        {/* Filter and Search */}
+        <Card className="p-4 max-w-md mx-auto w-full">
+          <div className="space-y-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Start Date</label>
+                <Input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    setDisplayCount(10);
+                  }}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">End Date</label>
+                <Input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    setDisplayCount(10);
+                  }}
+                />
+              </div>
+            </div>
+            {filteredNotifications.length > 0 && (
+              <p className="text-sm text-muted-foreground text-center">
+                Found {filteredNotifications.length} notification
+                {filteredNotifications.length !== 1 ? "s" : ""}
+              </p>
+            )}
+          </div>
+        </Card>
+
+        <Separator />
+
+        {/* Content Area */}
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-[400px]">
+            <div className="flex flex-col items-center gap-2">
+              <Spinner className="h-8 w-8" />
+              <p className="text-muted-foreground">Loading notifications…</p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+            <p className="font-medium">Error loading notifications</p>
+            <p className="text-sm">{error.message}</p>
+            <Button size="sm" variant="outline" onClick={() => 
+              activeTab === "notified" ? refreshNotified() : refreshUnnotified()
+            } className="mt-2">
+              Retry
+            </Button>
+          </div>
+        ) : filteredNotifications.length === 0 ? (
+          <Empty>
+            <EmptyHeader>
+              <div className="text-4xl">📬</div>
+              <EmptyTitle>
+                {searchQuery ? "No Notifications Found" : "No Notifications"}
+              </EmptyTitle>
+              <EmptyDescription>
+                {activeTab === "notified"
+                  ? "No notified parcels in this period"
+                  : "No pending notifications"}
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <>
+            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
+              {displayedNotifications.map((notification) => (
+                <Card key={notification.id} className="p-4 hover:shadow-md transition-shadow h-full">
+                  <div className="space-y-3 flex flex-col h-full">
+                    {/* Header */}
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm truncate">{notification.receipt_number}</p>
+                        <p className="text-xs text-muted-foreground">{notification.s_date}</p>
+                      </div>
+                      {notification.is_notified === "1" && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 whitespace-nowrap">
+                          ✓ Notified
+                        </span>
+                      )}
                     </div>
-                    {notification.is_notified === "1" && (
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        ✓ Notified
-                      </span>
+
+                    {/* Description */}
+                    {notification.parcel_description && (
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {notification.parcel_description}
+                      </p>
                     )}
-                  </div>
 
-                  {/* Description */}
-                  {notification.parcel_description && (
-                    <p className="text-sm text-muted-foreground">
-                      {notification.parcel_description}
-                    </p>
-                  )}
-
-                  {/* Sender & Receiver */}
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="bg-green-50 p-3 rounded">
-                      <p className="font-medium text-green-900">From</p>
-                      <p className="font-semibold">{notification.sender_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {notification.sender_phone}
-                      </p>
-                    </div>
-                    <div className="bg-blue-50 p-3 rounded">
-                      <p className="font-medium text-blue-900">To</p>
-                      <p className="font-semibold">{notification.receiver_name}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {notification.receiver_phone}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* Details */}
-                  <div className="grid grid-cols-3 gap-2 text-xs bg-muted/50 p-2 rounded">
-                    <div>
-                      <p className="text-muted-foreground">Amount</p>
-                      <p className="font-semibold">KES {notification.amount_charged}</p>
-                    </div>
-                    <div>
-                      <p className="text-muted-foreground">Location</p>
-                      <p className="font-semibold">{notification.receiver_town_name || notification.receiver_town}</p>
-                    </div>
-                    {notification.is_notified === "1" && (
-                      <div>
-                        <p className="text-muted-foreground">Notified</p>
-                        <p className="font-semibold">
-                          {notification.notify_date} {notification.notify_time}
+                    {/* Sender & Receiver */}
+                    <div className="grid grid-cols-2 gap-2 text-xs flex-1">
+                      <div className="bg-green-50 p-2 rounded">
+                        <p className="font-medium text-green-900">From</p>
+                        <p className="font-semibold truncate">{notification.sender_name}</p>
+                        <p className="text-muted-foreground truncate">
+                          {notification.sender_phone}
                         </p>
                       </div>
-                    )}
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
+                      <div className="bg-blue-50 p-2 rounded">
+                        <p className="font-medium text-blue-900">To</p>
+                        <p className="font-semibold truncate">{notification.receiver_name}</p>
+                        <p className="text-muted-foreground truncate">
+                          {notification.receiver_phone}
+                        </p>
+                      </div>
+                    </div>
 
-          {/* Load More Button */}
-          {hasMore && (
-            <div className="flex justify-center pt-4">
-              <Button variant="outline" onClick={handleLoadMore}>
-                Load More ({displayCount} / {filteredNotifications.length})
-              </Button>
+                    {/* Details */}
+                    <div className="grid grid-cols-2 gap-1 text-xs bg-muted/50 p-2 rounded mt-auto">
+                      <div>
+                        <p className="text-muted-foreground">Amount</p>
+                        <p className="font-semibold">KES {notification.amount_charged}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Location</p>
+                        <p className="font-semibold truncate">{notification.receiver_town_name || notification.receiver_town}</p>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))}
             </div>
-          )}
-        </>
-      )}
+
+            {/* Load More Button */}
+            {hasMore && (
+              <div className="flex justify-center pt-4">
+                <Button variant="outline" onClick={handleLoadMore}>
+                  Load More ({displayCount} / {filteredNotifications.length})
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
 
       {/* Create Notifications Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>

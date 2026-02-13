@@ -281,62 +281,65 @@ export function DuplicateManager() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Duplicate Receipt</h2>
-      </div>
+    <div className="flex justify-center w-full">
+      <div className="w-full max-w-4xl px-4 py-6 space-y-6">
+        <div className="flex items-center justify-center">
+          <h2 className="text-2xl font-semibold">Duplicate Receipt</h2>
+        </div>
 
-      <Card className="p-4">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-2">
-              Search Waybill or Parcel
-            </label>
-            <Input
-              type="text"
-              placeholder="Search by waybill, sender, receiver, or description..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setDisplayCount(5); // Reset to first 5 on new search
-              }}
-            />
+        <div className="flex justify-center">
+          <Card className="p-4 w-full max-w-md">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">
+                  Search Waybill or Parcel
+                </label>
+                <Input
+                  type="text"
+                  placeholder="Search by waybill, sender, receiver..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setDisplayCount(5);
+                  }}
+                />
+              </div>
+              {filteredParcels.length > 0 && (
+                <p className="text-sm text-muted-foreground">
+                  Found {filteredParcels.length} parcel{filteredParcels.length !== 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
+          </Card>
+        </div>
+
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <Spinner className="h-4 w-4" />
           </div>
-          {filteredParcels.length > 0 && (
-            <p className="text-sm text-muted-foreground">
-              Found {filteredParcels.length} parcel{filteredParcels.length !== 1 ? 's' : ''}
-            </p>
-          )}
-        </div>
-      </Card>
-
-      <Separator />
-
-      {isLoading ? (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Spinner className="h-4 w-4" /> Loading parcels…
-        </div>
-      ) : error ? (
-        <div className="text-sm text-red-600">{error.message}</div>
-      ) : filteredParcels.length === 0 ? (
-        <Empty>
-          <EmptyHeader>
-            <div className="text-4xl">📦</div>
-            <EmptyTitle>
-              {searchQuery ? "No Parcels Found" : "No Parcels Available"}
-            </EmptyTitle>
-            <EmptyDescription>
-              {searchQuery
-                ? "Try adjusting your search query"
-                : "No parcels to display"}
-            </EmptyDescription>
-          </EmptyHeader>
-        </Empty>
-      ) : (
-        <>
-          <div className="grid gap-4">
-            {displayedParcels.map((parcel) => (
-              <Card key={parcel.id} className="p-4">
+        ) : error ? (
+          <div className="text-center py-8">
+            <p className="text-sm text-red-600">{error.message}</p>
+          </div>
+        ) : filteredParcels.length === 0 ? (
+          <Empty>
+            <EmptyHeader>
+              <div className="text-4xl">📦</div>
+              <EmptyTitle>
+                {searchQuery ? "No Parcels Found" : "No Parcels Available"}
+              </EmptyTitle>
+              <EmptyDescription>
+                {searchQuery
+                  ? "Try adjusting your search query"
+                  : "No parcels to display"}
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {displayedParcels.map((parcel) => (
+                <Card key={parcel.id} className="p-4 h-full flex flex-col">
                 <div className="space-y-3">
                   {/* Header */}
                   <div className="flex items-start justify-between gap-2">
@@ -493,6 +496,7 @@ export function DuplicateManager() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

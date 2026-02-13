@@ -155,73 +155,81 @@ export function CollectionManager() {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground">Manage and track Mzigo collections.</p>
+    <div className="flex justify-center w-full">
+      <div className="w-full max-w-4xl px-4 py-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-center gap-8">
+          <div>
+            <h1 className="text-2xl font-semibold">Manage and track Mzigo collections.</h1>
+          </div>
+          <Button onClick={() => setShowCreateDialog(true)}>+ New Collection</Button>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>+ New Collection</Button>
-      </div>
 
-      {/* Filters */}
-      <Card className="p-4">
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor="start-date">Start Date</Label>
-            <Input
-              id="start-date"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="end-date">End Date</Label>
-            <Input
-              id="end-date"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </div>
-          <div className="flex items-end">
-            <Button
-              variant="outline"
-              onClick={() => {
-                refreshCollected();
-                refreshToCollect();
-              }}
-            >
-              Refresh
-            </Button>
-          </div>
+        {/* Filters */}
+        <div className="flex justify-center">
+          <Card className="p-4 w-full">
+            <div className="flex gap-4 items-end">
+              <div className="space-y-2 flex-1">
+                <Label htmlFor="start-date">Start Date</Label>
+                <Input
+                  id="start-date"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2 flex-1">
+                <Label htmlFor="end-date">End Date</Label>
+                <Input
+                  id="end-date"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  refreshCollected();
+                  refreshToCollect();
+                }}
+                className="whitespace-nowrap"
+              >
+                Refresh
+              </Button>
+            </div>
+          </Card>
         </div>
-      </Card>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b">
-        <button
-          onClick={() => handleTabChange("collected")}
-          className={`px-4 py-2 font-medium hover:cursor-pointer text-sm transition-colors ${
-            activeTab === "collected"
-              ? "text-primary border-b-2 border-primary -mb-0.5"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Collected ({collectedCollections.length})
-        </button>
-        <button
-          onClick={() => handleTabChange("to_collect")}
-          className={`px-4 py-2 font-medium hover:cursor-pointer text-sm transition-colors ${
-            activeTab === "to_collect"
-              ? "text-primary border-b-2 border-primary -mb-0.5"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          To Collect ({toCollectCollections.length})
-        </button>
-      </div>
+        {/* Tabs */}
+        <div className="flex justify-center items-center border-b gap-8">
+          <button
+            onClick={() => handleTabChange("collected")}
+            className={`pb-3 font-semibold text-base transition-colors relative hover:cursor-pointer ${
+              activeTab === "collected"
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Collected ({collectedCollections.length})
+            {activeTab === "collected" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"></div>
+            )}
+          </button>
+          <button
+            onClick={() => handleTabChange("to_collect")}
+            className={`pb-3 font-semibold text-base transition-colors relative hover:cursor-pointer ${
+              activeTab === "to_collect"
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            To Collect ({toCollectCollections.length})
+            {activeTab === "to_collect" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"></div>
+            )}
+          </button>
+        </div>
 
       {/* Content */}
       {isLoading ? (
@@ -247,22 +255,24 @@ export function CollectionManager() {
           </EmptyHeader>
         </Empty>
       ) : (
-        <div className="space-y-3">
-          {displayedCollections.map((item) => (
-            <CollectionCard key={item.id} item={item} />
-          ))}
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {displayedCollections.map((item) => (
+              <CollectionCard key={item.id} item={item} />
+            ))}
+          </div>
           {hasMore && (
-            <div className="text-center py-4">
+            <div className="flex justify-center pt-4">
               <Button variant="outline" onClick={handleLoadMore}>
-                Load More
+                Load More ({displayCount} / {activeCollections.length})
               </Button>
             </div>
           )}
-        </div>
+        </>
       )}
 
-      {/* Create Collection Dialog */}
-      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        {/* Create Collection Dialog */}
+        <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Create New Collection</DialogTitle>
@@ -427,6 +437,7 @@ export function CollectionManager() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }

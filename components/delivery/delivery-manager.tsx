@@ -172,73 +172,81 @@ export function DeliveryManager() {
   };
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-muted-foreground">Manage and track deliveries.</p>
+    <div className="flex justify-center w-full">
+      <div className="w-full max-w-4xl px-4 py-6 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-center gap-8">
+          <div>
+            <h1 className="text-xl font-semibold">Manage and track deliveries.</h1>
+          </div>
+          <Button onClick={() => setShowCreateDialog(true)}>+ New Delivery</Button>
         </div>
-        <Button onClick={() => setShowCreateDialog(true)}>+ New Delivery</Button>
-      </div>
 
-      {/* Filters */}
-      <Card className="p-4">
-        <div className="grid gap-4 md:grid-cols-3">
-          <div className="space-y-2">
-            <Label htmlFor="start-date">Start Date</Label>
-            <Input
-              id="start-date"
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="end-date">End Date</Label>
-            <Input
-              id="end-date"
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-            />
-          </div>
-          <div className="flex items-end">
-            <Button
-              variant="outline"
-              onClick={() => {
-                refreshDelivered();
-                refreshUndelivered();
-              }}
-            >
-              Refresh
-            </Button>
-          </div>
+        {/* Filters */}
+        <div className="flex justify-center">
+          <Card className="p-4 w-full">
+            <div className="flex gap-4 items-end">
+              <div className="space-y-2 flex-1">
+                <Label htmlFor="start-date">Start Date</Label>
+                <Input
+                  id="start-date"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2 flex-1">
+                <Label htmlFor="end-date">End Date</Label>
+                <Input
+                  id="end-date"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                />
+              </div>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  refreshDelivered();
+                  refreshUndelivered();
+                }}
+                className="whitespace-nowrap"
+              >
+                Refresh
+              </Button>
+            </div>
+          </Card>
         </div>
-      </Card>
 
-      {/* Tabs */}
-      <div className="flex gap-2 border-b">
-        <button
-          onClick={() => handleTabChange("delivered")}
-          className={`px-4 py-2 hover:cursor-pointer font-medium text-sm transition-colors ${
-            activeTab === "delivered"
-              ? "text-primary border-b-2 border-primary -mb-0.5"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Delivered ({deliveredDeliveries.length})
-        </button>
-        <button
-          onClick={() => handleTabChange("undelivered")}
-          className={`px-4 py-2 hover:cursor-pointer font-medium text-sm transition-colors ${
-            activeTab === "undelivered"
-              ? "text-primary border-b-2 border-primary -mb-0.5"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          Undelivered ({undeliveredDeliveries.length})
-        </button>
-      </div>
+        {/* Tabs */}
+        <div className="flex justify-center items-center border-b gap-8">
+          <button
+            onClick={() => handleTabChange("delivered")}
+            className={`pb-3 font-semibold text-base transition-colors relative hover:cursor-pointer ${
+              activeTab === "delivered"
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Delivered ({deliveredDeliveries.length})
+            {activeTab === "delivered" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"></div>
+            )}
+          </button>
+          <button
+            onClick={() => handleTabChange("undelivered")}
+            className={`pb-3 font-semibold text-base transition-colors relative hover:cursor-pointer ${
+              activeTab === "undelivered"
+                ? "text-primary"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            Undelivered ({undeliveredDeliveries.length})
+            {activeTab === "undelivered" && (
+              <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary"></div>
+            )}
+          </button>
+        </div>
 
       {/* Content */}
       {isLoading ? (
@@ -264,21 +272,23 @@ export function DeliveryManager() {
           </EmptyHeader>
         </Empty>
       ) : (
-        <div className="space-y-3">
-          {displayedDeliveries.map((item) => (
-            <DeliveryCard key={item.id} item={item} />
-          ))}
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {displayedDeliveries.map((item) => (
+              <DeliveryCard key={item.id} item={item} />
+            ))}
+          </div>
           {hasMore && (
-            <div className="text-center py-4">
+            <div className="flex justify-center pt-4">
               <Button variant="outline" onClick={handleLoadMore}>
-                Load More
+                Load More ({displayCount} / {activeDeliveries.length})
               </Button>
             </div>
           )}
-        </div>
+        </>
       )}
 
-      {/* Create Delivery Dialog */}
+        {/* Create Delivery Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -428,15 +438,16 @@ export function DeliveryManager() {
         </DialogContent>
       </Dialog>
 
-      {/* Delivery Receipt Preview Dialog */}
-      <DeliveryReceiptPreview
-        open={showReceiptDialog}
-        data={receiptData}
-        onClose={() => {
-          setShowReceiptDialog(false);
-          setReceiptData(null);
-        }}
-      />
+        {/* Delivery Receipt Preview Dialog */}
+        <DeliveryReceiptPreview
+          open={showReceiptDialog}
+          data={receiptData}
+          onClose={() => {
+            setShowReceiptDialog(false);
+            setReceiptData(null);
+          }}
+        />
+      </div>
     </div>
   );
 }
@@ -700,7 +711,7 @@ function DeliveryReceiptPreview({
           </DropdownMenu>
         </DialogFooter>
       </DialogContent>
-    </Dialog>
+    </Dialog>      
   );
 }
 

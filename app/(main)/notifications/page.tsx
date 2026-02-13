@@ -6,20 +6,7 @@ import { NotificationCenter } from "@/components/notifications/notification-cent
 export default function NotificationsPage() {
   return (
     <div className="flex flex-1 flex-col gap-4 p-4 md:gap-6 md:p-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold md:text-3xl">Notifications</h1>
-      </div>
-
-      <div className="grid gap-4 md:gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Notification Center</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <NotificationCenter />
-          </CardContent>
-        </Card>
-      </div>
+       <NotificationCenter />     
     </div>
   );
 }
