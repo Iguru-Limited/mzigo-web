@@ -346,8 +346,13 @@ export async function downloadReceipt(data: ReceiptData): Promise<void> {
   // Use simplified HTML without external styles
   const html = await generateReceiptHtmlForPdf(data);
   
-  // Create a temporary container
+  // Create a temporary container and isolate it from global CSS to avoid
+  // parsing issues (e.g. lab() color functions coming from global styles).
   const container = document.createElement("div");
+  // Reset all inherited properties inside the container so external CSS
+  // (Tailwind / dev HMR styles) cannot leak in and produce unsupported
+  // computed color values that html2canvas may choke on.
+  container.style.all = "initial";
   container.innerHTML = html;
   container.style.position = "absolute";
   container.style.left = "-9999px";
@@ -355,19 +360,35 @@ export async function downloadReceipt(data: ReceiptData): Promise<void> {
   container.style.width = "210mm";
   container.style.backgroundColor = "white";
   container.style.color = "black";
+  container.style.fontFamily = "monospace, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace";
   
   document.body.appendChild(container);
   
   try {
-    // Convert HTML to canvas with basic options
-    const canvas = await html2canvas(container, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: "#ffffff",
-      allowTaint: true,
-      removeContainer: false,
-    });
+    // Convert HTML to canvas with basic options. Wrap in try/catch so we can
+    // provide a graceful fallback if html2canvas fails to parse computed styles
+    // (the lab() color-function error seen in dev environments).
+    let canvas;
+    try {
+      canvas = await html2canvas(container, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: "#ffffff",
+        allowTaint: true,
+        removeContainer: false,
+      });
+    } catch (html2canvasErr) {
+      console.error("html2canvas failed, falling back to open-in-new-window:", html2canvasErr);
+      // Fallback: open the generated HTML in a new window so user can Save as PDF / Print
+      const blob = new Blob([html], { type: "text/html" });
+      const url = URL.createObjectURL(blob);
+      const w = window.open(url, "_blank");
+      if (!w) throw html2canvasErr;
+      // Revoke the object URL after a short delay so the window can still access it.
+      setTimeout(() => URL.revokeObjectURL(url), 5000);
+      return;
+    }
     
     // Create PDF
     const pdf = new jsPDF({
