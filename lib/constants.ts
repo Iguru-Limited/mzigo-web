@@ -46,6 +46,7 @@ export const API_ENDPOINTS = {
   CREATE_NOTIFICATION:'/notify/manage.php',
   LIST_EXPRESS_PACKAGE:'/express_mzigo/list.php',
   VERIFY_EXPRESS_PACKAGE:'/express_mzigo/verify.php',
+  PUBLIC_RECIPTS:'/mzigo/public_receipt.php',
 } as const;
 
 /**

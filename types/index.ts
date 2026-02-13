@@ -26,6 +26,11 @@ export type {
   ReceiptFormatJson,
 } from "./operations/receipt";
 export type {
+  PublicReceiptData,
+  PublicReceiptResponse,
+  ReceiptLine,
+} from "./operations/public-receipt";
+export type {
   SyncQueueItem,
   OfflineMzigo,
   CachedData,
