@@ -82,10 +82,11 @@ export async function generateReceiptHtmlForPdf(data: ReceiptData): Promise<stri
   const isOfflineReceipt = data.receipt_number?.startsWith("OFFLINE-");
   if (data.package_token && !isOfflineReceipt) {
     try {
-      const qrDataUrl = await generateQRCodeDataUrl(data.package_token, 120);
+      // Smaller QR code for PDF to reduce file size (100px instead of 120px)
+      const qrDataUrl = await generateQRCodeDataUrl(data.package_token, 100);
       qrCodeHtml = `
         <div style="text-align: center; margin-top: 12px; padding-top: 8px; border-top: 1px dashed #000; page-break-inside: avoid; width: 100%; display: flex; justify-content: center;">
-          <img src="${qrDataUrl}" alt="Package QR Code" style="width: 120px; height: 120px; display: block; image-rendering: crisp-edges;" />
+          <img src="${qrDataUrl}" alt="Package QR Code" style="width: 100px; height: 100px; display: block; image-rendering: crisp-edges;" />
         </div>
       `;
     } catch (error) {
@@ -355,32 +356,29 @@ export async function downloadReceipt(data: ReceiptData): Promise<void> {
     position: "absolute",
     left: "-9999px",
     top: "0",
-    width: "210mm",
+    width: "auto",
     backgroundColor: "white",
     color: "black",
-    all: "initial", // Reset all inherited styles
-    contain: "layout style paint", // Prevent style inheritance
+    all: "initial",
+    padding: "0",
+    margin: "0",
   });
-  
-  // Reapply necessary properties after 'all: initial'
-  container.style.position = "absolute";
-  container.style.left = "-9999px";
-  container.style.top = "0";
-  container.style.width = "210mm";
   
   document.body.appendChild(container);
   
   try {
-    // Convert HTML to canvas with basic options
+    // Wait for any images to load
+    await new Promise(resolve => setTimeout(resolve, 300));
+    
+    // Convert HTML to canvas - capture full content height
     const canvas = await html2canvas(container, {
-      scale: 2,
+      scale: 1.5,
       useCORS: true,
       logging: false,
       backgroundColor: "#ffffff",
       allowTaint: true,
       removeContainer: false,
       ignoreElements: (el) => {
-        // Ignore Tailwind/style elements from page
         return el.tagName === 'SCRIPT' || el.tagName === 'LINK';
       },
     });
@@ -390,13 +388,32 @@ export async function downloadReceipt(data: ReceiptData): Promise<void> {
       orientation: "portrait",
       unit: "mm",
       format: "a4",
+      compress: true,
     });
     
-    const imgWidth = 210; // A4 width in mm
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 5;
+    const imgWidth = pageWidth - (margin * 2);
     const imgHeight = (canvas.height * imgWidth) / canvas.width;
+    const maxHeightPerPage = pageHeight - (margin * 2);
     
-    const imgData = canvas.toDataURL("image/png");
-    pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+    // Convert canvas to JPEG for smaller file size
+    const imgData = canvas.toDataURL("image/jpeg", 0.85);
+    
+    // Add image - it will fit on first page
+    pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, imgHeight);
+    
+    // Add additional pages if needed
+    if (imgHeight > maxHeightPerPage) {
+      const pagesNeeded = Math.ceil(imgHeight / maxHeightPerPage);
+      for (let i = 1; i < pagesNeeded; i++) {
+        pdf.addPage();
+        // Position image so it continues from previous page
+        const offsetY = margin - (i * maxHeightPerPage);
+        pdf.addImage(imgData, "JPEG", margin, offsetY, imgWidth, imgHeight);
+      }
+    }
     
     // Trigger download
     pdf.save(`receipt-${data.receipt_number}.pdf`);
