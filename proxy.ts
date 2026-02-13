@@ -7,7 +7,17 @@ export async function proxy(request: NextRequest) {
 
   // Define public routes that don't require authentication
   // Include static assets like the logo so they can load on the login page
-  const publicRoutes = ['/login', '/forgot-password', '/api/auth', '/logo.jpg', '/logo1.jpg'];
+  // Allow public receipt access (Next.js page + API + legacy PHP endpoint)
+  const publicRoutes = [
+    '/login',
+    '/forgot-password',
+    '/api/auth',
+    '/api/public',
+    '/public',
+    '/mzigo/public_receipt.php',
+    '/logo.jpg',
+    '/logo1.jpg',
+  ];
   
   // Check if the current path is public
   const isPublicRoute = publicRoutes.some(route => 

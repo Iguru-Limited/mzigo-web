@@ -1,5 +1,4 @@
 import useSWR from "swr";
-import { API_BASE_URL, API_ENDPOINTS } from "@/lib/constants";
 import type { PublicReceiptResponse } from "@/types/operations/public-receipt";
 
 const fetcher = async (url: string) => {
