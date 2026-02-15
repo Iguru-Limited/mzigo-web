@@ -2,11 +2,11 @@
 
 import { useSearchParams } from "next/navigation";
 import { usePublicReceipt } from "@/hooks/public/use-public-receipt";
-import { Button } from "@/components/ui/button";
+// import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
-import { downloadReceipt } from "@/lib/receipt";
-import { toast } from "sonner";
+// import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+// import { downloadReceipt } from "@/lib/receipt";
+// import { toast } from "sonner";
 
 export default function PublicReceiptPage() {
   const searchParams = useSearchParams();
@@ -14,22 +14,22 @@ export default function PublicReceiptPage() {
 
   const { receipt, isLoading, error } = usePublicReceipt(token);
 
-  const handleDownload = async () => {
-    if (!receipt) return;
-    try {
-      await downloadReceipt({
-        id: receipt.id,
-        receipt_number: receipt.receipt_number,
-        receipt: receipt.receipt as any,
-        s_date: receipt.s_date,
-        s_time: receipt.s_time,
-        package_token: receipt.package_token,
-      });
-      toast.success("Receipt downloaded");
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to download receipt");
-    }
-  };
+  // const handleDownload = async () => {
+  //   if (!receipt) return;
+  //   try {
+  //     await downloadReceipt({
+  //       id: receipt.id,
+  //       receipt_number: receipt.receipt_number,
+  //       receipt: receipt.receipt as any,
+  //       s_date: receipt.s_date,
+  //       s_time: receipt.s_time,
+  //       package_token: receipt.package_token,
+  //     });
+  //     toast.success("Receipt downloaded");
+  //   } catch (err) {
+  //     toast.error(err instanceof Error ? err.message : "Failed to download receipt");
+  //   }
+  // };
 
   if (!token) {
     return (
@@ -114,12 +114,12 @@ export default function PublicReceiptPage() {
               })}
             </div>
           </div>
-          <div className="flex items-center justify-center">
+          {/* <div className="flex items-center justify-center">
             <Button onClick={handleDownload} className="gap-2">
               <ArrowDownTrayIcon className="h-4 w-4" />
               Download
             </Button>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
