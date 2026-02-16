@@ -13,11 +13,12 @@ export async function GET(request: NextRequest) {
     const url = new URL(request.url);
     const startDate = url.searchParams.get("start_date");
     const endDate = url.searchParams.get("end_date");
+    const userId = url.searchParams.get("user_id");
 
     // Validate required parameters
-    if (!startDate || !endDate) {
+    if (!startDate || !endDate || !userId) {
       return NextResponse.json(
-        { error: "Missing required parameters: start_date, end_date" },
+        { error: "Missing required parameters: start_date, end_date, user_id" },
         { status: 400 }
       );
     }
@@ -26,6 +27,7 @@ export async function GET(request: NextRequest) {
     const upstreamUrl = new URL(getApiUrl(API_ENDPOINTS.ATTENDANT_STATS));
     upstreamUrl.searchParams.set("start_date", startDate);
     upstreamUrl.searchParams.set("end_date", endDate);
+    upstreamUrl.searchParams.set("user_id", userId);
 
     const response = await fetch(upstreamUrl.toString(), {
       method: "GET",

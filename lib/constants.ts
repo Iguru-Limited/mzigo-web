@@ -47,6 +47,7 @@ export const API_ENDPOINTS = {
   LIST_EXPRESS_PACKAGE:'/express_mzigo/list.php',
   VERIFY_EXPRESS_PACKAGE:'/express_mzigo/verify.php',
   PUBLIC_RECIPTS:'/mzigo/public_receipt.php',
+  LIST_ATTENDANTS:'/user/list.php',
 } as const;
 
 /**
@@ -91,4 +92,5 @@ export const {
   CREATE_NOTIFICATION,
   LIST_EXPRESS_PACKAGE,
   VERIFY_EXPRESS_PACKAGE,
+  LIST_ATTENDANTS,
 } = API_ENDPOINTS;

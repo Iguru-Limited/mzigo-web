@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
-import { useAttendantStats } from "@/hooks/mzigo";
+import { useAttendantStats, useAttendants } from "@/hooks/mzigo";
 import type { AttendantStatsParams } from "@/types/operations/attendant-stats";
 import { ChevronLeft, ChevronRight, Calendar, Banknote, CreditCard, DollarSign } from "lucide-react";
 
@@ -39,20 +40,37 @@ function getPaymentIcon(method: string) {
 
 export function ReportViewer() {
   const [selectedDate, setSelectedDate] = useState<string>(today());
-  const [activeFilters, setActiveFilters] = useState<AttendantStatsParams | null>({
-    start_date: today(),
-    end_date: today(),
-  });
+  const [selectedAttendantId, setSelectedAttendantId] = useState<string | null>(null);
+  const [activeFilters, setActiveFilters] = useState<AttendantStatsParams | null>(null);
   const dateInputRef = useRef<HTMLInputElement>(null);
 
+  const { data: attendants, isLoading: attendantsLoading, error: attendantsError } = useAttendants();
   const { data, isLoading, error } = useAttendantStats(activeFilters);
+
+  useEffect(() => {
+    if (!selectedAttendantId && attendants.length > 0) {
+      setSelectedAttendantId(attendants[0].id);
+    }
+  }, [attendants, selectedAttendantId]);
+
+  useEffect(() => {
+    if (!selectedAttendantId) {
+      setActiveFilters(null);
+      return;
+    }
+
+    setActiveFilters({
+      start_date: selectedDate,
+      end_date: selectedDate,
+      user_id: selectedAttendantId,
+    });
+  }, [selectedDate, selectedAttendantId]);
 
   const handlePreviousDay = () => {
     const date = new Date(selectedDate + "T00:00:00");
     date.setDate(date.getDate() - 1);
     const newDate = toLocalISO(date);
     setSelectedDate(newDate);
-    setActiveFilters({ start_date: newDate, end_date: newDate });
   };
 
   const handleNextDay = () => {
@@ -60,20 +78,17 @@ export function ReportViewer() {
     date.setDate(date.getDate() + 1);
     const newDate = toLocalISO(date);
     setSelectedDate(newDate);
-    setActiveFilters({ start_date: newDate, end_date: newDate });
   };
 
   const handleJumpToToday = () => {
     const todayDate = today();
     setSelectedDate(todayDate);
-    setActiveFilters({ start_date: todayDate, end_date: todayDate });
   };
 
   const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newDate = e.target.value;
     if (newDate) {
       setSelectedDate(newDate);
-      setActiveFilters({ start_date: newDate, end_date: newDate });
     }
   };
 
@@ -139,6 +154,37 @@ export function ReportViewer() {
             <Calendar className="w-4 h-4" />
             Jump to Today
           </Button>
+        )}
+      </div>
+
+      {/* Attendant Selector */}
+      <div className="space-y-2">
+        <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wide">ATTENDANTS</h3>
+        {attendantsLoading && <Skeleton className="h-8 w-full" />}
+        {attendantsError && (
+          <p className="text-sm text-red-600">{attendantsError.message || "Failed to load attendants"}</p>
+        )}
+        {!attendantsLoading && !attendantsError && attendants.length > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {attendants.map((attendant) => {
+              const isActive = attendant.id === selectedAttendantId;
+              return (
+                <Badge
+                  key={attendant.id}
+                  asChild
+                  variant={isActive ? "default" : "outline"}
+                  className="cursor-pointer"
+                >
+                  <button type="button" onClick={() => setSelectedAttendantId(attendant.id)}>
+                    {attendant.name}
+                  </button>
+                </Badge>
+              );
+            })}
+          </div>
+        )}
+        {!attendantsLoading && !attendantsError && attendants.length === 0 && (
+          <p className="text-sm text-gray-500">No attendants found for this office.</p>
         )}
       </div>
 

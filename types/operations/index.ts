@@ -17,6 +17,7 @@ export type {
   ReportSummary,
   PaymentBreakdown,
 } from "./attendant-stats";
+export type { Attendant, AttendantListResponse } from "./attendants";
 export type {
   TextSize,
   ReceiptItem,

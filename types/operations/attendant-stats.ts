@@ -30,4 +30,5 @@ export interface AttendantStatsResponse {
 export interface AttendantStatsParams {
   start_date: string;
   end_date: string;
+  user_id: string;
 }
