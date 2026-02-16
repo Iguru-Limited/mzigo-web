@@ -21,6 +21,7 @@ export async function GET(request: NextRequest) {
     const startDate = url.searchParams.get("start_date");
     const endDate = url.searchParams.get("end_date");
     const destinationId = url.searchParams.get("destination_id");
+    const userId = url.searchParams.get("user_id");
 
     // Validate required parameters
     if (!type || !startDate || !endDate) {
@@ -46,6 +47,10 @@ export async function GET(request: NextRequest) {
     
     if (destinationId) {
       upstreamUrl.searchParams.set("stage_id", destinationId);
+    }
+
+    if (userId) {
+      upstreamUrl.searchParams.set("user_id", userId);
     }
 
     const response = await fetch(upstreamUrl.toString(), {

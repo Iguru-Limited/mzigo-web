@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Empty, EmptyHeader, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useBrowseMzigo } from "@/hooks/mzigo";
+import { useBrowseMzigo, useAttendants } from "@/hooks/mzigo";
 import { useDestinations } from "@/hooks/data";
 import type { BrowseMzigoItem, BrowseMzigoParams, TrafficType } from "@/types/operations/browse-mzigo";
 import { Search, Calendar, MapPin, Package } from "lucide-react";
@@ -24,10 +25,12 @@ export function MzigoBrowser() {
   const [trafficType, setTrafficType] = useState<TrafficType>("outgoing");
   const [selectedDate, setSelectedDate] = useState(today());
   const [destinationId, setDestinationId] = useState("");
+  const [selectedAttendantId, setSelectedAttendantId] = useState<string | null>(null);
   const [activeFilters, setActiveFilters] = useState<BrowseMzigoParams | null>(null);
 
   const { data, count, dateRange, type, isLoading, error } = useBrowseMzigo(activeFilters);
   const { data: destinations, isLoading: loadingDestinations } = useDestinations();
+  const { data: attendants, isLoading: attendantsLoading, error: attendantsError } = useAttendants();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,6 +41,9 @@ export function MzigoBrowser() {
     };
     if (destinationId) {
       params.destination_id = destinationId;
+    }
+    if (selectedAttendantId) {
+      params.user_id = selectedAttendantId;
     }
     setActiveFilters(params);
   };
@@ -105,8 +111,7 @@ export function MzigoBrowser() {
               </div>
               <p className="text-xs text-gray-500 mt-1">{formatDate(selectedDate)}</p>
             </div>
-
-            {/* Destination Filter */}
+ {/* Destination Filter */}
             <div>
               <label className="text-sm text-gray-700 mb-2 block">Destination</label>
               <div className="relative">
@@ -126,6 +131,44 @@ export function MzigoBrowser() {
                 </select>
               </div>
             </div>
+            {/* Attendant Filter */}
+            <div>
+              <label className="text-sm text-gray-700 mb-2 block">Attendants</label>
+              {attendantsLoading && <Skeleton className="h-8 w-full" />}
+              {attendantsError && (
+                <p className="text-xs text-red-600">{attendantsError.message || "Failed to load attendants"}</p>
+              )}
+              {!attendantsLoading && !attendantsError && (
+                <div className="flex flex-wrap gap-2">
+                  <Badge
+                    asChild
+                    variant={selectedAttendantId ? "outline" : "default"}
+                    className="cursor-pointer"
+                  >
+                    <button type="button" onClick={() => setSelectedAttendantId(null)}>
+                      All
+                    </button>
+                  </Badge>
+                  {attendants.map((attendant) => {
+                    const isActive = attendant.id === selectedAttendantId;
+                    return (
+                      <Badge
+                        key={attendant.id}
+                        asChild
+                        variant={isActive ? "default" : "outline"}
+                        className="cursor-pointer"
+                      >
+                        <button type="button" onClick={() => setSelectedAttendantId(attendant.id)}>
+                          {attendant.name}
+                        </button>
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+           
           </div>
         </div>
 

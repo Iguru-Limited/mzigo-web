@@ -61,4 +61,5 @@ export interface BrowseMzigoParams {
   start_date: string;
   end_date: string;
   destination_id?: string;
+  user_id?: string;
 }
