@@ -9,8 +9,8 @@ import type {
 
 export function useAttendantStats(params: AttendantStatsParams | null) {
   // Build query string from params
-  const key = params 
-    ? `/api/mzigo/report?start_date=${params.start_date}&end_date=${params.end_date}&user_id=${encodeURIComponent(String(params.user_id))}`
+  const key = params
+    ? `/api/mzigo/report?start_date=${params.start_date}&end_date=${params.end_date}${params.user_id ? `&user_id=${encodeURIComponent(String(params.user_id))}` : ""}`
     : null;
 
   const fetcher = async (url: string): Promise<AttendantStatsData> => {

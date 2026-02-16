@@ -48,21 +48,10 @@ export function ReportViewer() {
   const { data, isLoading, error } = useAttendantStats(activeFilters);
 
   useEffect(() => {
-    if (!selectedAttendantId && attendants.length > 0) {
-      setSelectedAttendantId(attendants[0].id);
-    }
-  }, [attendants, selectedAttendantId]);
-
-  useEffect(() => {
-    if (!selectedAttendantId) {
-      setActiveFilters(null);
-      return;
-    }
-
     setActiveFilters({
       start_date: selectedDate,
       end_date: selectedDate,
-      user_id: selectedAttendantId,
+      ...(selectedAttendantId ? { user_id: selectedAttendantId } : {}),
     });
   }, [selectedDate, selectedAttendantId]);
 
@@ -164,8 +153,17 @@ export function ReportViewer() {
         {attendantsError && (
           <p className="text-sm text-red-600">{attendantsError.message || "Failed to load attendants"}</p>
         )}
-        {!attendantsLoading && !attendantsError && attendants.length > 0 && (
+        {!attendantsLoading && !attendantsError && (
           <div className="flex flex-wrap gap-2">
+            <Badge
+              asChild
+              variant={selectedAttendantId ? "outline" : "default"}
+              className="cursor-pointer"
+            >
+              <button type="button" onClick={() => setSelectedAttendantId(null)}>
+                All
+              </button>
+            </Badge>
             {attendants.map((attendant) => {
               const isActive = attendant.id === selectedAttendantId;
               return (
@@ -182,9 +180,6 @@ export function ReportViewer() {
               );
             })}
           </div>
-        )}
-        {!attendantsLoading && !attendantsError && attendants.length === 0 && (
-          <p className="text-sm text-gray-500">No attendants found for this office.</p>
         )}
       </div>
 
