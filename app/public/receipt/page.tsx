@@ -1,35 +1,41 @@
 "use client";
 
+import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { usePublicReceipt } from "@/hooks/public/use-public-receipt";
-// import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/button";
 import { Spinner } from "@/components/ui/spinner";
-// import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
-// import { downloadReceipt } from "@/lib/receipt";
-// import { toast } from "sonner";
+import { ArrowDownTrayIcon } from "@heroicons/react/24/outline";
+import { downloadReceipt } from "@/lib/receipt";
+import { toast } from "sonner";
 
 export default function PublicReceiptPage() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
+  const [isDownloading, setIsDownloading] = useState(false);
 
   const { receipt, isLoading, error } = usePublicReceipt(token);
 
-  // const handleDownload = async () => {
-  //   if (!receipt) return;
-  //   try {
-  //     await downloadReceipt({
-  //       id: receipt.id,
-  //       receipt_number: receipt.receipt_number,
-  //       receipt: receipt.receipt as any,
-  //       s_date: receipt.s_date,
-  //       s_time: receipt.s_time,
-  //       package_token: receipt.package_token,
-  //     });
-  //     toast.success("Receipt downloaded");
-  //   } catch (err) {
-  //     toast.error(err instanceof Error ? err.message : "Failed to download receipt");
-  //   }
-  // };
+  const handleDownload = async () => {
+    if (!receipt || isDownloading) return;
+
+    setIsDownloading(true);
+    try {
+      await downloadReceipt({
+        id: receipt.id,
+        receipt_number: receipt.receipt_number,
+        receipt: receipt.receipt,
+        s_date: receipt.s_date,
+        s_time: receipt.s_time,
+        package_token: receipt.package_token,
+      });
+      toast.success("Receipt downloaded");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Failed to download receipt");
+    } finally {
+      setIsDownloading(false);
+    }
+  };
 
   if (!token) {
     return (
@@ -91,7 +97,7 @@ export default function PublicReceiptPage() {
           </div>
 
           {/* Receipt Content */}
-          <div className="bg-white rounded-lg p-8 shadow-sm border w-fit mx-auto overflow-auto text-left">
+          <div className="bg-white rounded-lg p-8 shadow-sm border w-full max-w-full 2xl:max-w-xl mx-auto text-left">
             <div className="space-y-0">
               {receipt.receipt.map((line, idx) => {
                 const fontSize =
@@ -101,7 +107,7 @@ export default function PublicReceiptPage() {
                 return (
                   <div
                     key={idx}
-                    className="whitespace-pre font-mono"
+                    className="whitespace-pre-wrap wrap-anywhere font-mono"
                     style={{
                       fontSize,
                       fontWeight,
@@ -114,12 +120,12 @@ export default function PublicReceiptPage() {
               })}
             </div>
           </div>
-          {/* <div className="flex items-center justify-center">
-            <Button onClick={handleDownload} className="gap-2">
+          <div className="flex items-center justify-center">
+            <Button onClick={handleDownload} className="gap-2" disabled={isDownloading}>
               <ArrowDownTrayIcon className="h-4 w-4" />
-              Download
+              {isDownloading ? "Preparing PDF..." : "Download PDF"}
             </Button>
-          </div> */}
+          </div>
         </div>
       </div>
     </div>

@@ -1,5 +1,6 @@
 import { ReceiptData, ReceiptItem } from "@/types/operations/receipt";
 import { generateQRCodeDataUrl } from "./qr-utils";
+import { downloadReceiptPdf } from "./receipt-pdf";
 
 // Paper width options for thermal printers
 export type PaperWidth = "58mm" | "80mm";
@@ -358,88 +359,5 @@ export async function generateBridgeReceiptHtml(
 }
 
 export async function downloadReceipt(data: ReceiptData): Promise<void> {
-  const { jsPDF } = await import("jspdf");
-  const html2canvas = (await import("html2canvas")).default;
-  
-  // Use simplified HTML without external styles
-  const html = await generateReceiptHtmlForPdf(data);
-  
-  // Create a temporary container isolated from page styles
-  const container = document.createElement("div");
-  container.innerHTML = html;
-  
-  // Isolate from Tailwind/global styles to avoid lab() color parsing errors
-  // Use fixed width (80mm for A4-ish receipt width) so mobile doesn't add extra pages
-  Object.assign(container.style, {
-    position: "absolute",
-    left: "-9999px",
-    top: "0",
-    width: "180mm", // Fixed A4 width to prevent mobile from creating extra pages
-    backgroundColor: "white",
-    color: "black",
-    all: "initial",
-    padding: "0",
-    margin: "0",
-    boxSizing: "border-box",
-  });
-  
-  document.body.appendChild(container);
-  
-  try {
-    // Wait for any images to load
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
-    // Convert HTML to canvas - capture full content height with high quality
-    const canvas = await html2canvas(container, {
-      scale: 2, // High quality for good output
-      useCORS: true,
-      logging: false,
-      backgroundColor: "#ffffff",
-      allowTaint: true,
-      removeContainer: false,
-      ignoreElements: (el) => {
-        return el.tagName === 'SCRIPT' || el.tagName === 'LINK';
-      },
-    });
-    
-    // Create PDF
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-      compress: true,
-    });
-    
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    const pageHeight = pdf.internal.pageSize.getHeight();
-    const margin = 5;
-    const imgWidth = pageWidth - (margin * 2);
-    const imgHeight = (canvas.height * imgWidth) / canvas.width;
-    const maxHeightPerPage = pageHeight - (margin * 2);
-    
-    // Convert canvas to JPEG for better quality (90% instead of 85%)
-    const imgData = canvas.toDataURL("image/jpeg", 0.90);
-    
-    // Add image - it will fit on first page
-    pdf.addImage(imgData, "JPEG", margin, margin, imgWidth, imgHeight);
-    
-    // Add additional pages if needed
-    if (imgHeight > maxHeightPerPage) {
-      const pagesNeeded = Math.ceil(imgHeight / maxHeightPerPage);
-      for (let i = 1; i < pagesNeeded; i++) {
-        pdf.addPage();
-        // Position image so it continues from previous page
-        const offsetY = margin - (i * maxHeightPerPage);
-        pdf.addImage(imgData, "JPEG", margin, offsetY, imgWidth, imgHeight);
-      }
-    }
-    
-    // Trigger download
-    pdf.save(`receipt-${data.receipt_number}.pdf`);
-  } finally {
-    // Clean up
-    if (container.parentNode) {
-      document.body.removeChild(container);
-    }
-  }
+  await downloadReceiptPdf(data);
 }
