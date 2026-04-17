@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import { signIn, useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -21,6 +22,7 @@ export function LoginForm({
 }: React.ComponentProps<"div">) {
   const [idNumber, setIdNumber] = useState("");
   const [passPhrase, setPassPhrase] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -134,16 +136,27 @@ export function LoginForm({
                     <div className="flex items-center">
                       <FieldLabel htmlFor="passPhrase" className="text-base">Password</FieldLabel>
                     </div>
-                    <Input
-                      id="passPhrase"
-                      type="password"
-                      placeholder="*********"
-                      value={passPhrase}
-                      onChange={(e) => setPassPhrase(e.target.value)}
-                      disabled={isLoading}
-                      required
-                      className="py-3 text-lg"
-                    />
+                    <div className="relative">
+                      <Input
+                        id="passPhrase"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="*********"
+                        value={passPhrase}
+                        onChange={(e) => setPassPhrase(e.target.value)}
+                        disabled={isLoading}
+                        required
+                        className="py-3 pr-10 text-lg"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword((prev) => !prev)}
+                        className="text-muted-foreground hover:text-foreground absolute inset-y-0 right-0 flex items-center px-3"
+                        aria-label={showPassword ? "Hide password" : "Show password"}
+                        disabled={isLoading}
+                      >
+                        {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                      </button>
+                    </div>
                   </Field>
                   <Field>
                     <Button type="submit" disabled={isLoading} className="bg-[#242123]">
